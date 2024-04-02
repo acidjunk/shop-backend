@@ -1,0 +1,19 @@
+<mjml>
+  <mj-body background-color="#fff">
+    <mj-section>
+      <mj-column>
+        <mj-divider border-color="#555"></mj-divider>
+        <mj-text font-size="20px" color="#555" font-family="helvetica">{{ shop_name }} - Product Download for
+            {{ email }}</mj-text>
+        <mj-text font-size="16px" color="#555">Thank you for your purchase!</mj-text>
+        <mj-text font-size="16px" color="#555">Click the button below to download your product:</mj-text>
+        <mj-button padding="50px 0px" href="{{ link }}">Download</mj-button>
+        <mj-text font-size="16px" color="#555">Or open the following link:</mj-text>
+        <mj-text font-size="16px" color="#555"><a href="{{ link }}">{{ link }}</a></mj-text>
+        <mj-divider border-color="#555" border-width="2px" />
+        <mj-text font-size="14px" color="#555">The download link / button will expire in {{ valid_days }} days.</mj-text>
+        <mj-text font-size="14px" color="#555">If you didn't make a purchase, you can disregard this email.</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

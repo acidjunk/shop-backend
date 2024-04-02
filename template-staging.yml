@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "Staging API environment for prijslijst.info"
+Resources:
+    ApiStagingPrijslijstInfoLambda:
+        Type: AWS::Serverless::Function
+        Properties:
+            Events:
+                ApiEvent:
+                    Properties:
+                        RestApiId:
+                            Ref: ApiStagingPrijslijstInfo
+                        Path: /{proxy+}
+                        Method: ANY
+                    Type: Api
+            FunctionName: api-staging-prijslijst-info
+            CodeUri: ./
+            Handler: server.main.handler
+            Runtime: python3.9
+            Timeout: 300 # timeout of your lambda function
+            MemorySize: 128 # memory size of your lambda function
+            Description: Staging API environment for Pricelist
+            # other options, see ->
+            # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html#sam-specification-template-anatomy-globals-supported-resources-and-properties
+            Role: !Sub arn:aws:iam::${AWS::AccountId}:role/api-staging-prijslijst-info
+
+    ApiStagingPrijslijstInfo:
+        Type: AWS::Serverless::Api
+        Properties:
+            StageName: backend
+            OpenApiVersion: '3.0.1'
