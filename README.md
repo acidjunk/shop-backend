@@ -156,3 +156,10 @@ Set up the ENV var for FIRST_USER and run this command:
 ```bash
 PYTHONPATH=. python server/create_initial_user.py
 ```
+
+# License and copyright info
+
+Copyright (C) 2019 René Dohmen acidjunk@gmail.com
+
+Licensed under the Apache License Version 2.0. A copy of the LICENSE is included in the project.
+The LICENSE copy also contains more detailed copyright info.

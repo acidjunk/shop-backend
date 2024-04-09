@@ -1,3 +1,6 @@
+   Copyright 2024 Workflow Orchestrator Project
+
+
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -199,20 +202,3 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-
-   ========================================================================
-   Third party Apache 2.0 licenses
-   ========================================================================
-
-   The following components are provided under the Apache 2.0 License.
-   See project link for details. The text of each license is also included
-   at licenses/LICENSE-[project].txt.
-
-       - UtcTimestamp class from Workflow Orchestrator Project
-           (https://github.com/workfloworchestrator/orchestrator-core/)
-       - Some pytest fixtures, including: db_session, database, db_uri, run-migrations
-           from Workflow Orchestrator Project
-           (https://github.com/workfloworchestrator/orchestrator-core/)
-       - JSON (de)serialisation for DB query's and SQLAlchemy boilerplate
-           from Workflow Orchestrator Project
-           (https://github.com/workfloworchestrator/orchestrator-core/)
