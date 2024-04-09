@@ -208,11 +208,11 @@
    See project link for details. The text of each license is also included
    at licenses/LICENSE-[project].txt.
 
-       - UtcTimestamp class from Workflow Orchestrator Project
+       - UtcTimestamp class from Orchestrator Core
            (https://github.com/workfloworchestrator/orchestrator-core/)
        - Some pytest fixtures, including: db_session, database, db_uri, run-migrations
-           from Workflow Orchestrator Project
+           from Orchestrator Core
            (https://github.com/workfloworchestrator/orchestrator-core/)
        - JSON (de)serialisation for DB query's and SQLAlchemy boilerplate
-           from Workflow Orchestrator Project
+           from Orchestrator Core
            (https://github.com/workfloworchestrator/orchestrator-core/)

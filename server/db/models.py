@@ -128,22 +128,10 @@ class UsersTable(BaseModel):
     @property
     def is_superuser(self):
         """Returns `True` if the user is a member of the admin role."""
-        print(self.roles)
         for role in self.roles:
             if role.name == "admin":
                 return True
         return False
-
-
-class Tag(BaseModel):
-    __tablename__ = "tags"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    name = Column(String(60), unique=True, index=True)
-
-    kinds_to_tags = relationship("ProductToTag", cascade="save-update, merge, delete")
-
-    def __repr__(self):
-        return self.name
 
 
 class Shop(BaseModel):
@@ -159,27 +147,27 @@ class Shop(BaseModel):
         return self.name
 
 
-class Table(BaseModel):
-    __tablename__ = "shop_tables"
+class Tag(BaseModel):
+    __tablename__ = "tags"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    name = Column(String(255))
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
+    name = Column(String(60), unique=True, index=True)
+
     shop = relationship("Shop", lazy=True)
+    products_to_tags = relationship("ProductToTag", cascade="save-update, merge, delete")
 
     def __repr__(self):
         return f"{self.shop.name}: {self.name}"
 
 
-class MainCategory(BaseModel):
-    __tablename__ = "main_categories"
+class Account(BaseModel):
+    __tablename__ = "shop_accounts"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    name = Column(String(255))
-    name_en = Column(String(255), nullable=True)
-    icon = Column(String(60), nullable=True)
-    description = Column(String(255), unique=True, index=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
+    name = Column(String(255))
+    # Todo: add a md5 repr of the name, so e-mail can safely be used as an identifer?
+
     shop = relationship("Shop", lazy=True)
-    order_number = Column(Integer, default=0)
 
     def __repr__(self):
         return f"{self.shop.name}: {self.name}"
@@ -188,28 +176,20 @@ class MainCategory(BaseModel):
 class Category(BaseModel):
     __tablename__ = "categories"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    main_category_id = Column(
-        "main_category_id", UUID(as_uuid=True), ForeignKey("main_categories.id"), nullable=True, index=True
-    )
-    main_category = relationship("MainCategory", lazy=True)
     color = Column(String(20), default="#376E1A")
+    # Todo: deal with translation in a correct way
     name = Column(String(255))
-    name_en = Column(String(255), nullable=True)
-    icon = Column(String(60), nullable=True)
     description = Column(String(255), unique=True, index=True)
+    icon = Column(String(60), nullable=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = relationship("Shop", lazy=True)
     order_number = Column(Integer, default=0)
     image_1 = Column(String(255), unique=True, index=True)
     image_2 = Column(String(255), unique=True, index=True)
-    pricelist_column = Column(String, nullable=True)
-    pricelist_row = Column(Integer, default=0)
-
-    shops_to_price = relationship("ShopToPrice", cascade="save-update, merge, delete")
 
     def __repr__(self):
-        main_category = self.main_category.name if self.main_category_id else "NO_MAIN"
-        return f"{self.shop.name}: {main_category}: {self.name}"
+        return f"{self.shop.name}: {self.name}"
+
 
 class Order(BaseModel):
     __tablename__ = "orders"
@@ -246,18 +226,14 @@ class ProductToTag(BaseModel):
 class ProductsTable(BaseModel):
     __tablename__ = "products"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+
+    # Todo: deal with multilingual content
     name = Column(String(255), index=True)
-    short_description_nl = Column(String())
-    description_nl = Column(String())
-    short_description_en = Column(String())
-    description_en = Column(String())
+    short_description = Column(String())
+    description = Column(String())
+
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    complete = Column("complete", Boolean(), default=False)
-    approved_at = Column(DateTime)
-    approved = Column("approved", Boolean(), default=False)
-    approved_by = Column("approved_by", UUID(as_uuid=True), ForeignKey("user.id"), nullable=True)
-    disapproved_reason = Column(String())
     image_1 = Column(String(255), unique=True, index=True)
     image_2 = Column(String(255), unique=True, index=True)
     image_3 = Column(String(255), unique=True, index=True)
@@ -266,7 +242,6 @@ class ProductsTable(BaseModel):
     image_6 = Column(String(255), unique=True, index=True)
 
 
-# Todo: Not sure about this ons
 class License(BaseModel):
     __tablename__ = "licenses"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
