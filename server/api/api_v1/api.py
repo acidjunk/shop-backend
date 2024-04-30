@@ -32,7 +32,8 @@ from server.api.api_v1.endpoints import (  # forms,
     # shops_users,
     accounts,
     tags,
-    users, products_to_tags,
+    users,
+    products_to_tags,
 )
 from server.api.api_v1.router_fix import APIRouter
 from server.websockets import chat
