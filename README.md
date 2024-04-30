@@ -1,4 +1,4 @@
-# Pricelist backend
+# Shop backend
 
 A backend for serving pricelists.
 

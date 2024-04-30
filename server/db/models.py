@@ -34,7 +34,7 @@ from server.utils.date_utils import nowtz
 
 logger = structlog.get_logger(__name__)
 
-TAG_LENGTH = 20
+TAG_LENGTH = 100
 STATUS_LENGTH = 255
 
 db = Database(app_settings.DATABASE_URI)
@@ -155,9 +155,20 @@ class Tag(BaseModel):
 
     shop = relationship("Shop", lazy=True)
     products_to_tags = relationship("ProductToTag", cascade="save-update, merge, delete")
+    translations = relationship("TagTranslation", back_populates="tag", uselist=False)
 
     def __repr__(self):
-        return f"{self.shop.name}: {self.name}"
+        return f"{self.shop.name}: {self.translations.main_name}"
+
+
+class TagTranslation(BaseModel):
+    __tablename__ = "tag_translations"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    tag_id = Column("tag_id", UUID(as_uuid=True), ForeignKey("tags.id"))
+    main_name = Column(String(TAG_LENGTH), unique=True, index=True)
+    alt1_name = Column(String(TAG_LENGTH), unique=True, index=True, nullable=False)
+    alt2_name = Column(String(TAG_LENGTH), unique=True, index=True, nullable=False)
+    tag = relationship("Tag", back_populates="translation")
 
 
 class Account(BaseModel):
@@ -178,17 +189,29 @@ class Category(BaseModel):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     color = Column(String(20), default="#376E1A")
     # Todo: deal with translation in a correct way
-    name = Column(String(255))
-    description = Column(String(255), unique=True, index=True)
-    icon = Column(String(60), nullable=True)
+    icon = Column(String(TAG_LENGTH), nullable=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     shop = relationship("Shop", lazy=True)
     order_number = Column(Integer, default=0)
     image_1 = Column(String(255), unique=True, index=True)
     image_2 = Column(String(255), unique=True, index=True)
+    translations = relationship("CategoryTranslation", back_populates="category", uselist=False)
 
     def __repr__(self):
-        return f"{self.shop.name}: {self.name}"
+        return f"{self.shop.name}: {self.translations.main_name}"
+
+
+class CategoryTranslation(BaseModel):
+    __tablename__ = "category_translations"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    category_id = Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id"))
+    main_name = Column(String(255), unique=True, index=True)
+    main_description = Column(String(), unique=True, index=True, nullable=True)
+    alt1_name = Column(String(255), unique=True, index=True, nullable=True)
+    alt1_description = Column(String(), unique=True, index=True, nullable=True)
+    alt2_name = Column(String(255), unique=True, index=True, nullable=True)
+    alt2_description = Column(String(), unique=True, index=True, nullable=True)
+    category = relationship("Category", back_populates="translation")
 
 
 class Order(BaseModel):
@@ -226,24 +249,40 @@ class ProductToTag(BaseModel):
 class ProductsTable(BaseModel):
     __tablename__ = "products"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-
-    # Todo: deal with multilingual content
-    name = Column(String(255), index=True)
-    short_description = Column(String())
-    description = Column(String())
-
-    created_at = Column(DateTime, default=datetime.utcnow)
-    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     image_1 = Column(String(255), unique=True, index=True)
     image_2 = Column(String(255), unique=True, index=True)
     image_3 = Column(String(255), unique=True, index=True)
     image_4 = Column(String(255), unique=True, index=True)
     image_5 = Column(String(255), unique=True, index=True)
     image_6 = Column(String(255), unique=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    translations = relationship("ProductTranslation", back_populates="product", uselist=False)
+
+    def __repr__(self):
+        return f"{self.shop.name}: {self.translations.main_name}"
+
+class ProductTranslation(BaseModel):
+    __tablename__ = "product_translations"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    category_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"))
+    main_name = Column(String(255), unique=True, index=True)
+    main_description = Column(String(), unique=True, index=True)
+    main_description_short = Column(String(), unique=True, index=True, nullable=True )
+    alt1_name = Column(String(255), unique=True, index=True, nullable=True)
+    alt1_description = Column(String(), unique=True, index=True, nullable=True)
+    alt1_description_short = Column(String(), unique=True, index=True, nullable=True)
+    alt2_name = Column(String(255), unique=True, index=True, nullable=True)
+    alt2_description = Column(String(), unique=True, index=True, nullable=True)
+    alt2_description_short = Column(String(), unique=True, index=True, nullable=True)
+
+    product = relationship("Product", back_populates="translation")
 
 
 class License(BaseModel):
     __tablename__ = "licenses"
+    # Todo: determine if we can get rid of the improviser_user and if we need a shop_id
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), nullable=False)
     is_recurring = Column(Boolean, nullable=False)
@@ -254,5 +293,4 @@ class License(BaseModel):
     order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
     order = relationship("Order", lazy=True)
