@@ -12,7 +12,6 @@ from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.api.helpers import invalidateShopCache
 from server.crud.crud_category import category_crud
-from server.crud.crud_shop_to_price import shop_to_price_crud
 from server.schemas.category import (
     CategoryCreate,
     CategoryIsDeletable,
@@ -52,13 +51,13 @@ def get_by_id(id: UUID) -> CategorySchema:
     return category
 
 
-@router.get("/is-deletable/{id}", response_model=CategoryIsDeletable)
-def get_by_id(id: UUID) -> CategoryIsDeletable:
-    shop_to_price = shop_to_price_crud.get_shops_to_prices_by_category(category_id=id)
-    if shop_to_price:
-        return CategoryIsDeletable(is_deletable=False)
-    else:
-        return CategoryIsDeletable(is_deletable=True)
+# @router.get("/is-deletable/{id}", response_model=CategoryIsDeletable)
+# def get_by_id(id: UUID) -> CategoryIsDeletable:
+#     shop_to_price = shop_to_price_crud.get_shops_to_prices_by_category(category_id=id)
+#     if shop_to_price:
+#         return CategoryIsDeletable(is_deletable=False)
+#     else:
+#         return CategoryIsDeletable(is_deletable=True)
 
 
 @router.get("/name/{name}", response_model=CategorySchema)

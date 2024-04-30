@@ -11,35 +11,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from server.schemas.base import BoilerplateBaseModel
 
 
-class FlavorBase(BoilerplateBaseModel):
+class AccountBase(BoilerplateBaseModel):
+    shop_id: UUID
     name: str
-    icon: str
-    color: Optional[str]
 
 
 # Properties to receive via API on creation
-class FlavorCreate(FlavorBase):
+class AccountCreate(AccountBase):
     pass
 
 
 # Properties to receive via API on update
-class FlavorUpdate(FlavorBase):
+class AccountUpdate(AccountBase):
     pass
 
 
-class FlavorInDBBase(FlavorBase):
+class AccountInDBBase(AccountBase):
     id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Additional properties to return via API
-class FlavorSchema(FlavorInDBBase):
+class AccountSchema(AccountInDBBase):
     pass

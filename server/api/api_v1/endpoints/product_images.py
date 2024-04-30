@@ -1,11 +1,9 @@
 from datetime import datetime
 from http import HTTPStatus
-from typing import Any, List
 from uuid import UUID
 
 import structlog
-from fastapi import HTTPException
-from fastapi.param_functions import Body, Depends
+from fastapi.param_functions import Depends
 from starlette.responses import Response
 
 from server.api.api_v1.router_fix import APIRouter
@@ -13,14 +11,10 @@ from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.api.helpers import name_file, upload_file
 from server.crud.crud_product import product_crud
-from server.crud.crud_shop import shop_crud
-from server.db.models import Category, Price, Shop, ShopToPrice
 from server.schemas.product import ProductImageDelete, ProductUpdate
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
-
-# file_upload = reqparse.RequestParser()
 
 
 @router.get("/")

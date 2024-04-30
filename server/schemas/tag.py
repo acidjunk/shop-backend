@@ -35,7 +35,7 @@ class TagInDBBase(TagBase):
     id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Additional properties to return via API

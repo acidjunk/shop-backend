@@ -11,12 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from server.crud.base import CRUDBase
-from server.db.models import Table
-from server.schemas.table import TableCreate, TableUpdate
+from server.db.models import Account
+from server.schemas.account import AccountCreate, AccountUpdate
 
 
-class CRUDTable(CRUDBase[Table, TableCreate, TableUpdate]):
+class CRUDAccount(CRUDBase[Account, AccountCreate, AccountUpdate]):
     pass
 
 
-table_crud = CRUDTable(Table)
+account_crud = CRUDAccount(Account)

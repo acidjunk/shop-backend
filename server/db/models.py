@@ -76,12 +76,12 @@ class ShopsUsersTable(BaseModel):
 class RolesUsersTable(BaseModel):
     __tablename__ = "roles_users"
     id = Column(Integer(), primary_key=True)
-    user_id = Column("user_id", UUID(as_uuid=True), ForeignKey("users.id"))
-    role_id = Column("role_id", UUID(as_uuid=True), ForeignKey("roles.id"))
+    user_id = Column("user_id", UUID(as_uuid=True), ForeignKey("user.id"))
+    role_id = Column("role_id", UUID(as_uuid=True), ForeignKey("role.id"))
 
 
 class RolesTable(BaseModel):
-    __tablename__ = "roles"
+    __tablename__ = "role"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(80), unique=True)
     description = Column(String(255))
@@ -96,7 +96,7 @@ class RolesTable(BaseModel):
 
 
 class UsersTable(BaseModel):
-    __tablename__ = "users"
+    __tablename__ = "user"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     email = Column(String(255), unique=True)
     first_name = Column(String(255), index=True)
@@ -161,7 +161,7 @@ class Tag(BaseModel):
 
 
 class Account(BaseModel):
-    __tablename__ = "shop_accounts"
+    __tablename__ = "accounts"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     name = Column(String(255))
@@ -197,20 +197,20 @@ class Order(BaseModel):
     customer_order_id = Column(Integer)
     notes = Column(String, nullable=True)
     shop_id = Column(UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
-    table_id = Column(UUID(as_uuid=True), ForeignKey("shop_tables.id"), nullable=True)
+    account_id = Column(UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=True)
     order_info = Column(JSON)
-    total = Column(Float())
-    status = Column(String(), default="pending")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    completed_by = Column("completed_by", UUID(as_uuid=True), ForeignKey("user.id"), nullable=True)
-    completed_at = Column(DateTime, nullable=True)
-
-    shop = relationship("Shop", lazy=True)
-    user = relationship("UsersTable", backref=backref("orders", uselist=False))
-    table = relationship("Table", backref=backref("shop_tables", uselist=False))
-
-    def __repr__(self):
-        return "<Order for shop: %s with total: %s>" % (self.shop.name, self.total)
+    # total = Column(Float())
+    # status = Column(String(), default="pending")
+    # created_at = Column(DateTime, default=datetime.utcnow)
+    # completed_by = Column("completed_by", UUID(as_uuid=True), ForeignKey("user.id"), nullable=True)
+    # completed_at = Column(DateTime, nullable=True)
+    #
+    # shop = relationship("Shop", lazy=True)
+    # user = relationship("UsersTable", backref=backref("orders", uselist=False))
+    # table = relationship("Table", backref=backref("shop_tables", uselist=False))
+    #
+    # def __repr__(self):
+    #     return "<Order for shop: %s with total: %s>" % (self.shop.name, self.total)
 
 
 class ProductToTag(BaseModel):

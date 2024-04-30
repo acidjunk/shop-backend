@@ -13,6 +13,9 @@
 
 from contextlib import contextmanager
 from contextvars import ContextVar
+
+# Todo: when we drop python 3.9 support -> move Callable, Generator, Iterator to collections.abc
+# https://stackoverflow.com/questions/65858528/is-collections-abc-callable-bugged-in-python-3-9-1
 from typing import Any, Callable, ClassVar, Dict, Generator, Iterator, List, Optional, Set, cast
 from uuid import uuid4
 
@@ -21,9 +24,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.declarative import DeclarativeMeta, as_declarative
 from sqlalchemy.orm import Query, Session, scoped_session, sessionmaker
-from sqlalchemy.orm.state import InstanceState
 from sqlalchemy.sql.schema import MetaData
-from sqlalchemy_searchable import SearchQueryMixin
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -35,7 +36,7 @@ from server.utils.json import json_dumps, json_loads
 logger = structlog.get_logger(__name__)
 
 
-class SearchQuery(Query, SearchQueryMixin):
+class SearchQuery(Query):
     """Custom Query class to have search() property."""
 
     pass
@@ -129,8 +130,7 @@ class _Base:
 
 
 class BaseModel(_Base):
-    """
-    Separate BaseModel class to be able to include mixins and to Fix typing.
+    """Separate BaseModel class to be able to include mixins and to Fix typing.
 
     This should be used instead of Base.
     """
@@ -141,10 +141,10 @@ class BaseModel(_Base):
 
     __abstract__ = True
 
-    __init__: Callable[..., _Base]  # type: ignore
+    __init__: Callable[..., None]
 
     def __repr__(self) -> str:
-        inst_state: InstanceState = sa_inspect(self)
+        inst_state: Any = sa_inspect(self)
         attr_vals = [
             f"{attr.key}={getattr(self, attr.key)}"
             for attr in inst_state.mapper.column_attrs
@@ -154,12 +154,12 @@ class BaseModel(_Base):
 
 
 class WrappedSession(Session):
-    """This Session class allows us to disable commit during steps."""
+    """This Session class allows us to disable commit during usage."""
 
     def commit(self) -> None:
         if self.info.get("disabled", False):
             self.info.get("logger", logger).warning(
-                "Step function tried to issue a commit. It should not! "
+                "Function inside WrappedSession tried to issue a commit. It should not! "
                 "Will execute commit on behalf of step function when it returns."
             )
         else:
@@ -195,7 +195,9 @@ class Database:
     def __init__(self, db_url: str) -> None:
         self.request_context: ContextVar[str] = ContextVar("request_context", default="")
         self.engine = create_engine(db_url, **ENGINE_ARGUMENTS)
-        self.session_factory = sessionmaker(bind=self.engine, **SESSION_ARGUMENTS)
+        self.session_factory = sessionmaker(
+            bind=self.engine, class_=WrappedSession, autocommit=False, autoflush=True, query_cls=SearchQuery
+        )
 
         self.scoped_session = scoped_session(self.session_factory, self._scopefunc)
         BaseModel.set_query(cast(SearchQuery, self.scoped_session.query_property()))
@@ -212,17 +214,19 @@ class Database:
     def database_scope(self, **kwargs: Any) -> Generator["Database", None, None]:
         """Create a new database session (scope).
 
-        This creates a new database session to handle all the database connection from a single scope (request or workflow).
-        This method should typically only been called in request middleware or at the start of workflows.
+        This creates a new database session to handle all the database connection from a single scope (request or CLI).
+        This method should typically only been called in request middleware or at the start of a CLI script.
 
         Args:
             ``**kwargs``: Optional session kw args for this session
         """
         token = self.request_context.set(str(uuid4()))
         self.scoped_session(**kwargs)
-        yield self
-        self.scoped_session.remove()
-        self.request_context.reset(token)
+        try:
+            yield self
+        finally:
+            self.scoped_session.remove()
+            self.request_context.reset(token)
 
 
 class DBSessionMiddleware(BaseHTTPMiddleware):
@@ -233,8 +237,7 @@ class DBSessionMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         with self.database.database_scope():
-            response = await call_next(request)
-        return response
+            return await call_next(request)
 
 
 @contextmanager
@@ -258,7 +261,7 @@ def disable_commit(db: Database, log: BoundLogger) -> Iterator:
 
 @contextmanager
 def transactional(db: Database, log: BoundLogger) -> Iterator:
-    """Run a step function in an implicit transaction with automatic rollback or commit.
+    """Run a function in an implicit transaction with automatic rollback or commit.
 
     It will rollback in case of error, commit otherwise. It will also disable the `commit()` method
     on `BaseModel.session` for the time `transactional` is in effect.

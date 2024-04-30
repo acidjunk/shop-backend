@@ -15,10 +15,9 @@ from datetime import datetime
 from typing import Any, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, root_validator
+from pydantic.v1 import BaseModel, root_validator
 
 from server.schemas.base import BoilerplateBaseModel
-from server.types import JSON
 
 
 # Made them optional for now because there are some empty order_info fields in DB
@@ -86,7 +85,7 @@ class OrderInDBBase(OrderBase):
     completed_by: Optional[UUID]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Additional properties to return via API

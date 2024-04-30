@@ -17,7 +17,6 @@ from server.api.helpers import _query_with_filters, invalidateCompletedOrdersCac
 from server.api.utils import is_ip_allowed, validate_uuid4
 from server.crud.crud_order import order_crud
 from server.crud.crud_shop import shop_crud
-from server.crud.crud_shop_to_price import shop_to_price_crud
 from server.db.models import Order, UsersTable
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 

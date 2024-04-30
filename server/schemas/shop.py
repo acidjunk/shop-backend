@@ -21,7 +21,7 @@ class ShopEmptyBase(BoilerplateBaseModel):
     pass
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ShopBase(BoilerplateBaseModel):
@@ -46,7 +46,7 @@ class ShopInDBBase(ShopBase):
     id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Additional properties to return via API

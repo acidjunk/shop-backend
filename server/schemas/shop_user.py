@@ -19,7 +19,7 @@ class ShopUserEmptyBase(BoilerplateBaseModel):
     pass
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ShopId(ShopUserEmptyBase):
@@ -51,7 +51,7 @@ class ShopUserInDBBase(ShopUserBase):
     id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Additional properties to return via API

@@ -3,9 +3,10 @@ from typing import Any, Optional
 from uuid import UUID
 
 from fastapi.routing import APIRouter
+from pydantic_forms.core import list_forms
+from pydantic_forms.core.asynchronous import start_form
 
 import server.forms  # noqa -> Needed to register all forms
-from server.pydantic_forms.core import list_forms, start_form
 
 router = APIRouter()
 
@@ -33,15 +34,5 @@ async def new_form(
     # user: OIDCUserModel or None = Depends(),  # type: ignore
 ) -> dict[str, UUID]:
     # Todo: determine what to do with user?
-
-    # match json_data:
-    #     case [{"ticket_id": ticket_id, "next_process_state": next_process_state}, *user_inputs]:
-    #         ticket = await get_ticket(ticket_id)
-    #         ticket_transition = TicketTransitionSchema(ticket=ticket, next_process_state=next_process_state)
-    #         state = start_form(
-    #             form_key, user_inputs=user_inputs, user="Just a user", ticket_transition=ticket_transition
-    #         )
-    #     case _ as user_inputs:
     state = start_form(form_key, user_inputs=json_data, user="Just a user", extra_state={"shop_id": shop_id})
-
     return state

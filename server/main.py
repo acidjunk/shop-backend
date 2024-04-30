@@ -28,8 +28,6 @@ from server.api.error_handling import ProblemDetailException
 from server.db import db
 from server.db.database import DBSessionMiddleware
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
-from server.pydantic_forms.exception_handlers.fastapi import form_error_handler
-from server.pydantic_forms.exceptions import FormException
 from server.settings import app_settings
 from server.version import GIT_COMMIT_HASH
 
@@ -77,7 +75,7 @@ app.add_middleware(
     expose_headers=app_settings.CORS_EXPOSE_HEADERS,
 )
 
-app.add_exception_handler(FormException, form_error_handler)
+# app.add_exception_handler(FormException, form_error_handler)
 app.add_exception_handler(ProblemDetailException, problem_detail_handler)
 
 

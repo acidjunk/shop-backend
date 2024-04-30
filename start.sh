@@ -11,10 +11,10 @@ fi
 
 # FastAPI will autoload .env so this will only handle other known locations that devs can have
 # shellcheck disable=SC2002
-if [ -f ".env" ]; then
+if [ -f "env" ]; then
     echo "Loading ENV vars from 'env' file"
     # shellcheck disable=SC2046
-    export $(cat .env | grep -v ^# | xargs)
+    export $(cat env | grep -v ^# | xargs)
 fi
 
 if [ "$1" = "dev" ]; then

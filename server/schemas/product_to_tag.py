@@ -11,33 +11,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
 from server.schemas.base import BoilerplateBaseModel
 
 
-class TableBase(BoilerplateBaseModel):
+class ProductToTagBase(BoilerplateBaseModel):
+    product_id: UUID
+    tag_id: UUID
     shop_id: UUID
-    name: str
+    amount: int
 
 
 # Properties to receive via API on creation
-class TableCreate(TableBase):
+class ProductToTagCreate(ProductToTagBase):
     pass
 
 
 # Properties to receive via API on update
-class TableUpdate(TableBase):
+class ProductToTagUpdate(ProductToTagBase):
     pass
 
 
-class TableInDBBase(TableBase):
+class ProductToTagInDBBase(ProductToTagBase):
     id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Additional properties to return via API
-class TableSchema(TableInDBBase):
+class ProductToTagSchema(ProductToTagInDBBase):
     pass

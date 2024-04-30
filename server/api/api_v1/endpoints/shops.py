@@ -13,7 +13,7 @@ from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.apis.v1.helpers import load
 from server.crud.crud_shop import shop_crud
-from server.db.models import Category, Price, Shop, ShopToPrice, UsersTable
+from server.db.models import Category, Shop, UsersTable
 from server.schemas.shop import (
     ShopCacheStatus,
     ShopCreate,
@@ -85,93 +85,95 @@ def get_last_pending_order(id: UUID) -> ShopLastPendingOrder:
 def get_by_id(id: UUID, is_horeca: Optional[bool] = None):
     """List Shop"""
     item = load(Shop, id)
-    price_relations = None
+    # price_relations = None
+    #
+    # if is_horeca:
+    #     price_relations = (
+    #         ShopToPrice.query.filter_by(shop_id=item.id)
+    #         .filter_by(kind_id=None)
+    #         .join(ShopToPrice.price)
+    #         .join(ShopToPrice.category)
+    #         .order_by(Category.name, ShopToPrice.order_number, Price.piece)
+    #         .all()
+    #     )
+    # elif is_horeca is not None:
+    #     price_relations = (
+    #         ShopToPrice.query.filter_by(shop_id=item.id)
+    #         .filter_by(product_id=None)
+    #         .join(ShopToPrice.price)
+    #         .join(ShopToPrice.category)
+    #         .order_by(Category.name, Price.piece, Price.joint, Price.one, Price.five, Price.half, Price.two_five)
+    #         .all()
+    #     )
+    # else:
+    #     price_relations = (
+    #         ShopToPrice.query.filter_by(shop_id=item.id)
+    #         .join(ShopToPrice.price)
+    #         .join(ShopToPrice.category)
+    #         .order_by(
+    #             Category.pricelist_column,
+    #             Category.pricelist_row,
+    #             ShopToPrice.order_number,
+    #             Price.piece,
+    #             Price.joint,
+    #             Price.one,
+    #             Price.five,
+    #             Price.half,
+    #             Price.two_five,
+    #         )
+    #         .all()
+    #     )
 
-    if is_horeca:
-        price_relations = (
-            ShopToPrice.query.filter_by(shop_id=item.id)
-            .filter_by(kind_id=None)
-            .join(ShopToPrice.price)
-            .join(ShopToPrice.category)
-            .order_by(Category.name, ShopToPrice.order_number, Price.piece)
-            .all()
-        )
-    elif is_horeca is not None:
-        price_relations = (
-            ShopToPrice.query.filter_by(shop_id=item.id)
-            .filter_by(product_id=None)
-            .join(ShopToPrice.price)
-            .join(ShopToPrice.category)
-            .order_by(Category.name, Price.piece, Price.joint, Price.one, Price.five, Price.half, Price.two_five)
-            .all()
-        )
-    else:
-        price_relations = (
-            ShopToPrice.query.filter_by(shop_id=item.id)
-            .join(ShopToPrice.price)
-            .join(ShopToPrice.category)
-            .order_by(
-                Category.pricelist_column,
-                Category.pricelist_row,
-                ShopToPrice.order_number,
-                Price.piece,
-                Price.joint,
-                Price.one,
-                Price.five,
-                Price.half,
-                Price.two_five,
-            )
-            .all()
-        )
+    # item.prices = [
+    #     {
+    #         "id": pr.id,
+    #         "internal_product_id": pr.price.internal_product_id,
+    #         "active": pr.active,
+    #         "new": pr.new,
+    #         "category_id": pr.category_id,
+    #         "category_name": pr.category.name,
+    #         "category_name_en": pr.category.name_en,
+    #         "category_icon": pr.category.icon,
+    #         "category_color": pr.category.color,
+    #         "category_order_number": pr.category.order_number,
+    #         "category_image_1": pr.category.image_1,
+    #         "category_image_2": pr.category.image_2,
+    #         "category_pricelist_column": pr.category.pricelist_column,
+    #         "category_pricelist_row": pr.category.pricelist_row,
+    #         "main_category_id": pr.category.main_category.id if pr.category.main_category else "Unknown",
+    #         "main_category_name": pr.category.main_category.name if pr.category.main_category else "Unknown",
+    #         "main_category_name_en": pr.category.main_category.name_en if pr.category.main_category else "Unknown",
+    #         "main_category_icon": pr.category.main_category.icon if pr.category.main_category else "Unknown",
+    #         "main_category_order_number": pr.category.main_category.order_number if pr.category.main_category else 0,
+    #         "kind_id": pr.kind_id,
+    #         "kind_image": pr.kind.image_1 if pr.kind_id else None,
+    #         "kind_name": pr.kind.name if pr.kind_id else None,
+    #         "strains": [dict({"name": strain.strain.name}) for strain in pr.kind.kind_to_strains] if pr.kind_id else [],
+    #         "kind_short_description_nl": pr.kind.short_description_nl if pr.kind_id else None,
+    #         "kind_short_description_en": pr.kind.short_description_en if pr.kind_id else None,
+    #         "kind_c": pr.kind.c if pr.kind_id else None,
+    #         "kind_h": pr.kind.h if pr.kind_id else None,
+    #         "kind_i": pr.kind.i if pr.kind_id else None,
+    #         "kind_s": pr.kind.s if pr.kind_id else None,
+    #         "product_id": pr.product_id,
+    #         "product_image": pr.product.image_1 if pr.product_id else None,
+    #         "product_name": pr.product.name if pr.product_id else None,
+    #         "product_short_description_nl": pr.product.short_description_nl if pr.product_id else None,
+    #         "product_short_description_en": pr.product.short_description_en if pr.product_id else None,
+    #         "half": pr.price.half if pr.use_half else None,
+    #         "one": pr.price.one if pr.use_one else None,
+    #         "two_five": pr.price.two_five if pr.use_two_five else None,
+    #         "five": pr.price.five if pr.use_five else None,
+    #         "joint": pr.price.joint if pr.use_joint else None,
+    #         "piece": pr.price.piece if pr.use_piece else None,
+    #         "created_at": pr.created_at,
+    #         "modified_at": pr.modified_at,
+    #         "order_number": pr.order_number,
+    #     }
+    #     for pr in price_relations
+    # ]
 
-    item.prices = [
-        {
-            "id": pr.id,
-            "internal_product_id": pr.price.internal_product_id,
-            "active": pr.active,
-            "new": pr.new,
-            "category_id": pr.category_id,
-            "category_name": pr.category.name,
-            "category_name_en": pr.category.name_en,
-            "category_icon": pr.category.icon,
-            "category_color": pr.category.color,
-            "category_order_number": pr.category.order_number,
-            "category_image_1": pr.category.image_1,
-            "category_image_2": pr.category.image_2,
-            "category_pricelist_column": pr.category.pricelist_column,
-            "category_pricelist_row": pr.category.pricelist_row,
-            "main_category_id": pr.category.main_category.id if pr.category.main_category else "Unknown",
-            "main_category_name": pr.category.main_category.name if pr.category.main_category else "Unknown",
-            "main_category_name_en": pr.category.main_category.name_en if pr.category.main_category else "Unknown",
-            "main_category_icon": pr.category.main_category.icon if pr.category.main_category else "Unknown",
-            "main_category_order_number": pr.category.main_category.order_number if pr.category.main_category else 0,
-            "kind_id": pr.kind_id,
-            "kind_image": pr.kind.image_1 if pr.kind_id else None,
-            "kind_name": pr.kind.name if pr.kind_id else None,
-            "strains": [dict({"name": strain.strain.name}) for strain in pr.kind.kind_to_strains] if pr.kind_id else [],
-            "kind_short_description_nl": pr.kind.short_description_nl if pr.kind_id else None,
-            "kind_short_description_en": pr.kind.short_description_en if pr.kind_id else None,
-            "kind_c": pr.kind.c if pr.kind_id else None,
-            "kind_h": pr.kind.h if pr.kind_id else None,
-            "kind_i": pr.kind.i if pr.kind_id else None,
-            "kind_s": pr.kind.s if pr.kind_id else None,
-            "product_id": pr.product_id,
-            "product_image": pr.product.image_1 if pr.product_id else None,
-            "product_name": pr.product.name if pr.product_id else None,
-            "product_short_description_nl": pr.product.short_description_nl if pr.product_id else None,
-            "product_short_description_en": pr.product.short_description_en if pr.product_id else None,
-            "half": pr.price.half if pr.use_half else None,
-            "one": pr.price.one if pr.use_one else None,
-            "two_five": pr.price.two_five if pr.use_two_five else None,
-            "five": pr.price.five if pr.use_five else None,
-            "joint": pr.price.joint if pr.use_joint else None,
-            "piece": pr.price.piece if pr.use_piece else None,
-            "created_at": pr.created_at,
-            "modified_at": pr.modified_at,
-            "order_number": pr.order_number,
-        }
-        for pr in price_relations
-    ]
+    item.prices = []
     return item
 
 

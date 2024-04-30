@@ -15,8 +15,9 @@ import secrets
 import string
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseSettings, validator
+from pydantic import validator
 from pydantic.networks import EmailStr, PostgresDsn
+from pydantic_settings import BaseSettings
 
 
 class AppSettings(BaseSettings):
@@ -41,7 +42,7 @@ class AppSettings(BaseSettings):
     SESSION_SECRET: str = "CHANGEME"
     # OAUTH settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
-    JWT_ALGORITHM = "HS256"
+    JWT_ALGORITHM: str = "HS256"
     # CORS settings
     CORS_ORIGINS: str = "*"
     CORS_ALLOW_METHODS: List[str] = [
@@ -113,10 +114,10 @@ class AppSettings(BaseSettings):
     EMAILS_FROM_NAME: Optional[str] = "Prijslijst Backend"
     EMAILS_CC: Optional[str] = "no-reply@prijslijst.info"
 
-    FIRST_SUPERUSER = "NAME"
-    FIRST_SUPERUSER_PASSWORD = "JePass"
-    FIRST_SUPERUSER_ROLE = "admin"
-    FIRST_SUPERUSER_ROLE_DESCRIPTION = "God Mode!"
+    FIRST_SUPERUSER: str = "NAME"
+    FIRST_SUPERUSER_PASSWORD: str = "JePass"
+    FIRST_SUPERUSER_ROLE: str = "admin"
+    FIRST_SUPERUSER_ROLE_DESCRIPTION: str = "God Mode!"
 
     @validator("EMAILS_FROM_NAME")
     def get_project_name(cls, v: Optional[str], values: Dict[str, Any]) -> str:
@@ -135,16 +136,16 @@ class AppSettings(BaseSettings):
     EMAIL_TEST_USER: EmailStr = "test@example.com"  # type: ignore
 
     # AWS Lambda settings
-    LAMBDA_ACCESS_KEY_ID = "CHANGEME"
-    LAMBDA_SECRET_ACCESS_KEY = "CHANGEME"
+    LAMBDA_ACCESS_KEY_ID: str = "CHANGEME"
+    LAMBDA_SECRET_ACCESS_KEY: str = "CHANGEME"
 
     # TODO: think of better naming convention
     # Production S3 bucket
     S3_BUCKET_IMAGES_ACCESS_KEY_ID: str = "CHANGEME"
     S3_BUCKET_IMAGES_SECRET_ACCESS_KEY: str = "CHANGEME"
-    S3_BUCKET_IMAGES_NAME = "CHANGE_THIS_FOR_UPLOAD"  # used to store images and to generate signed URI's
+    S3_BUCKET_IMAGES_NAME: str = "CHANGE_THIS_FOR_UPLOAD"  # used to store images and to generate signed URI's
 
-    S3_BUCKET_DOWNLOADS_NAME = "CHANGE_THIS_FOR_UPLOAD"
+    S3_BUCKET_DOWNLOADS_NAME: str = "CHANGE_THIS_FOR_UPLOAD"
     S3_BUCKET_DOWNLOADS_ACCESS_KEY_ID: str = "CHANGEME"
     S3_BUCKET_DOWNLOADS_SECRET_ACCESS_KEY: str = "CHANGEME"
 

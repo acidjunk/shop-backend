@@ -43,7 +43,7 @@ class PriceInDBBase(PriceBase):
     modified_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # Additional properties to return via API
