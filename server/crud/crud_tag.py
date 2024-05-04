@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Optional
+from uuid import UUID
 
 from server.crud.base import CRUDBase
 from server.db.models import Tag
@@ -18,8 +19,8 @@ from server.schemas.tag import TagCreate, TagUpdate
 
 
 class CRUDTag(CRUDBase[Tag, TagCreate, TagUpdate]):
-    def get_by_name(self, *, name: str) -> Optional[Tag]:
-        return Tag.query.filter(Tag.name == name).first()
+    def get_by_name(self, *, name: str, shop_id: UUID) -> Optional[Tag]:
+        return Tag.query.filter(Tag.shop_id == shop_id).filter(Tag.name == name).first()
 
 
 tag_crud = CRUDTag(Tag)

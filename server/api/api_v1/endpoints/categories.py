@@ -34,10 +34,8 @@ def get_multi(response: Response, common: dict = Depends(common_parameters)) -> 
         skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
     )
     for category in categories:
-        category.main_category_name = category.main_category.name if category.main_category else "Unknown"
-        category.main_category_name_en = category.main_category.name_en if category.main_category else "Unknown"
         category.shop_name = category.shop.name
-        category.category_and_shop = f"{category.name} in {category.shop.name}"
+        # category.category_and_shop = f"{category.name} in {category.shop.name}"
 
     response.headers["Content-Range"] = header_range
     return categories

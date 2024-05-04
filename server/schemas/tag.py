@@ -18,6 +18,7 @@ from server.schemas.base import BoilerplateBaseModel
 
 
 class TagBase(BoilerplateBaseModel):
+    shop_id: UUID
     name: str
 
 

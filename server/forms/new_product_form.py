@@ -69,27 +69,6 @@ def validate_tag_name(tag_name: str, values: State) -> str:
     return tag_name
 
 
-def validate_kind_name(kind_name: str, values: State) -> str:
-    """Check if kind already exists."""
-    kinds = Kind.query.all()
-    kind_items = [item.name.lower() for item in kinds]
-    if kind_name.lower() in kind_items:
-        raise ValueError("Deze kind bestaat al.")
-    return kind_name
-
-
-def create_strain_form(current_state: dict) -> FormGenerator:
-    class StrainForm(FormPage):
-        class Config:
-            title = "Nieuwe kruising toevoegen"
-
-        strain_name: str
-        _validate_strain_name: classmethod = validator("strain_name", allow_reuse=True)(validate_strain_name)
-
-    user_input = yield StrainForm
-    return user_input.dict()
-
-
 def create_tag_form(current_state: dict) -> FormGenerator:
     class TagForm(FormPage):
         class Config:
@@ -137,6 +116,6 @@ def create_category_form(current_state: dict) -> FormGenerator:
     return user_input.dict()
 
 
-# register_form("create_tag_form", create_tag_form)
-# register_form("create_product_form", create_product_form)
-# register_form("create_categorie_form", create_category_form)
+register_form("create_tag_form", create_tag_form)
+register_form("create_product_form", create_product_form)
+register_form("create_categorie_form", create_category_form)

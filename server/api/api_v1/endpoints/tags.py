@@ -36,8 +36,8 @@ def get_by_id(id: UUID) -> TagSchema:
 
 
 @router.get("/name/{name}", response_model=TagSchema)
-def get_by_name(name: str) -> TagSchema:
-    tag = tag_crud.get_by_name(name=name)
+def get_by_name(name: str, shop_id: UUID) -> TagSchema:
+    tag = tag_crud.get_by_name(name=name, shop_id=shop_id)
 
     if not tag:
         raise_status(HTTPStatus.NOT_FOUND, f"Tag with name {name} not found")
