@@ -13,14 +13,14 @@
 
 
 from server.db.database import Database, transactional
-from server.db.models import ProductsTable, Shop, UtcTimestamp, UtcTimestampException  # noqa: F401
+from server.db.models import ProductTable, Shop, UtcTimestamp, UtcTimestampException  # noqa: F401
 from server.settings import app_settings
 
 db = Database(app_settings.DATABASE_URI)
 
 __all__ = [
     "transactional",
-    "ProductsTable",
+    "ProductTable",
     "UtcTimestamp",
     "Shop",
     "UtcTimestampException",

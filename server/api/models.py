@@ -21,7 +21,7 @@ from more_itertools import flatten
 from pydantic import BaseModel
 
 from server.api.error_handling import raise_status
-from server.db import ProductsTable, db
+from server.db import ProductTable, db
 
 
 def validate(cls: Type, json_dict: Dict, is_new_instance: bool = True) -> Dict:
@@ -88,7 +88,7 @@ def delete(cls: Type, primary_key: UUID) -> None:
 
 
 deserialization_mapping = {
-    "products": ProductsTable,
+    "products": ProductTable,
 }
 
 forbidden_fields = ["created_at", "modified_at"]

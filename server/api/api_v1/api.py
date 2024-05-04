@@ -44,7 +44,7 @@ api_router = APIRouter()
 api_router.include_router(login.router, tags=["login"])
 api_router.include_router(health.router, prefix="/health", tags=["system"])
 api_router.include_router(shops.router, prefix="/shops", tags=["shops"])
-api_router.include_router(orders.router, prefix="/orders", tags=["orders"])
+# api_router.include_router(orders.router, prefix="/orders", tags=["orders"])
 api_router.include_router(
     categories.router,
     prefix="/categories",

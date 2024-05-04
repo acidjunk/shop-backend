@@ -18,7 +18,7 @@ from pydantic import conlist, validator
 from pydantic.class_validators import root_validator
 from pydantic.v1.validators import str_validator
 
-from server.db.models import Category, ProductsTable, Tag
+from server.db.models import Category, ProductTable, Tag
 from pydantic_forms.core import DisplayOnlyFieldType, FormPage, register_form
 from pydantic_forms.types import FormGenerator, State, SummaryData
 from pydantic_forms.validators import Choice, LongText, MigrationSummary
@@ -44,7 +44,7 @@ class Hidden(DisplayOnlyFieldType):
 
 def validate_product_name(product_name: str, values: State) -> str:
     """Check if product already exists."""
-    products = ProductsTable.query.all()
+    products = ProductTable.query.all()
     product_items = [item.name.lower() for item in products]
     if product_name.lower() in product_items:
         raise ValueError("Dit product bestaat al.")
@@ -137,6 +137,6 @@ def create_category_form(current_state: dict) -> FormGenerator:
     return user_input.dict()
 
 
-register_form("create_tag_form", create_tag_form)
-register_form("create_product_form", create_product_form)
-register_form("create_categorie_form", create_category_form)
+# register_form("create_tag_form", create_tag_form)
+# register_form("create_product_form", create_product_form)
+# register_form("create_categorie_form", create_category_form)

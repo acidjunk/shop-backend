@@ -4,7 +4,7 @@ A backend for serving pricelists.
 
 ## Server
 
-This project only works with Python 3.8, 3.9 and 3.10.
+This project only works with Python 3.10 and higher.
 If you want to use a virtual environment first create the environment:
 
 ```bash
@@ -90,7 +90,7 @@ PYTHONPATH=. alembic revision --autogenerate -m "Initial scheme" --head=schema@h
 To create a data migration do the following:
 
 ```bash
-PYTHONPATH=. alembic revision --message "Name of the migration" --head=general@head
+PYTHONPATH=. alembic revision --message "Name of the migration"
 ```
 
 This will also create a new revision file where normal SQL can be written like so:

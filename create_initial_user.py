@@ -21,6 +21,7 @@ from server.settings import app_settings
 
 logger = structlog.get_logger(__name__)
 
+
 def main() -> None:
     logger.info("Creating initial user")
     superuser = user_crud.get_by_email(email=app_settings.FIRST_SUPERUSER)

@@ -11,12 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from server.crud.base import CRUDBase
-from server.db.models import ProductsTable
+from server.db.models import ProductTable
 from server.schemas.product import ProductCreate, ProductUpdate
 
 
-class CRUDProduct(CRUDBase[ProductsTable, ProductCreate, ProductUpdate]):
+class CRUDProduct(CRUDBase[ProductTable, ProductCreate, ProductUpdate]):
     pass
 
 
-product_crud = CRUDProduct(ProductsTable)
+product_crud = CRUDProduct(ProductTable)

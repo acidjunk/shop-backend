@@ -155,10 +155,10 @@ class Tag(BaseModel):
 
     shop = relationship("Shop", lazy=True)
     products_to_tags = relationship("ProductToTag", cascade="save-update, merge, delete")
-    translations = relationship("TagTranslation", back_populates="tag", uselist=False)
+    translation = relationship("TagTranslation", back_populates="tag", uselist=False)
 
     def __repr__(self):
-        return f"{self.shop.name}: {self.translations.main_name}"
+        return f"{self.shop.name}: {self.translation.main_name}"
 
 
 class TagTranslation(BaseModel):
@@ -195,10 +195,10 @@ class Category(BaseModel):
     order_number = Column(Integer, default=0)
     image_1 = Column(String(255), unique=True, index=True)
     image_2 = Column(String(255), unique=True, index=True)
-    translations = relationship("CategoryTranslation", back_populates="category", uselist=False)
+    translation = relationship("CategoryTranslation", back_populates="category", uselist=False)
 
     def __repr__(self):
-        return f"{self.shop.name}: {self.translations.main_name}"
+        return f"{self.shop.name}: {self.translation.main_name}"
 
 
 class CategoryTranslation(BaseModel):
@@ -236,17 +236,7 @@ class Order(BaseModel):
     #     return "<Order for shop: %s with total: %s>" % (self.shop.name, self.total)
 
 
-class ProductToTag(BaseModel):
-    __tablename__ = "products_to_tags"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
-    product_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"), index=True)
-    tag_id = Column("tag_id", UUID(as_uuid=True), ForeignKey("tags.id"), index=True)
-    product = relationship("Product", lazy=True)
-    tag = relationship("Tag", lazy=True)
-
-
-class ProductsTable(BaseModel):
+class ProductTable(BaseModel):
     __tablename__ = "products"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     image_1 = Column(String(255), unique=True, index=True)
@@ -258,18 +248,19 @@ class ProductsTable(BaseModel):
     created_at = Column(DateTime, default=datetime.utcnow)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    translations = relationship("ProductTranslation", back_populates="product", uselist=False)
+    translation = relationship("ProductTranslation", back_populates="product", uselist=False)
 
     def __repr__(self):
-        return f"{self.shop.name}: {self.translations.main_name}"
+        return f"{self.shop.name}: {self.translation.main_name}"
+
 
 class ProductTranslation(BaseModel):
     __tablename__ = "product_translations"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    category_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"))
+    product_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"))
     main_name = Column(String(255), unique=True, index=True)
     main_description = Column(String(), unique=True, index=True)
-    main_description_short = Column(String(), unique=True, index=True, nullable=True )
+    main_description_short = Column(String(), unique=True, index=True, nullable=True)
     alt1_name = Column(String(255), unique=True, index=True, nullable=True)
     alt1_description = Column(String(), unique=True, index=True, nullable=True)
     alt1_description_short = Column(String(), unique=True, index=True, nullable=True)
@@ -277,7 +268,17 @@ class ProductTranslation(BaseModel):
     alt2_description = Column(String(), unique=True, index=True, nullable=True)
     alt2_description_short = Column(String(), unique=True, index=True, nullable=True)
 
-    product = relationship("Product", back_populates="translation")
+    product = relationship("ProductTable", back_populates="translation")
+
+
+class ProductToTag(BaseModel):
+    __tablename__ = "products_to_tags"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
+    product_id = Column("product_id", UUID(as_uuid=True), ForeignKey("products.id"), index=True)
+    tag_id = Column("tag_id", UUID(as_uuid=True), ForeignKey("tags.id"), index=True)
+    product = relationship("ProductTable", lazy=True)
+    tag = relationship("Tag", lazy=True)
 
 
 class License(BaseModel):
