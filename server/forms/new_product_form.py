@@ -10,18 +10,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, List, Optional, Generator
+from typing import Any, Generator, List, Optional
 from uuid import UUID
 
 import structlog
 from pydantic import conlist, validator
 from pydantic.class_validators import root_validator
 from pydantic.v1.validators import str_validator
-
-from server.db.models import Category, ProductTable, Tag
 from pydantic_forms.core import DisplayOnlyFieldType, FormPage, register_form
 from pydantic_forms.types import FormGenerator, State, SummaryData
 from pydantic_forms.validators import Choice, LongText, MigrationSummary
+
+from server.db.models import Category, ProductTable, Tag
 
 logger = structlog.get_logger(__name__)
 
@@ -98,7 +98,6 @@ def create_product_form(current_state: dict) -> FormGenerator:
 
 
 def create_category_form(current_state: dict) -> FormGenerator:
-
     class CategoryForm(FormPage):
         class Config:
             title = "Nieuwe categorie toevoegen"

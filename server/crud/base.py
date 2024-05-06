@@ -24,6 +24,7 @@ from sqlalchemy.sql import expression
 from server.api.models import transform_json
 from server.db import db
 from server.db.database import BaseModel
+from server.db.models import CategoryTranslation, ProductTranslation, TagTranslation
 
 logger = structlog.getLogger()
 
@@ -123,10 +124,21 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def create(self, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = transform_json(obj_in.dict())
+        translation_data = obj_in_data.pop("translation")
         db_obj = self.model(**obj_in_data)
         db.session.add(db_obj)
         db.session.commit()
         db.session.refresh(db_obj)
+
+        if translation_data:
+            translation_name = db_obj.__class__.__name__.split("Table")[0]
+            translation_model = globals().get(translation_name + "Translation", None)
+            translation_data[translation_name.lower() + "_id"] = db_obj.id
+            translation = translation_model(**translation_data)
+            db.session.add(translation)
+            db.session.commit()
+            db.session.refresh(translation)
+
         return db_obj
 
     def update(self, *, db_obj: ModelType, obj_in: UpdateSchemaType, commit: bool = True) -> ModelType:
@@ -138,10 +150,24 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         #     if isinstance(v, int):
         #         update_data[k] = v
 
+        # Update translations
+        if "translation" in update_data:
+            translation_data = update_data.pop("translation")
+            translation_name = db_obj.__class__.__name__.split("Table")[0]
+            translation_model = globals().get(translation_name + "Translation", None)
+            translation = (
+                db.session.query(translation_model).filter_by(**{translation_name.lower() + "_id": db_obj.id}).first()
+            )
+            if translation:
+                for field in translation_data:
+                    setattr(translation, field, translation_data[field])
+                db.session.add(translation)
+
         # Update DB record
         for field in obj_data:
             if field != "id" and field in update_data:
                 setattr(db_obj, field, update_data[field])
+
         db.session.add(db_obj)
 
         # Set to false if you make two or more updates consecutively
