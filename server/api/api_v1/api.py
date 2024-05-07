@@ -16,7 +16,8 @@
 from fastapi import Depends
 
 from server.api import deps
-from server.api.api_v1.endpoints import (  # forms,
+from server.api.api_v1.endpoints import (  # forms,; shops_users,
+    accounts,
     categories,
     category_images,
     downloads,
@@ -28,12 +29,10 @@ from server.api.api_v1.endpoints import (  # forms,
     orders,
     product_images,
     products,
+    products_to_tags,
     shops,
-    # shops_users,
-    accounts,
     tags,
     users,
-    products_to_tags,
 )
 from server.api.api_v1.router_fix import APIRouter
 from server.websockets import chat

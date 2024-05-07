@@ -11,13 +11,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from server.schemas.account import AccountCreate, AccountSchema, AccountUpdate
 from server.schemas.category import CategoryCreate, CategorySchema, CategoryUpdate
-from server.schemas.product_to_tag import ProductToTagCreate, ProductToTagSchema, ProductToTagUpdate
 from server.schemas.msg import Msg
 from server.schemas.product import ProductCreate, ProductSchema, ProductUpdate
+from server.schemas.product_to_tag import ProductToTagCreate, ProductToTagSchema, ProductToTagUpdate
 from server.schemas.role import RoleCreate, RoleSchema, RoleUpdate
 from server.schemas.shop import ShopCreate, ShopSchema, ShopUpdate
-from server.schemas.account import AccountCreate, AccountSchema, AccountUpdate
 from server.schemas.tag import TagCreate, TagSchema, TagUpdate
 from server.schemas.token import Token, TokenPayload
 from server.schemas.user import User, UserCreate, UserUpdate

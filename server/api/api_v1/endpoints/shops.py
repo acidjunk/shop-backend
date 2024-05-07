@@ -173,7 +173,7 @@ def get_by_id(id: UUID, is_horeca: Optional[bool] = None):
     #     for pr in price_relations
     # ]
 
-    item.prices = []
+    # item.prices = []
     return item
 
 

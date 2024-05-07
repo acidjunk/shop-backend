@@ -196,8 +196,9 @@ def invalidateShopCache(shop_id):
         name=item.name,
         description=item.description,
         modified_at=datetime.utcnow(),
-        last_pending_order=item.last_pending_order,
-        last_completed_order=item.last_completed_order,
+        # Todo: deal with the commented params below
+        # last_pending_order=item.last_pending_order,
+        # last_completed_order=item.last_completed_order,
         allowed_ips=item.allowed_ips,
     )
     payload = {"connectionType": "shop", "shopId": str(shop_id)}

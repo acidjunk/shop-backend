@@ -17,9 +17,16 @@ from uuid import UUID
 from server.schemas.base import BoilerplateBaseModel
 
 
+class TagTranslationBase(BoilerplateBaseModel):
+    main_name: str
+    alt1_name: Optional[str] = None
+    alt2_name: Optional[str] = None
+
+
 class TagBase(BoilerplateBaseModel):
     shop_id: UUID
     name: str
+    translation: TagTranslationBase
 
 
 # Properties to receive via API on creation

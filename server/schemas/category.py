@@ -21,11 +21,21 @@ class CategoryEmptyBase(BoilerplateBaseModel):
     pass
 
 
+class CategoryTranslationBase(BoilerplateBaseModel):
+    main_name: str
+    main_description: str
+    alt1_name: Optional[str] = None
+    alt1_description: Optional[str] = None
+    alt2_name: Optional[str] = None
+    alt2_description: Optional[str] = None
+
+
 class CategoryBase(BoilerplateBaseModel):
     shop_id: UUID
     color: str
     icon: Optional[str] = None
     order_number: Optional[int] = None
+    translation: CategoryTranslationBase
     # image_1: Union[Optional[dict], Optional[str]]
     # image_2: Union[Optional[dict], Optional[str]]
 

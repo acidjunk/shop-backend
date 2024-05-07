@@ -37,8 +37,9 @@ class ShopCreate(ShopBase):
 # Properties to receive via API on update
 class ShopUpdate(ShopBase):
     modified_at: Optional[datetime]
-    last_pending_order: Optional[str]
-    last_completed_order: Optional[str]
+    # Todo: deal with the commented params below
+    # last_pending_order: Optional[str]
+    # last_completed_order: Optional[str]
     allowed_ips: Optional[List[str]] = None
 
 

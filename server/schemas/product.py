@@ -22,19 +22,26 @@ class ProductEmptyBase(BoilerplateBaseModel):
     pass
 
 
+class ProductTranslationBase(BoilerplateBaseModel):
+    main_name: str
+    main_description: str
+    main_description_short: str
+    alt1_name: Optional[str] = None
+    alt1_description: Optional[str] = None
+    alt1_description_short: Optional[str] = None
+    alt2_name: Optional[str] = None
+    alt2_description: Optional[str] = None
+    alt2_description_short: Optional[str] = None
+
+
 class ProductBase(BoilerplateBaseModel):
-    name: str
-    short_description_nl: Optional[str] = None
-    description_nl: Optional[str] = None
-    short_description_en: Optional[str] = None
-    description_en: Optional[str] = None
-    complete: bool = False
     image_1: Union[Optional[dict], Optional[str]]
     image_2: Union[Optional[dict], Optional[str]]
     image_3: Union[Optional[dict], Optional[str]]
     image_4: Union[Optional[dict], Optional[str]]
     image_5: Union[Optional[dict], Optional[str]]
     image_6: Union[Optional[dict], Optional[str]]
+    translation: ProductTranslationBase
 
 
 # Properties to receive via API on creation
