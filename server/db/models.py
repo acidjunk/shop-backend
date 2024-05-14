@@ -141,6 +141,12 @@ class Shop(BaseModel):
     description = Column(String(255), unique=True)
     modified_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow())
     allowed_ips = Column(JSON)
+    vat_standard = Column(Float, default=21.0, nullable=False)
+    vat_lower_1 = Column(Float, default=10.0, nullable=False)
+    vat_lower_2 = Column(Float, default=5.0, nullable=False)
+    vat_lower_3 = Column(Float, default=2.0, nullable=False)
+    vat_special = Column(Float, default=12.0, nullable=False)
+    vat_zero = Column(Float, default=0.0, nullable=False)
     shop_to_category = relationship("Category", cascade="save-update, merge, delete")
 
     def __repr__(self):
@@ -239,6 +245,11 @@ class Order(BaseModel):
 class ProductTable(BaseModel):
     __tablename__ = "products"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    price = Column(Float(), nullable=False)
+    tax_category = Column(String(20), default="vat_standard")
+    discounted_price = Column(Float(), nullable=True)
+    discounted_from = Column(DateTime, nullable=True)
+    discounted_to = Column(DateTime, nullable=True)
     image_1 = Column(String(255), unique=True, index=True)
     image_2 = Column(String(255), unique=True, index=True)
     image_3 = Column(String(255), unique=True, index=True)
