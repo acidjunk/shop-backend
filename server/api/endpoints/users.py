@@ -1,12 +1,11 @@
 from typing import Any
 
-from fastapi import Body, Depends, HTTPException
+from fastapi import Body, Depends, HTTPException, APIRouter
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
 from starlette.responses import Response
 
 from server.api import deps
-from server.api.api_v1.router_fix import APIRouter
 from server.api.deps import common_parameters
 from server.crud.crud_user import user_crud
 from server.db.models import UsersTable

@@ -1,6 +1,6 @@
 import structlog
+from fastapi import APIRouter
 
-from server.api.api_v1.router_fix import APIRouter
 from server.api.helpers import create_presigned_url, delete_from_temporary_bucket, move_between_buckets
 
 logger = structlog.get_logger(__name__)

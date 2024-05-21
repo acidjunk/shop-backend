@@ -58,7 +58,7 @@ def test_products_without_shop():
 
 
 def test_products_with_shop():
-    response_multi_prd = requests.get(PRD_BACKEND_URI + "shops-to-prices").json()
+    response_multi_prd = requests.get(PRD_BACKEND_URI + "shop_endpoints-to-prices").json()
     shops_with_products_ids = []
 
     for shop_to_price in response_multi_prd:

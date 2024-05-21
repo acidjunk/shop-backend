@@ -3,14 +3,14 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 import structlog
-from fastapi import HTTPException
+from fastapi import HTTPException, APIRouter
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
 from server.api import deps
-from server.api.api_v1.router_fix import APIRouter
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
+from server.crud import crud_shop
 from server.crud.crud_product import product_crud
 from server.db.models import UsersTable
 from server.schemas.product import (
@@ -26,14 +26,27 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
+def get_shop(shop_id: UUID):
+    shop = crud_shop.get_by_id(id=shop_id)
+    if not shop:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    return shop
+
+
 @router.get("/", response_model=List[ProductWithDefaultPrice])
 def get_multi(
+    shop_id: UUID,
     response: Response,
     common: dict = Depends(common_parameters),
     current_user: UsersTable = Depends(deps.get_current_active_superuser),
 ) -> List[ProductWithDefaultPrice]:
-    products, header_range = product_crud.get_multi(
-        skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
+    # shop = get_shop(shop_id)
+    products, header_range = product_crud.shop_get_multi(
+        shop_id=shop_id,
+        skip=common["skip"],
+        limit=common["limit"],
+        filter_parameters=common["filter"],
+        sort_parameters=common["sort"],
     )
     response.headers["Content-Range"] = header_range
 

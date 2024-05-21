@@ -71,7 +71,7 @@ def test_kinds_without_shop():
 
 
 def test_kinds_with_shop():
-    response_multi_prd = requests.get(PRD_BACKEND_URI + "shops-to-prices").json()
+    response_multi_prd = requests.get(PRD_BACKEND_URI + "shop_endpoints-to-prices").json()
     shops_with_kinds_ids = []
 
     for shop_to_price in response_multi_prd:

@@ -20,12 +20,12 @@ which library is used and for what reason.
 pip install -r ./requirements/all.txt
 ```
 
-A PostgreSQL user and two databases are required ('boilerplate' is the password used by default).
+A PostgreSQL user and two databases are required ('shop' is the password used by default).
 
 ```bash
-createuser -sP boilerplate
-createdb boilerplate -O boilerplate
-createdb boilerplate-test -O boilerplate
+createuser -sP shop
+createdb shop -O shop
+createdb shop-test -O shop  # only needed when your DB doesn't have Postgres superuser privileges.
 ```
 
 Now you should be able to start a hot reloading, api server:
@@ -74,7 +74,7 @@ PYTHONPATH=. alembic upgrade heads
 Then, to create a new schema migration:
 
 ```bash
-PYTHONPATH=. alembic revision --autogenerate -m "New schema" --head=schema@head
+PYTHONPATH=. alembic revision --autogenerate -m "New schema"
 ```
 
 This opens a new migration in `/migrations/versions/`
@@ -148,7 +148,6 @@ Currently, problems happened when:
 
 Running the `set-env.py` sets vars immediately without the need to restart something.
 
-
 # Create a user
 
 Set up the ENV var for FIRST_USER and run this command:
@@ -159,7 +158,10 @@ PYTHONPATH=. python server/create_initial_user.py
 
 # License and copyright info
 
-Copyright (C) 2019 René Dohmen acidjunk@gmail.com
+Copyright (C) 2024 René Dohmen <acidjunk@gmail.com>
 
 Licensed under the Apache License Version 2.0. A copy of the LICENSE is included in the project.
-The LICENSE copy also contains more detailed copyright info.
+There is a `licenses` folder that contains more detailed copyright info about the project and it's 
+components. Some work is based on, or inspired by, other Open Source projects, like 
+[orchestrator-core](https://github.com/workfloworchestrator/orchestrator-core) and 
+[nwa-stdlib](https://github.com/workfloworchestrator/nwa-stdlib) on which I collaborated.

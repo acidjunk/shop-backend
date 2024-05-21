@@ -245,6 +245,7 @@ class Order(BaseModel):
 class ProductTable(BaseModel):
     __tablename__ = "products"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    shop_id = Column("shop_id", UUID(as_uuid=True), ForeignKey("shops.id"), index=True)
     price = Column(Float(), nullable=False)
     tax_category = Column(String(20), default="vat_standard")
     discounted_price = Column(Float(), nullable=True)

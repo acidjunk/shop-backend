@@ -35,6 +35,13 @@ class ProductTranslationBase(BoilerplateBaseModel):
 
 
 class ProductBase(BoilerplateBaseModel):
+    shop_id: UUID
+    price: float
+    # Todo: make enum with: vat_standard, vat_lower_1, vat_lower_2, vat_lower_3, vat_special, vat_zero
+    tax_category: str
+    discounted_price: Optional[float] = None
+    # discounted_from: Optional[datetime] = None
+    # discounted_to: Optional[datetime] = None
     image_1: Union[Optional[dict], Optional[str]]
     image_2: Union[Optional[dict], Optional[str]]
     image_3: Union[Optional[dict], Optional[str]]
@@ -56,7 +63,7 @@ class ProductUpdate(ProductBase):
 
 class ProductInDBBase(ProductBase):
     id: UUID
-    created_at: datetime
+    # created_at: datetime
     modified_at: Optional[datetime] = None
     approved_at: Optional[datetime] = None
 

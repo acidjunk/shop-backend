@@ -3,11 +3,10 @@ from typing import Any, List
 from uuid import UUID
 
 import structlog
-from fastapi import HTTPException
+from fastapi import HTTPException, APIRouter
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
-from server.api.api_v1.router_fix import APIRouter
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud.crud_tag import tag_crud
