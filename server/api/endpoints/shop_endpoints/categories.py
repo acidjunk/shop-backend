@@ -24,13 +24,22 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
-# Todo: fix filtering on shop_id
+def get_shop(shop_id: UUID):
+    shop = crud_shop.get_by_id(id=shop_id)
+    if not shop:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    return shop
 
 
 @router.get("/", response_model=List[CategoryWithNames])
-def get_multi(response: Response, common: dict = Depends(common_parameters)) -> List[CategorySchema]:
-    categories, header_range = category_crud.get_multi(
-        skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
+def get_multi(shop_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[CategorySchema]:
+    # shop = get_shop(shop_id)
+    categories, header_range = category_crud.shop_get_multi(
+        shop_id=shop_id,
+        skip=common["skip"],
+        limit=common["limit"],
+        filter_parameters=common["filter"],
+        sort_parameters=common["sort"],
     )
     for category in categories:
         category.shop_name = category.shop.name

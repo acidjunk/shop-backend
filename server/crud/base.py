@@ -226,6 +226,31 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         return db_obj
 
+    def shop_create(self, *, shop_id: any, obj_in: CreateSchemaType) -> ModelType:
+        obj_in_data = transform_json(obj_in.dict())
+        # Todo: remove translate from base? We should handle this in a more generic way, for now a UGLY hack:
+        translation_data = None
+        try:
+            translation_data = obj_in_data.pop("translation")
+        except:
+            pass
+
+        db_obj = self.model(shop_id=shop_id, **obj_in_data)
+        db.session.add(db_obj)
+        db.session.commit()
+        db.session.refresh(db_obj)
+
+        if translation_data:
+            translation_name = db_obj.__class__.__name__.split("Table")[0]
+            translation_model = globals().get(translation_name + "Translation", None)
+            translation_data[translation_name.lower() + "_id"] = db_obj.id
+            translation = translation_model(**translation_data)
+            db.session.add(translation)
+            db.session.commit()
+            db.session.refresh(translation)
+
+        return db_obj
+
     def update(self, *, db_obj: ModelType, obj_in: UpdateSchemaType, commit: bool = True) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
         update_data = obj_in.dict(exclude_unset=True)
