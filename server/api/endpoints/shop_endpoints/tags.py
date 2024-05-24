@@ -18,9 +18,9 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[TagSchema])
-def get_multi(response: Response, common: dict = Depends(common_parameters)) -> List[TagSchema]:
-    tags, header_range = tag_crud.get_multi(
-        skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
+def get_multi(shop_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[TagSchema]:
+    tags, header_range = tag_crud.shop_get_multi(
+        shop_id=shop_id, skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
     )
     response.headers["Content-Range"] = header_range
     return tags
