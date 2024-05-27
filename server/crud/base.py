@@ -55,8 +55,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def get_by_id(self, id: UUID | str) -> Optional[ModelType]:
         return db.session.query(self.model).get(id)
 
-    def shop_get(self, shop_id: UUID, id: str) -> Optional[ModelType]:
-        return db.session.query(self.model).filter(shop_id=shop_id).get(id)
+    def shop_get(self, shop_id: UUID, id: UUID) -> Optional[ModelType]:
+        return db.session.query(self.model).filter(self.model.shop_id == shop_id, self.model.id == id).first()
 
     def get_multi(
         self,
@@ -290,6 +290,25 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         obj = db.session.query(self.model).get(id)
         if obj is None:
             raise NotFound
+        db.session.delete(obj)
+        db.session.commit()
+        return None
+
+    def shop_delete(self, *, shop_id: UUID, id: UUID) -> None:
+        obj = db.session.query(self.model).filter(self.model.shop_id == shop_id, self.model.id == id).first()
+        if obj is None:
+            raise NotFound
+
+        if obj.translation:
+            print(obj.translation.id)
+            translation_name = obj.__class__.__name__.split("Table")[0]
+            translation_model = globals().get(translation_name + "Translation", None)
+            if translation_model:
+                translation_obj = db.session.query(translation_model).filter(translation_model.id == obj.translation.id).first()
+
+                if translation_obj:
+                    db.session.delete(translation_obj)
+
         db.session.delete(obj)
         db.session.commit()
         return None

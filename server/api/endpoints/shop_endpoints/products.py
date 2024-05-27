@@ -59,35 +59,32 @@ def get_multi(
     return products
 
 
-@router.get("/{id}", response_model=ProductWithDetailsAndPrices)
-def get_by_id(id: UUID, shop: Optional[UUID] = None) -> ProductWithDetailsAndPrices:
-    product = product_crud.get(id)
+@router.get("/{product_id}", response_model=ProductWithDetailsAndPrices)
+def get_by_id(product_id: UUID, shop_id: UUID) -> ProductWithDetailsAndPrices:
+    product = product_crud.shop_get(shop_id, product_id)
     if not product:
-        raise_status(HTTPStatus.NOT_FOUND, f"Product with id {id} not found")
+        raise_status(HTTPStatus.NOT_FOUND, f"Product with id {product_id} not found")
 
-    product.prices = []
-    if shop:
-        for price_relation in product.shop_to_price:
-            if price_relation.shop_id == shop:
-                product.prices.append(
-                    {
-                        "id": price_relation.price.id,
-                        "internal_product_id": price_relation.price.internal_product_id,
-                        "active": price_relation.active,
-                        "new": price_relation.new,
-                        # In flask's serializer there is no half
-                        # "half": price_relation.price.half if price_relation.use_half else None,
-                        "one": price_relation.price.one if price_relation.use_one else None,
-                        "two_five": price_relation.price.two_five if price_relation.use_two_five else None,
-                        "five": price_relation.price.five if price_relation.use_five else None,
-                        "joint": price_relation.price.joint if price_relation.use_joint else None,
-                        "piece": price_relation.price.piece if price_relation.use_piece else None,
-                        "created_at": price_relation.created_at,
-                        "modified_at": price_relation.modified_at,
-                    }
-                )
-    else:
-        product.prices = []
+    # product.prices = []
+    # for price_relation in product.shop_to_price:
+    #     if price_relation.shop_id == shop_id:
+    #         product.prices.append(
+    #             {
+    #                 "id": price_relation.price.id,
+    #                 "internal_product_id": price_relation.price.internal_product_id,
+    #                 "active": price_relation.active,
+    #                 "new": price_relation.new,
+    #                 # In flask's serializer there is no half
+    #                 # "half": price_relation.price.half if price_relation.use_half else None,
+    #                 "one": price_relation.price.one if price_relation.use_one else None,
+    #                 "two_five": price_relation.price.two_five if price_relation.use_two_five else None,
+    #                 "five": price_relation.price.five if price_relation.use_five else None,
+    #                 "joint": price_relation.price.joint if price_relation.use_joint else None,
+    #                 "piece": price_relation.price.piece if price_relation.use_piece else None,
+    #                 "created_at": price_relation.created_at,
+    #                 "modified_at": price_relation.modified_at,
+    #             }
+    #         )
 
     product.images_amount = 0
     for i in [1, 2, 3, 4, 5, 6]:
@@ -108,9 +105,9 @@ def create(
 
 @router.put("/{product_id}", response_model=None, status_code=HTTPStatus.CREATED)
 def update(
-    *, product_id: UUID, item_in: ProductUpdate, current_user: UsersTable = Depends(deps.get_current_active_employee)
+    *, product_id: UUID, shop_id: UUID, item_in: ProductUpdate, current_user: UsersTable = Depends(deps.get_current_active_employee)
 ) -> Any:
-    product = product_crud.get(id=product_id)
+    product = product_crud.shop_get(shop_id, product_id)
     logger.info("Updating product", data=product)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -123,5 +120,5 @@ def update(
 
 
 @router.delete("/{product_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
-def delete(product_id: UUID, current_user: UsersTable = Depends(deps.get_current_active_superuser)) -> None:
-    return product_crud.delete(id=product_id)
+def delete(product_id: UUID, shop_id: UUID, current_user: UsersTable = Depends(deps.get_current_active_superuser)) -> None:
+    return product_crud.shop_delete(shop_id=shop_id, id=product_id)

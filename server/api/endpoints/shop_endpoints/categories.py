@@ -49,11 +49,11 @@ def get_multi(shop_id: UUID, response: Response, common: dict = Depends(common_p
     return categories
 
 
-@router.get("/{id}", response_model=CategorySchema)
-def get_by_id(id: UUID) -> CategorySchema:
-    category = category_crud.get(id)
+@router.get("/{category_id}", response_model=CategorySchema)
+def get_by_id(shop_id: UUID, category_id: UUID) -> CategorySchema:
+    category = category_crud.shop_get(shop_id, category_id)
     if not category:
-        raise_status(HTTPStatus.NOT_FOUND, f"Category with id {id} not found")
+        raise_status(HTTPStatus.NOT_FOUND, f"Category with id {category_id} not found")
     return category
 
 
@@ -82,8 +82,8 @@ def create(data: CategoryCreate = Body(...)) -> None:
 
 
 @router.put("/{category_id}", response_model=None, status_code=HTTPStatus.CREATED)
-def update(*, category_id: UUID, item_in: CategoryUpdate) -> Any:
-    category = category_crud.get(id=category_id)
+def update(*, category_id: UUID, shop_id: UUID, item_in: CategoryUpdate) -> Any:
+    category = category_crud.shop_get(shop_id, category_id)
     logger.info("Updating category", data=category)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -100,5 +100,5 @@ def update(*, category_id: UUID, item_in: CategoryUpdate) -> Any:
 
 
 @router.delete("/{category_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
-def delete(category_id: UUID) -> None:
-    return category_crud.delete(id=category_id)
+def delete(category_id: UUID, shop_id: UUID) -> None:
+    return category_crud.shop_delete(shop_id=shop_id, id=category_id)
