@@ -28,7 +28,7 @@ from server.db import db
 from server.db.database import DBSessionMiddleware
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
 from server.settings import app_settings
-from server.version import GIT_COMMIT_HASH
+# from server.version import GIT_COMMIT_HASH
 
 structlog.configure(
     processors=[
@@ -53,7 +53,7 @@ app = FastAPI(
     openapi_url="/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
-    version=GIT_COMMIT_HASH,
+    version="0.1.0",
     default_response_class=JSONResponse,
     # root_path="/backend",
     servers=[
