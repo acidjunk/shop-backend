@@ -8,7 +8,7 @@ run:
   runtime-version: 3.11
   pre-run:
     - pip3 install -r requirements/base.txt
-  command: python3 -m uvicorn main:app --port 8000
+  command: python3 -m uvicorn server.main:app --port 8000
   network:
     port: 8000
   env:
