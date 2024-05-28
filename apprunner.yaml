@@ -12,8 +12,8 @@ run:
   network:
     port: 8000
   env:
-    - name: TESTING
-      value: 1
+    - name: ENVIRONMENT
+      value: production
     - name: JWT_ALGORITHM
       value: HS256
   secrets:
