@@ -14,7 +14,7 @@ psycopg2-binary==2.9.9
 pydantic[email]==2.7.1
 pyjwt==2.1.0  # Todo: Not sure if we need this one
 python-jose[cryptography]==3.2.0
-python-rapidjson==1.0
+python-rapidjson==1.17
 pytz==2024.1
 SQLAlchemy==2.0.29
 SQLAlchemy-Utils==0.41.2
