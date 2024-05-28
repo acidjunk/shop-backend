@@ -27,3 +27,4 @@ itsdangerous
 pydantic-forms
 pydantic-settings==2.2.1
 python-multipart
+wheel
