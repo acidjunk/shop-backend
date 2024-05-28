@@ -3,11 +3,10 @@ from typing import Any, List
 from uuid import UUID
 
 import structlog
-from fastapi import HTTPException
+from fastapi import HTTPException, APIRouter
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
-from server.api.api_v1.router_fix import APIRouter
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud.crud_tag import tag_crud
@@ -19,19 +18,19 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[TagSchema])
-def get_multi(response: Response, common: dict = Depends(common_parameters)) -> List[TagSchema]:
-    tags, header_range = tag_crud.get_multi(
-        skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
+def get_multi(shop_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[TagSchema]:
+    tags, header_range = tag_crud.shop_get_multi(
+        shop_id=shop_id, skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
     )
     response.headers["Content-Range"] = header_range
     return tags
 
 
-@router.get("/{id}", response_model=TagSchema)
-def get_by_id(id: UUID) -> TagSchema:
-    tag = tag_crud.get(id)
+@router.get("/{tag_id}", response_model=TagSchema)
+def get_by_id(tag_id: UUID, shop_id: UUID) -> TagSchema:
+    tag = tag_crud.shop_get(shop_id, tag_id)
     if not tag:
-        raise_status(HTTPStatus.NOT_FOUND, f"Tag with id {id} not found")
+        raise_status(HTTPStatus.NOT_FOUND, f"Tag with id {tag_id} not found")
     return tag
 
 
@@ -52,8 +51,8 @@ def create(data: TagCreate = Body(...)) -> None:
 
 
 @router.put("/{tag_id}", response_model=None, status_code=HTTPStatus.CREATED)
-def update(*, tag_id: UUID, item_in: TagUpdate) -> Any:
-    tag = tag_crud.get(id=tag_id)
+def update(*, tag_id: UUID, shop_id: UUID, item_in: TagUpdate) -> Any:
+    tag = tag_crud.shop_get(shop_id, tag_id)
     logger.info("Updating tag", data=tag)
     if not tag:
         raise HTTPException(status_code=404, detail="Tag not found")
@@ -66,9 +65,9 @@ def update(*, tag_id: UUID, item_in: TagUpdate) -> Any:
 
 
 @router.delete("/{tag_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
-def delete(tag_id: UUID) -> None:
+def delete(tag_id: UUID, shop_id: UUID) -> None:
     try:
-        tag_crud.delete(id=tag_id)
+        tag_crud.shop_delete(shop_id=shop_id, id=tag_id)
     except Exception as e:
         raise HTTPException(HTTPStatus.BAD_REQUEST, detail=f"{e.__cause__}")
     return

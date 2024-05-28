@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-import os
 
 import structlog
 from fastapi import Request
@@ -23,7 +22,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
 
-from server.api.api_v1.api import api_router
+from server.api.api import api_router
 from server.api.error_handling import ProblemDetailException
 from server.db import db
 from server.db.database import DBSessionMiddleware
@@ -51,9 +50,9 @@ logger = structlog.get_logger(__name__)
 app = FastAPI(
     title="Pricelist FastAPI",
     description="Backend for price-lists.",
-    openapi_url="/v1/openapi.json",
-    docs_url="/v1/docs",
-    redoc_url="/v1/redoc",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
     version=GIT_COMMIT_HASH,
     default_response_class=JSONResponse,
     # root_path="/backend",
@@ -62,7 +61,7 @@ app = FastAPI(
     ],
 )
 
-app.include_router(api_router, prefix="/v1")
+app.include_router(api_router)
 
 app.add_middleware(SessionMiddleware, secret_key=app_settings.SESSION_SECRET)
 app.add_middleware(DBSessionMiddleware, database=db)

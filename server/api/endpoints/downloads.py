@@ -1,6 +1,6 @@
 import structlog
+from fastapi import APIRouter
 
-from server.api.api_v1.router_fix import APIRouter
 from server.api.helpers import create_download_url
 from server.utils.auth import send_download_link_email
 

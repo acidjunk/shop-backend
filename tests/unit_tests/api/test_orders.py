@@ -1,12 +1,6 @@
-from http import HTTPStatus
-from unittest import mock
-
-import pytest
-
-from server.api.api_v1.endpoints.orders import get_price_rules_total
+from server.api.endpoints.shop_endpoints.orders import get_price_rules_total
 from server.crud.crud_order import order_crud
 from server.schemas.order import OrderItem
-from server.utils.json import json_dumps
 
 
 def test_order_list(test_client, shop_with_orders, superuser_token_headers):

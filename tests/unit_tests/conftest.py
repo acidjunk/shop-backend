@@ -1,10 +1,7 @@
-import json
 import os
-import re
 import uuid
 from contextlib import closing
 from datetime import datetime
-from os import listdir
 from typing import Dict, cast
 
 import pytest
@@ -22,7 +19,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
 from starlette.testclient import TestClient
 
-from server.api.api_v1.api import api_router
+from server.api.api import api_router
 from server.api.error_handling import ProblemDetailException
 from server.db import db
 from server.db.database import ENGINE_ARGUMENTS, SESSION_ARGUMENTS, BaseModel, DBSessionMiddleware, SearchQuery
@@ -51,7 +48,6 @@ from server.pydantic_forms.exceptions import FormException
 from server.security import get_password_hash
 from server.settings import app_settings
 from server.types import UUIDstr
-from server.utils.date_utils import nowtz
 
 logger = structlog.getLogger(__name__)
 

@@ -23,7 +23,7 @@ from server.crud.crud_user import user_crud
 from server.db.models import UsersTable
 from server.settings import app_settings
 
-reusable_oauth = OAuth2PasswordBearer(tokenUrl=f"/v1/login/access-token")
+reusable_oauth = OAuth2PasswordBearer(tokenUrl=f"/login/access-token")
 
 
 async def common_parameters(

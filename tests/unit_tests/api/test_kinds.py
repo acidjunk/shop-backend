@@ -54,7 +54,7 @@ def test_kind_update(kind_1, test_client, superuser_token_headers):
     assert kind["name"] == "Updated Kind"
 
 
-# TODO: Unit test for kind with 2 shops
+# TODO: Unit test for kind with 2 shop_endpoints
 
 
 def test_kind_delete(kind_1, test_client, superuser_token_headers):

@@ -13,13 +13,14 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "1b485cfea981"
-down_revision = "c57ec832538d"
+down_revision = "0b0e6aaed0c3"
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
     admin_role_id = uuid4()
+    shop_id = uuid4()
     conn = op.get_bind()
     conn.execute(
         sa.text(
@@ -28,6 +29,15 @@ def upgrade() -> None:
             """
         ),
         {"id": admin_role_id},
+    )
+
+    conn.execute(
+        sa.text(
+            """
+            INSERT INTO shops (id, name, description, vat_standard) VALUES (:id, 'shop', 'Default shop', 21.0)
+            """
+        ),
+        {"id": shop_id},
     )
 
 

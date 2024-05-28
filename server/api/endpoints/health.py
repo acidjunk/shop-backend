@@ -14,9 +14,9 @@
 from http import HTTPStatus
 
 import structlog
+from fastapi import APIRouter
 from sqlalchemy.exc import OperationalError
 
-from server.api.api_v1.router_fix import APIRouter
 from server.api.error_handling import raise_status
 from server.db import ProductTable
 
