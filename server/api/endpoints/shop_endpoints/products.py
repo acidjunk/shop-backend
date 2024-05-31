@@ -41,7 +41,7 @@ def get_multi(
     current_user: UsersTable = Depends(deps.get_current_active_superuser),
 ) -> List[ProductWithDefaultPrice]:
     # shop = get_shop(shop_id)
-    products, header_range = product_crud.shop_get_multi(
+    products, header_range = product_crud.get_multi_by_shop_id(
         shop_id=shop_id,
         skip=common["skip"],
         limit=common["limit"],
@@ -61,7 +61,7 @@ def get_multi(
 
 @router.get("/{product_id}", response_model=ProductWithDetailsAndPrices)
 def get_by_id(product_id: UUID, shop_id: UUID) -> ProductWithDetailsAndPrices:
-    product = product_crud.shop_get(shop_id, product_id)
+    product = product_crud.get_id_by_shop_id(shop_id, product_id)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product with id {product_id} not found")
 
@@ -111,7 +111,7 @@ def update(
     item_in: ProductUpdate,
     current_user: UsersTable = Depends(deps.get_current_active_employee),
 ) -> Any:
-    product = product_crud.shop_get(shop_id, product_id)
+    product = product_crud.get_id_by_shop_id(shop_id, product_id)
     logger.info("Updating product", data=product)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -127,4 +127,4 @@ def update(
 def delete(
     product_id: UUID, shop_id: UUID, current_user: UsersTable = Depends(deps.get_current_active_superuser)
 ) -> None:
-    return product_crud.shop_delete(shop_id=shop_id, id=product_id)
+    return product_crud.delete_by_shop_id(shop_id=shop_id, id=product_id)

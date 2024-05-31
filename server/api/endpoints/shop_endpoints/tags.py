@@ -19,7 +19,7 @@ router = APIRouter()
 
 @router.get("/", response_model=List[TagSchema])
 def get_multi(shop_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[TagSchema]:
-    tags, header_range = tag_crud.shop_get_multi(
+    tags, header_range = tag_crud.get_multi_by_shop_id(
         shop_id=shop_id,
         skip=common["skip"],
         limit=common["limit"],
@@ -32,7 +32,7 @@ def get_multi(shop_id: UUID, response: Response, common: dict = Depends(common_p
 
 @router.get("/{tag_id}", response_model=TagSchema)
 def get_by_id(tag_id: UUID, shop_id: UUID) -> TagSchema:
-    tag = tag_crud.shop_get(shop_id, tag_id)
+    tag = tag_crud.get_id_by_shop_id(shop_id, tag_id)
     if not tag:
         raise_status(HTTPStatus.NOT_FOUND, f"Tag with id {tag_id} not found")
     return tag
@@ -56,7 +56,7 @@ def create(data: TagCreate = Body(...)) -> None:
 
 @router.put("/{tag_id}", response_model=None, status_code=HTTPStatus.CREATED)
 def update(*, tag_id: UUID, shop_id: UUID, item_in: TagUpdate) -> Any:
-    tag = tag_crud.shop_get(shop_id, tag_id)
+    tag = tag_crud.get_id_by_shop_id(shop_id, tag_id)
     logger.info("Updating tag", data=tag)
     if not tag:
         raise HTTPException(status_code=404, detail="Tag not found")
@@ -71,7 +71,7 @@ def update(*, tag_id: UUID, shop_id: UUID, item_in: TagUpdate) -> Any:
 @router.delete("/{tag_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(tag_id: UUID, shop_id: UUID) -> None:
     try:
-        tag_crud.shop_delete(shop_id=shop_id, id=tag_id)
+        tag_crud.delete_by_shop_id(shop_id=shop_id, id=tag_id)
     except Exception as e:
         raise HTTPException(HTTPStatus.BAD_REQUEST, detail=f"{e.__cause__}")
     return

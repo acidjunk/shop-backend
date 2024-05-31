@@ -52,10 +52,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def get(self, id: UUID | str) -> Optional[ModelType]:
         return db.session.query(self.model).get(id)
 
-    def get_by_id(self, id: UUID | str) -> Optional[ModelType]:
+    def get_id(self, id: UUID | str) -> Optional[ModelType]:
         return db.session.query(self.model).get(id)
 
-    def shop_get(self, shop_id: UUID, id: UUID) -> Optional[ModelType]:
+    def get_id_by_shop_id(self, shop_id: UUID, id: UUID) -> Optional[ModelType]:
         return db.session.query(self.model).filter(self.model.shop_id == shop_id, self.model.id == id).first()
 
     def get_multi(
@@ -129,7 +129,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             response_range = "{}s {}/{}".format(self.model.__name__.lower(), skip, count)
             return query.offset(skip).all(), response_range
 
-    def shop_get_multi(
+    def get_multi_by_shop_id(
         self,
         *,
         shop_id: any,
@@ -142,64 +142,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         query = query_parameter
         if query is None:
             query = db.session.query(self.model).filter(self.model.shop_id == shop_id)
-
-        logger.debug(
-            f"Filter and Sort parameters model={self.model}, sort_parameters={sort_parameters}, filter_parameters={filter_parameters}",
+        return self.get_multi(
+            skip=skip,
+            limit=limit,
+            filter_parameters=filter_parameters,
+            sort_parameters=sort_parameters,
+            query_parameter=query,
         )
-        conditions = []
-
-        if filter_parameters:
-            for filter_parameter in filter_parameters:
-                key, *value = filter_parameter.split(":", 1)
-
-                # Use this branch if we detect a key value search (key:value) if it is just a single string (value)
-                # treat the key as the value
-                if len(value) > 0:
-                    if key in sa_inspect(self.model).columns.keys():
-                        conditions.append(cast(self.model.__dict__[key], String).ilike("%" + one(value) + "%"))
-                    else:
-                        logger.info(f"Key: not found in database model key={key}, model={self.model}")
-                    query = query.filter(or_(*conditions))
-                else:
-                    if isinstance(value, list):
-                        logger.info("Query parameters set to GET_MANY, ID column only", value=value)
-                        conditions = []
-                        for item in value:
-                            conditions.append(self.model.__dict__["id"] == item)
-                        query = query.filter(or_(*conditions))
-                    else:
-                        for column in sa_inspect(self.model).columns.keys():
-                            conditions.append(cast(self.model.__dict__[column], String).ilike("%" + key + "%"))
-                            query = query.filter(or_(*conditions))
-
-        if sort_parameters and len(sort_parameters):
-            for sort_parameter in sort_parameters:
-                try:
-                    sort_col, sort_order = sort_parameter.split(":")
-                    if sort_col in sa_inspect(self.model).columns.keys():
-                        if sort_order.upper() == "DESC":
-                            query = query.order_by(expression.desc(self.model.__dict__[sort_col]))
-                        else:
-                            query = query.order_by(expression.asc(self.model.__dict__[sort_col]))
-                    else:
-                        logger.debug(f"Sort col does not exist sort_col={sort_col}")
-                except ValueError:
-                    if sort_parameter in sa_inspect(self.model).columns.keys():
-                        query = query.order_by(expression.asc(self.model.__dict__[sort_parameter]))
-                    else:
-                        logger.debug(f"Sort param does not exist sort_parameter={sort_parameter}")
-
-        # Generate Content Range Header Values
-        count = query.count()
-
-        if limit:
-            # Limit is not 0: use limit
-            response_range = "{}s {}-{}/{}".format(self.model.__name__.lower(), skip, skip + limit, count)
-            return query.offset(skip).limit(limit).all(), response_range
-        else:
-            # Limit is 0: unlimited
-            response_range = "{}s {}/{}".format(self.model.__name__.lower(), skip, count)
-            return query.offset(skip).all(), response_range
 
     def create(self, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = transform_json(obj_in.dict())
@@ -226,7 +175,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         return db_obj
 
-    def shop_create(self, *, shop_id: any, obj_in: CreateSchemaType) -> ModelType:
+    def create_by_shop_id(self, *, shop_id: any, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = transform_json(obj_in.dict())
         # Todo: remove translate from base? We should handle this in a more generic way, for now a UGLY hack:
         translation_data = None
@@ -294,13 +243,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.session.commit()
         return None
 
-    def shop_delete(self, *, shop_id: UUID, id: UUID) -> None:
+    def delete_by_shop_id(self, *, shop_id: UUID, id: UUID) -> None:
         obj = db.session.query(self.model).filter(self.model.shop_id == shop_id, self.model.id == id).first()
         if obj is None:
             raise NotFound
 
         if obj.translation:
-            print(obj.translation.id)
             translation_name = obj.__class__.__name__.split("Table")[0]
             translation_model = globals().get(translation_name + "Translation", None)
             if translation_model:

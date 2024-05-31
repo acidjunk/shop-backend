@@ -19,8 +19,9 @@ from server.schemas.category import CategoryCreate, CategoryUpdate
 
 
 class CRUDCategory(CRUDBase[Category, CategoryCreate, CategoryUpdate]):
-    def get_by_name(self, *, name: str, shop_id: UUID) -> Optional[Category]:
-        return Category.query.filter(Category.shop_id == shop_id).filter(Category.name == name).first()
+    pass
+    # def get_by_name(self, *, name: str, shop_id: UUID) -> Optional[Category]:
+    #     return Category.query.filter(Category.shop_id == shop_id).filter(Category.name == name).first()
 
 
 category_crud = CRUDCategory(Category)

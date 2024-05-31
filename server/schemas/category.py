@@ -63,7 +63,8 @@ class CategorySchema(CategoryInDBBase):
 
 
 class CategoryWithNames(CategoryInDBBase):
-    shop_name: str
+    pass
+    # shop_name: str
 
 
 class CategoryImageDelete(CategoryEmptyBase):

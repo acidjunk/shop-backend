@@ -10,6 +10,7 @@ from starlette.responses import Response
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.api.helpers import invalidateShopCache
+from server.crud import crud_shop
 from server.crud.crud_category import category_crud
 from server.schemas.category import (
     CategoryCreate,
@@ -25,40 +26,36 @@ router = APIRouter()
 
 
 def get_shop(shop_id: UUID):
-    shop = crud_shop.get_by_id(id=shop_id)
+    shop = crud_shop.get_id(id=shop_id)
     if not shop:
         raise HTTPException(status_code=404, detail="Shop not found")
     return shop
 
 
-@router.get("/", response_model=List[CategoryWithNames])
+@router.get("/", response_model=List[CategorySchema])
 def get_multi(shop_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[CategorySchema]:
     # shop = get_shop(shop_id)
-    categories, header_range = category_crud.shop_get_multi(
+    categories, header_range = category_crud.get_multi_by_shop_id(
         shop_id=shop_id,
         skip=common["skip"],
         limit=common["limit"],
         filter_parameters=common["filter"],
         sort_parameters=common["sort"],
     )
-    for category in categories:
-        category.shop_name = category.shop.name
-        # category.category_and_shop = f"{category.name} in {category.shop.name}"
-
     response.headers["Content-Range"] = header_range
     return categories
 
 
 @router.get("/{category_id}", response_model=CategorySchema)
 def get_by_id(shop_id: UUID, category_id: UUID) -> CategorySchema:
-    category = category_crud.shop_get(shop_id, category_id)
+    category = category_crud.get_id_by_shop_id(shop_id, category_id)
     if not category:
         raise_status(HTTPStatus.NOT_FOUND, f"Category with id {category_id} not found")
     return category
 
 
 # @router.get("/is-deletable/{id}", response_model=CategoryIsDeletable)
-# def get_by_id(id: UUID) -> CategoryIsDeletable:
+# def get_id(id: UUID) -> CategoryIsDeletable:
 #     shop_to_price = shop_to_price_crud.get_shops_to_prices_by_category(category_id=id)
 #     if shop_to_price:
 #         return CategoryIsDeletable(is_deletable=False)
@@ -83,7 +80,7 @@ def create(data: CategoryCreate = Body(...)) -> None:
 
 @router.put("/{category_id}", response_model=None, status_code=HTTPStatus.CREATED)
 def update(*, category_id: UUID, shop_id: UUID, item_in: CategoryUpdate) -> Any:
-    category = category_crud.shop_get(shop_id, category_id)
+    category = category_crud.get_id_by_shop_id(shop_id, category_id)
     logger.info("Updating category", data=category)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -101,4 +98,4 @@ def update(*, category_id: UUID, shop_id: UUID, item_in: CategoryUpdate) -> Any:
 
 @router.delete("/{category_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(category_id: UUID, shop_id: UUID) -> None:
-    return category_crud.shop_delete(shop_id=shop_id, id=category_id)
+    return category_crud.delete_by_shop_id(shop_id=shop_id, id=category_id)
