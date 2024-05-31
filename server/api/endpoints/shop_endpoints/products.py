@@ -105,7 +105,11 @@ def create(
 
 @router.put("/{product_id}", response_model=None, status_code=HTTPStatus.CREATED)
 def update(
-    *, product_id: UUID, shop_id: UUID, item_in: ProductUpdate, current_user: UsersTable = Depends(deps.get_current_active_employee)
+    *,
+    product_id: UUID,
+    shop_id: UUID,
+    item_in: ProductUpdate,
+    current_user: UsersTable = Depends(deps.get_current_active_employee),
 ) -> Any:
     product = product_crud.shop_get(shop_id, product_id)
     logger.info("Updating product", data=product)
@@ -120,5 +124,7 @@ def update(
 
 
 @router.delete("/{product_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
-def delete(product_id: UUID, shop_id: UUID, current_user: UsersTable = Depends(deps.get_current_active_superuser)) -> None:
+def delete(
+    product_id: UUID, shop_id: UUID, current_user: UsersTable = Depends(deps.get_current_active_superuser)
+) -> None:
     return product_crud.shop_delete(shop_id=shop_id, id=product_id)
