@@ -304,7 +304,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             translation_name = obj.__class__.__name__.split("Table")[0]
             translation_model = globals().get(translation_name + "Translation", None)
             if translation_model:
-                translation_obj = db.session.query(translation_model).filter(translation_model.id == obj.translation.id).first()
+                translation_obj = (
+                    db.session.query(translation_model).filter(translation_model.id == obj.translation.id).first()
+                )
 
                 if translation_obj:
                     db.session.delete(translation_obj)

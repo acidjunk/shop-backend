@@ -17,7 +17,8 @@ import logging
 import structlog
 from fastapi import Request
 from fastapi.applications import FastAPI
-from mangum import Mangum
+
+# from mangum import Mangum
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
@@ -28,6 +29,7 @@ from server.db import db
 from server.db.database import DBSessionMiddleware
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
 from server.settings import app_settings
+
 # from server.version import GIT_COMMIT_HASH
 
 structlog.configure(
@@ -89,4 +91,4 @@ def get_my_ip(request: Request):
 
 
 logger.info("App is running")
-handler = Mangum(app, lifespan="off")
+# handler = Mangum(app, lifespan="off")
