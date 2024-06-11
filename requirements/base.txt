@@ -16,8 +16,8 @@ pyjwt==2.1.0  # Todo: Not sure if we need this one
 python-jose[cryptography]==3.2.0
 python-rapidjson==1.17
 pytz==2024.1
-SQLAlchemy==2.0.29
-SQLAlchemy-Utils==0.41.2
+SQLAlchemy==2.0.30
+SQLAlchemy-Utils
 # SQLAlchemy-Searchable~=1.2.0
 structlog
 #typer-cli==0.0.12

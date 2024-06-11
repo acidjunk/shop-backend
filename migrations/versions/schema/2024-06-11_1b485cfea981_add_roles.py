@@ -13,7 +13,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "1b485cfea981"
-down_revision = "0b0e6aaed0c3"
+down_revision = "e388a522215c"
 branch_labels = None
 depends_on = None
 
@@ -25,7 +25,7 @@ def upgrade() -> None:
     conn.execute(
         sa.text(
             """
-            INSERT INTO role (id, name, description) VALUES (:id, 'admin', 'Admin role')
+            INSERT INTO roles (id, name, description) VALUES (:id, 'admin', 'Admin role')
             """
         ),
         {"id": admin_role_id},
