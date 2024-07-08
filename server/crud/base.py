@@ -184,7 +184,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except:
             pass
 
-        db_obj = self.model(shop_id=shop_id, **obj_in_data)
+        db_obj = self.model(**{**obj_in_data, 'shop_id': shop_id})
         db.session.add(db_obj)
         db.session.commit()
         db.session.refresh(db_obj)

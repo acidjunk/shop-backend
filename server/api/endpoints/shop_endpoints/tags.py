@@ -48,9 +48,9 @@ def get_by_name(name: str, shop_id: UUID) -> TagSchema:
 
 
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
-def create(data: TagCreate = Body(...)) -> None:
+def create(shop_id: UUID, data: TagCreate = Body(...)) -> None:
     logger.info("Saving tag", data=data)
-    tag = tag_crud.create(obj_in=data)
+    tag = tag_crud.create_by_shop_id(shop_id=shop_id, obj_in=data)
     return tag
 
 
