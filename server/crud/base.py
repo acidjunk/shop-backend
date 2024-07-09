@@ -184,19 +184,23 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except:
             pass
 
-        db_obj = self.model(**{**obj_in_data, 'shop_id': shop_id})
-        db.session.add(db_obj)
-        db.session.commit()
-        db.session.refresh(db_obj)
+        try:
+            db_obj = self.model(**{**obj_in_data, 'shop_id': shop_id})
+            db.session.add(db_obj)
+            db.session.flush()
 
-        if translation_data:
-            translation_name = db_obj.__class__.__name__.split("Table")[0]
-            translation_model = globals().get(translation_name + "Translation", None)
-            translation_data[translation_name.lower() + "_id"] = db_obj.id
-            translation = translation_model(**translation_data)
-            db.session.add(translation)
-            db.session.commit()
-            db.session.refresh(translation)
+            if translation_data:
+                translation_name = db_obj.__class__.__name__.split("Table")[0]
+                translation_model = globals().get(translation_name + "Translation", None)
+                translation_data[translation_name.lower() + "_id"] = db_obj.id
+                translation = translation_model(**translation_data)
+                db.session.add(translation)
+                db.session.commit()
+                db.session.refresh(db_obj)
+                db.session.refresh(translation)
+        except:
+            db.session.rollback()
+            raise
 
         return db_obj
 
