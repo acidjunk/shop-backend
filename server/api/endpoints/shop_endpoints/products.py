@@ -96,10 +96,11 @@ def get_by_id(product_id: UUID, shop_id: UUID) -> ProductWithDetailsAndPrices:
 
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create(
+    shop_id: UUID,
     data: ProductCreate = Body(...), current_user: UsersTable = Depends(deps.get_current_active_employee)
 ) -> None:
     logger.info("Saving product", data=data)
-    product = product_crud.create(obj_in=data)
+    product = product_crud.create_by_shop_id(obj_in=data, shop_id=shop_id)
     return product
 
 
