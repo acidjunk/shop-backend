@@ -9,7 +9,7 @@ from server import schemas, security
 from server.api import deps
 from server.crud.crud_user import user_crud
 from server.db import db
-from server.db.models import UsersTable
+from server.db.models import UserTable
 from server.security import get_password_hash
 from server.settings import app_settings
 from server.utils.auth import generate_password_reset_token, send_reset_password_email, verify_password_reset_token
@@ -38,7 +38,7 @@ def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Any:
 
 
 @router.post("/login/test-token", response_model=schemas.User)
-def test_token(current_user: UsersTable = Depends(deps.get_current_user)) -> Any:
+def test_token(current_user: UserTable = Depends(deps.get_current_user)) -> Any:
     """
     Test access token
     """

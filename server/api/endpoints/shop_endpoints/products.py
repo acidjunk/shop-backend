@@ -12,7 +12,7 @@ from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud import crud_shop
 from server.crud.crud_product import product_crud
-from server.db.models import UsersTable
+from server.db.models import UserTable
 from server.schemas.product import (
     ProductCreate,
     ProductSchema,
@@ -38,7 +38,7 @@ def get_multi(
     shop_id: UUID,
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: UsersTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> List[ProductWithDefaultPrice]:
     # shop = get_shop(shop_id)
     products, header_range = product_crud.get_multi_by_shop_id(
@@ -96,8 +96,7 @@ def get_by_id(product_id: UUID, shop_id: UUID) -> ProductWithDetailsAndPrices:
 
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create(
-    shop_id: UUID,
-    data: ProductCreate = Body(...), current_user: UsersTable = Depends(deps.get_current_active_employee)
+    shop_id: UUID, data: ProductCreate = Body(...), current_user: UserTable = Depends(deps.get_current_active_employee)
 ) -> None:
     logger.info("Saving product", data=data)
     product = product_crud.create_by_shop_id(obj_in=data, shop_id=shop_id)
@@ -110,7 +109,7 @@ def update(
     product_id: UUID,
     shop_id: UUID,
     item_in: ProductUpdate,
-    current_user: UsersTable = Depends(deps.get_current_active_employee),
+    current_user: UserTable = Depends(deps.get_current_active_employee),
 ) -> Any:
     product = product_crud.get_id_by_shop_id(shop_id, product_id)
     logger.info("Updating product", data=product)
@@ -126,6 +125,6 @@ def update(
 
 @router.delete("/{product_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(
-    product_id: UUID, shop_id: UUID, current_user: UsersTable = Depends(deps.get_current_active_superuser)
+    product_id: UUID, shop_id: UUID, current_user: UserTable = Depends(deps.get_current_active_superuser)
 ) -> None:
     return product_crud.delete_by_shop_id(shop_id=shop_id, id=product_id)

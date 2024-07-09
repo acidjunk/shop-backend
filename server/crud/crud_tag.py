@@ -14,13 +14,13 @@ from typing import Optional
 from uuid import UUID
 
 from server.crud.base import CRUDBase
-from server.db.models import Tag
+from server.db.models import TagTable
 from server.schemas.tag import TagCreate, TagUpdate
 
 
-class CRUDTag(CRUDBase[Tag, TagCreate, TagUpdate]):
-    def get_by_name(self, *, name: str, shop_id: UUID) -> Optional[Tag]:
-        return Tag.query.filter(Tag.shop_id == shop_id).filter(Tag.name == name).first()
+class CRUDTag(CRUDBase[TagTable, TagCreate, TagUpdate]):
+    def get_by_name(self, *, name: str, shop_id: UUID) -> Optional[TagTable]:
+        return TagTable.query.filter(TagTable.shop_id == shop_id).filter(TagTable.name == name).first()
 
 
-tag_crud = CRUDTag(Tag)
+tag_crud = CRUDTag(TagTable)

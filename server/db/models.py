@@ -63,21 +63,21 @@ class UtcTimestamp(TypeDecorator):
         return value.astimezone(timezone.utc) if value else value
 
 
-class ShopsUsersTable(BaseModel):
+class ShopUserTable(BaseModel):
     __tablename__ = "shops_users"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     user_id = Column("user_id", UUIDType, ForeignKey("users.id"))
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"))
 
 
-class RolesUsersTable(BaseModel):
+class RoleUserTable(BaseModel):
     __tablename__ = "roles_users"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     user_id = Column("user_id", UUIDType, ForeignKey("users.id"))
     role_id = Column("role_id", UUIDType, ForeignKey("roles.id"))
 
 
-class RolesTable(BaseModel):
+class RoleTable(BaseModel):
     __tablename__ = "roles"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     name = Column(String(80), unique=True)
@@ -92,7 +92,7 @@ class RolesTable(BaseModel):
         return hash(self.name)
 
 
-class UsersTable(BaseModel):
+class UserTable(BaseModel):
     __tablename__ = "users"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     email = Column(String(255), unique=True)
@@ -103,14 +103,13 @@ class UsersTable(BaseModel):
     active = Column(Boolean(), server_default=text("true"))
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
     confirmed_at = Column(UtcTimestamp)
-    roles = relationship("RolesTable", secondary="roles_users", backref=backref("users", lazy="dynamic"))
-    shops = relationship("Shop", secondary="shops_users", backref=backref("users", lazy="dynamic"))
+    roles = relationship("RoleTable", secondary="roles_users", backref=backref("users", lazy="dynamic"))
+    shops = relationship("ShopTable", secondary="shops_users", backref=backref("users", lazy="dynamic"))
 
     mail_offers = Column(Boolean, default=False)
 
     def __repr__(self):
         return f"{self.username} : {self.email}"
-
 
     @property
     def is_active(self):
@@ -126,7 +125,7 @@ class UsersTable(BaseModel):
         return False
 
 
-class Shop(BaseModel):
+class ShopTable(BaseModel):
     __tablename__ = "shops"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     name = Column(String(255), nullable=False, unique=True, index=True)
@@ -139,35 +138,37 @@ class Shop(BaseModel):
     vat_special = Column(Float, default=12.0)
     vat_zero = Column(Float, default=0.0)
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
-    modified_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP"))
-    shop_to_category = relationship("Category", cascade="save-update, merge, delete")
+    modified_at = Column(
+        UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP")
+    )
+    shop_to_category = relationship("CategoryTable", cascade="save-update, merge, delete")
 
     def __repr__(self):
         return self.name
 
 
-class Tag(BaseModel):
+class TagTable(BaseModel):
     __tablename__ = "tags"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     name = Column(String(60), unique=True, index=True)
 
-    shop = relationship("Shop", lazy=True)
-    products_to_tags = relationship("ProductToTag", cascade="save-update, merge, delete")
-    translation = relationship("TagTranslation", back_populates="tag", uselist=False)
+    shop = relationship("ShopTable", lazy=True)
+    products_to_tags = relationship("ProductToTagTable", cascade="save-update, merge, delete")
+    translation = relationship("TagTranslationTable", back_populates="tag", uselist=False)
 
     def __repr__(self):
         return f"{self.shop.name}: {self.translation.main_name}"
 
 
-class TagTranslation(BaseModel):
+class TagTranslationTable(BaseModel):
     __tablename__ = "tag_translations"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     tag_id = Column("tag_id", UUIDType, ForeignKey("tags.id"))
     main_name = Column(String(TAG_LENGTH), unique=True, index=True)
     alt1_name = Column(String(TAG_LENGTH), unique=True, index=True, nullable=False)
     alt2_name = Column(String(TAG_LENGTH), unique=True, index=True, nullable=False)
-    tag = relationship("Tag", back_populates="translation")
+    tag = relationship("TagTable", back_populates="translation")
 
 
 class Account(BaseModel):
@@ -177,30 +178,30 @@ class Account(BaseModel):
     name = Column(String(255))
     # Todo: add a md5 repr of the name, so e-mail can safely be used as an identifer?
 
-    shop = relationship("Shop", lazy=True)
+    shop = relationship("ShopTable", lazy=True)
 
     def __repr__(self):
         return f"{self.shop.name}: {self.name}"
 
 
-class Category(BaseModel):
+class CategoryTable(BaseModel):
     __tablename__ = "categories"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     color = Column(String(20), default="#376E1A")
     # Todo: deal with translation in a correct way
     icon = Column(String(TAG_LENGTH), nullable=True)
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
-    shop = relationship("Shop", lazy=True)
+    shop = relationship("ShopTable", lazy=True)
     order_number = Column(Integer, default=0)
     image_1 = Column(String(255), unique=True, index=True)
     image_2 = Column(String(255), unique=True, index=True)
-    translation = relationship("CategoryTranslation", back_populates="category", uselist=False)
+    translation = relationship("CategoryTranslationTable", back_populates="category", uselist=False)
 
     def __repr__(self):
         return f"{self.shop.name}: {self.translation.main_name}"
 
 
-class CategoryTranslation(BaseModel):
+class CategoryTranslationTable(BaseModel):
     __tablename__ = "category_translations"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     category_id = Column("category_id", UUIDType, ForeignKey("categories.id"))
@@ -210,10 +211,10 @@ class CategoryTranslation(BaseModel):
     alt1_description = Column(String(), unique=True, index=True, nullable=True)
     alt2_name = Column(String(255), unique=True, index=True, nullable=True)
     alt2_description = Column(String(), unique=True, index=True, nullable=True)
-    category = relationship("Category", back_populates="translation")
+    category = relationship("CategoryTable", back_populates="translation")
 
 
-class Order(BaseModel):
+class OrderTable(BaseModel):
     __tablename__ = "orders"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     customer_order_id = Column(Integer)
@@ -252,17 +253,20 @@ class ProductTable(BaseModel):
     image_5 = Column(String(255), unique=True, index=True)
     image_6 = Column(String(255), unique=True, index=True)
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
-    modified_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP"))
+    modified_at = Column(
+        UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP")
+    )
 
-    translation = relationship("ProductTranslation", back_populates="product", uselist=False)
-    shop = relationship("Shop", lazy=True)
-    category = relationship("Category", lazy=True)
+    translation = relationship("ProductTranslationTable", back_populates="product", uselist=False)
+    shop = relationship("ShopTable", lazy=True)
+    category = relationship("CategoryTable", lazy=True)
+    tags = relationship("TagTable", secondary="products_to_tags", backref=backref("products", lazy="dynamic"))
 
     def __repr__(self):
         return f"{self.shop.name}: {self.translation.main_name}"
 
 
-class ProductTranslation(BaseModel):
+class ProductTranslationTable(BaseModel):
     __tablename__ = "product_translations"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     product_id = Column("product_id", UUIDType, ForeignKey("products.id"))
@@ -279,14 +283,14 @@ class ProductTranslation(BaseModel):
     product = relationship("ProductTable", back_populates="translation")
 
 
-class ProductToTag(BaseModel):
+class ProductToTagTable(BaseModel):
     __tablename__ = "products_to_tags"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     product_id = Column("product_id", UUIDType, ForeignKey("products.id"), index=True)
     tag_id = Column("tag_id", UUIDType, ForeignKey("tags.id"), index=True)
     product = relationship("ProductTable", lazy=True)
-    tag = relationship("Tag", lazy=True)
+    tag = relationship("TagTable", lazy=True)
 
 
 class License(BaseModel):
@@ -301,5 +305,7 @@ class License(BaseModel):
     seats = Column(Integer, nullable=False)
     order_id = Column(UUIDType, ForeignKey("orders.id"), index=True)
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
-    modified_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP"))
-    order = relationship("Order", lazy=True)
+    modified_at = Column(
+        UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP")
+    )
+    order = relationship("OrderTable", lazy=True)

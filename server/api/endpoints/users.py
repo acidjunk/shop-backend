@@ -8,7 +8,7 @@ from starlette.responses import Response
 from server.api import deps
 from server.api.deps import common_parameters
 from server.crud.crud_user import user_crud
-from server.db.models import UsersTable
+from server.db.models import UserTable
 from server.schemas import User, UserCreate, UserUpdate
 from server.settings import app_settings
 from server.utils.auth import send_new_account_email
@@ -20,7 +20,7 @@ router = APIRouter()
 def get_multi(
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: UsersTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Retrieve users.
@@ -39,7 +39,7 @@ def get_multi(
 def create(
     *,
     user_in: UserCreate,
-    current_user: UsersTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Create new user.
@@ -62,7 +62,7 @@ def update_user_me(
     password: str = Body(None),
     full_name: str = Body(None),
     email: EmailStr = Body(None),
-    current_user: UsersTable = Depends(deps.get_current_active_user),
+    current_user: UserTable = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update own user.
@@ -79,10 +79,10 @@ def update_user_me(
     return user
 
 
-# @router.get("/me", response_model=UsersTable)
+# @router.get("/me", response_model=UserTable)
 @router.get("/me", response_model=User)
 def get_user_me(
-    current_user: UsersTable = Depends(deps.get_current_active_user),
+    current_user: UserTable = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Get current user.
@@ -120,7 +120,7 @@ def get_user_me(
 @router.get("/{user_id}", response_model=User)
 def get_by_id(
     user_id: int,
-    current_user: UsersTable = Depends(deps.get_current_active_user),
+    current_user: UserTable = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Get a specific user by id.
@@ -138,7 +138,7 @@ def update(
     *,
     user_id: int,
     user_in: UserUpdate,
-    current_user: UsersTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> Any:
     """
     Update a user.

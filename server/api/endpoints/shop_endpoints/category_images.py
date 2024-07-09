@@ -1,19 +1,16 @@
 from datetime import datetime
 from http import HTTPStatus
-from typing import Any, List
 from uuid import UUID
 
 import structlog
-from fastapi import HTTPException, APIRouter
-from fastapi.param_functions import Body, Depends
+from fastapi import APIRouter
+from fastapi.param_functions import Depends
 from starlette.responses import Response
 
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.api.helpers import name_file, upload_file
 from server.crud.crud_category import category_crud
-from server.crud.crud_shop import shop_crud
-from server.db.models import Category, Shop
 from server.schemas.category import CategoryImageDelete, CategoryUpdate
 
 logger = structlog.get_logger(__name__)

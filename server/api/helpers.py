@@ -13,6 +13,7 @@
 import base64
 import json
 import os
+from ast import literal_eval
 from datetime import datetime
 from http import HTTPStatus
 from typing import List, Optional
@@ -30,8 +31,9 @@ from structlog import get_logger
 from server.api.error_handling import raise_status
 from server.crud.crud_order import order_crud
 from server.crud.crud_shop import shop_crud
+from server.db import db
 from server.db.database import BaseModel
-from server.db.models import ShopsUsersTable
+from server.db.models import ShopUserTable
 from server.schemas import ShopUpdate
 from server.schemas.shop_user import ShopUserSchema
 from server.settings import app_settings
@@ -82,6 +84,103 @@ sendMessageLambda = boto3.client(
     aws_secret_access_key=app_settings.LAMBDA_SECRET_ACCESS_KEY,
     region_name="eu-central-1",
 )
+
+
+def get_range_from_args(args):
+    if args["range"]:
+        range = []
+        try:
+            input = args["range"][1:-1].split(",")
+            for i in input:
+                range.append(int(i))
+            logger.info("Query parameters set to custom range", range=range)
+            return range
+        except:  # noqa: E722
+            logger.warning(
+                "Query parameters not parsable",
+                args=args.get(["range"], "No range provided"),
+            )
+    range = [0, 19]  # Default range
+    logger.info("Query parameters set to default range", range=range)
+    return range
+
+
+def get_sort_from_args(args, default_sort="name", default_sort_order="ASC"):
+    sort = []
+    if args["sort"]:
+        try:
+            input = args["sort"].split(",")
+            sort.append(input[0][2:-1])
+            sort.append(input[1][1:-2])
+            logger.info("Query parameters set to custom sort", sort=sort)
+            return sort
+        except:  # noqa: E722
+            logger.warning(
+                "Query parameters not parsable",
+                args=args.get(["sort"], "No sort provided"),
+            )
+    sort = [default_sort, default_sort_order]  # Default sort
+    logger.info("Query parameters set to default sort", sort=sort)
+    return sort
+
+
+def get_filter_from_args(args, default_filter={}):
+    if args["filter"]:
+        # print(args["filter"])
+        try:
+            filter = literal_eval(args["filter"].replace(":true", ":True").replace(":false", ":False"))
+            logger.info("Query parameters set to custom filter", filter=filter)
+            return filter
+        except:  # noqa: E722
+            logger.warning(
+                "Query parameters not parsable",
+                args=args.get(["filter"], "No filter provided"),
+            )
+    logger.info("Query parameters set to default filter", filter=default_filter)
+    return default_filter
+
+
+def save(item):
+    try:
+        db.session.add(item)
+        db.session.commit()
+    except Exception as error:
+        db.session.rollback()
+        raise_status(HTTPStatus.BAD_REQUEST, "DB error: {}".format(str(error)))
+
+
+def load(model, id, fields=None, allow_404=False):
+    if fields is None:
+        fields = []
+
+    if not fields:  # query "all" fields:
+        item = model.query.filter_by(id=id).first()
+    else:
+        item = model.query.filter_by(id=id).first()
+    if not item and not allow_404:
+        raise_status(HTTPStatus.NOT_FOUND, f"Record id={id} not found")
+    return item
+
+
+def update(item, payload):
+    if payload.get("id"):
+        del payload["id"]
+    try:
+        for column, value in payload.items():
+            setattr(item, column, value)
+        save(item)
+    except Exception as e:
+        raise_status(HTTPStatus.INTERNAL_SERVER_ERROR, f"Error: {e}")
+    return item
+
+
+def delete(item):
+    try:
+        db.session.delete(item)
+        db.session.commit()
+    except Exception as error:
+        db.session.rollback()
+        raise_status(HTTPStatus.BAD_REQUEST, "DB error: {}".format(str(error)))
 
 
 def _query_with_filters(
@@ -297,10 +396,10 @@ def delete_from_temporary_bucket():
 
 
 def get_shops_by_user_id(*, user_id: UUID) -> List[Optional[ShopUserSchema]]:
-    query = ShopsUsersTable.query.filter_by(user_id=user_id).all()
+    query = ShopUserTable.query.filter_by(user_id=user_id).all()
     return query
 
 
 def get_users_by_shop_id(*, shop_id: UUID) -> List[Optional[ShopUserSchema]]:
-    query = ShopsUsersTable.query.filter_by(shop_id=shop_id).all()
+    query = ShopUserTable.query.filter_by(shop_id=shop_id).all()
     return query

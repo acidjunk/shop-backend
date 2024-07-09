@@ -14,14 +14,14 @@ from typing import Optional
 from uuid import UUID
 
 from server.crud.base import CRUDBase
-from server.db.models import Category
+from server.db.models import CategoryTable
 from server.schemas.category import CategoryCreate, CategoryUpdate
 
 
-class CRUDCategory(CRUDBase[Category, CategoryCreate, CategoryUpdate]):
+class CRUDCategory(CRUDBase[CategoryTable, CategoryCreate, CategoryUpdate]):
     pass
     # def get_by_name(self, *, name: str, shop_id: UUID) -> Optional[Category]:
     #     return Category.query.filter(Category.shop_id == shop_id).filter(Category.name == name).first()
 
 
-category_crud = CRUDCategory(Category)
+category_crud = CRUDCategory(CategoryTable)
