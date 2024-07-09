@@ -13,19 +13,19 @@
 from typing import Optional
 
 from server.crud.base import CRUDBase
-from server.db.models import ProductToTag
+from server.db.models import ProductToTagTable
 from server.schemas.product_to_tag import ProductToTagCreate, ProductToTagUpdate
 
 
-class CRUDProductToTag(CRUDBase[ProductToTag, ProductToTagCreate, ProductToTagUpdate]):
-    def get_relation(self, *, product, tag) -> Optional[ProductToTag]:
-        return ProductToTag.query.filter_by(product_id=product.id).filter_by(tag_id=tag.id).all()
+class CRUDProductToTag(CRUDBase[ProductToTagTable, ProductToTagCreate, ProductToTagUpdate]):
+    def get_relation(self, *, product, tag) -> Optional[ProductToTagTable]:
+        return ProductToTagTable.query.filter_by(product_id=product.id).filter_by(tag_id=tag.id).all()
 
-    def get_relation_by_product_tag(self, *, product_id, tag_id) -> Optional[ProductToTag]:
-        return ProductToTag.query.filter_by(product_id=product_id).filter_by(tag_id=tag_id).first()
+    def get_relation_by_product_tag(self, *, product_id, tag_id) -> Optional[ProductToTagTable]:
+        return ProductToTagTable.query.filter_by(product_id=product_id).filter_by(tag_id=tag_id).first()
 
-    def get_relations_by_product(self, *, product_id) -> [Optional[ProductToTag]]:
-        return ProductToTag.query.filter_by(product_id=product_id).all()
+    def get_relations_by_product(self, *, product_id) -> [Optional[ProductToTagTable]]:
+        return ProductToTagTable.query.filter_by(product_id=product_id).all()
 
 
-product_to_tag_crud = CRUDProductToTag(ProductToTag)
+product_to_tag_crud = CRUDProductToTag(ProductToTagTable)

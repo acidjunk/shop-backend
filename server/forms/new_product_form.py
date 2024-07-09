@@ -21,7 +21,7 @@ from pydantic_forms.core import DisplayOnlyFieldType, FormPage, register_form
 from pydantic_forms.types import FormGenerator, State, SummaryData
 from pydantic_forms.validators import Choice, LongText, MigrationSummary
 
-from server.db.models import Category, ProductTable, Tag
+from server.db.models import CategoryTable, ProductTable, TagTable
 
 logger = structlog.get_logger(__name__)
 

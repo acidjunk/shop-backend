@@ -10,9 +10,9 @@ from starlette.responses import Response
 from server.api import deps
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
-from server.apis.v1.helpers import load
+from server.api.helpers import load
 from server.crud.crud_shop import shop_crud
-from server.db.models import Category, Shop, UsersTable
+from server.db.models import ShopTable, UserTable
 from server.schemas.shop import (
     ShopCacheStatus,
     ShopCreate,
@@ -32,7 +32,7 @@ logger = structlog.get_logger(__name__)
 def get_multi(
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: UsersTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> List[ShopSchema]:
     shops, header_range = shop_crud.get_multi(
         skip=common["skip"],
@@ -46,7 +46,7 @@ def get_multi(
 
 @router.post("/", response_model=ShopSchema, status_code=HTTPStatus.CREATED)
 def create(
-    data: ShopCreate = Body(...), current_user: UsersTable = Depends(deps.get_current_active_superuser)
+    data: ShopCreate = Body(...), current_user: UserTable = Depends(deps.get_current_active_superuser)
 ) -> ShopSchema:
     logger.info("Saving shop", data=data)
     shop = shop_crud.create(obj_in=data)
@@ -83,7 +83,7 @@ def get_last_pending_order(id: UUID) -> ShopLastPendingOrder:
 @router.get("/{id}", response_model=ShopWithPrices)
 def get_by_id(id: UUID, is_horeca: Optional[bool] = None):
     """List Shop"""
-    item = load(Shop, id)
+    item = load(ShopTable, id)
     # price_relations = None
     #
     # if is_horeca:
@@ -178,7 +178,7 @@ def get_by_id(id: UUID, is_horeca: Optional[bool] = None):
 
 @router.put("/{shop_id}", response_model=ShopSchema, status_code=HTTPStatus.CREATED)
 def update(
-    *, shop_id: UUID, item_in: ShopUpdate, current_user: UsersTable = Depends(deps.get_current_active_superuser)
+    *, shop_id: UUID, item_in: ShopUpdate, current_user: UserTable = Depends(deps.get_current_active_superuser)
 ) -> None:
     shop = shop_crud.get(id=shop_id)
     logger.info("Updating shop", data=shop)
@@ -193,14 +193,14 @@ def update(
 
 
 @router.delete("/{shop_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
-def delete(shop_id: UUID, current_user: UsersTable = Depends(deps.get_current_active_superuser)) -> None:
+def delete(shop_id: UUID, current_user: UserTable = Depends(deps.get_current_active_superuser)) -> None:
     return shop_crud.delete(id=shop_id)
 
 
 @router.get("/allowed-ips/{id}", response_model=List[str])
 def get_allowed_ips(
     id: UUID,
-    current_user: UsersTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> List[str]:
     shop = shop_crud.get(id)
     if not shop:
@@ -213,7 +213,7 @@ def get_allowed_ips(
 
 
 @router.post("/allowed-ips/{id}", response_model=List[str])
-def add_new_ip(id: UUID, new_ip: ShopIp, current_user: UsersTable = Depends(deps.get_current_active_superuser)):
+def add_new_ip(id: UUID, new_ip: ShopIp, current_user: UserTable = Depends(deps.get_current_active_superuser)):
     shop = shop_crud.get(id)
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
@@ -233,7 +233,7 @@ def add_new_ip(id: UUID, new_ip: ShopIp, current_user: UsersTable = Depends(deps
 
 
 @router.post("/allowed-ips/{id}/remove", response_model=List[str])
-def remove_ip(id: UUID, old_ip: ShopIp, current_user: UsersTable = Depends(deps.get_current_active_superuser)):
+def remove_ip(id: UUID, old_ip: ShopIp, current_user: UserTable = Depends(deps.get_current_active_superuser)):
     shop = shop_crud.get(id)
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")

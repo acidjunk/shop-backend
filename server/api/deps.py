@@ -20,7 +20,7 @@ from pydantic import ValidationError
 
 from server.crud.crud_role import role_crud
 from server.crud.crud_user import user_crud
-from server.db.models import UsersTable
+from server.db.models import UserTable
 from server.settings import app_settings
 
 reusable_oauth = OAuth2PasswordBearer(tokenUrl=f"/login/access-token")
@@ -43,7 +43,7 @@ async def common_parameters(
     return {"skip": skip, "limit": limit, "filter": filter, "sort": sort}
 
 
-def get_current_user(token: str = Depends(reusable_oauth)) -> UsersTable:
+def get_current_user(token: str = Depends(reusable_oauth)) -> UserTable:
     try:
         payload = jwt.decode(token, app_settings.SESSION_SECRET, algorithms=[app_settings.JWT_ALGORITHM])
         user_id: str = payload.get("sub")
@@ -60,24 +60,24 @@ def get_current_user(token: str = Depends(reusable_oauth)) -> UsersTable:
 
 
 def get_current_active_user(
-    current_user: UsersTable = Depends(get_current_user),
-) -> UsersTable:
+    current_user: UserTable = Depends(get_current_user),
+) -> UserTable:
     if not user_crud.is_active(current_user):
         raise HTTPException(status_code=403, detail="Inactive user")
     return current_user
 
 
 def get_current_active_superuser(
-    current_user: UsersTable = Depends(get_current_user),
-) -> UsersTable:
+    current_user: UserTable = Depends(get_current_user),
+) -> UserTable:
     if not user_crud.is_superuser(current_user):
         raise HTTPException(status_code=403, detail="The user doesn't have enough privileges")
     return current_user
 
 
 def get_current_active_employee(
-    current_user: UsersTable = Depends(get_current_user),
-) -> UsersTable:
+    current_user: UserTable = Depends(get_current_user),
+) -> UserTable:
     if not user_crud.is_superuser(current_user) and not role_crud.get_by_name(name="employee") in current_user.roles:
         raise HTTPException(status_code=403, detail="The user does need at least employee permissions")
     return current_user

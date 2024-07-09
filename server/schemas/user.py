@@ -16,9 +16,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr
 
-# Shared properties
-from server.db import Shop
-
 
 class UserBase(BaseModel):
     email: Optional[EmailStr] = None

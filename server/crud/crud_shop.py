@@ -11,12 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from server.crud.base import CRUDBase
-from server.db.models import Shop
+from server.db.models import ShopTable
 from server.schemas.shop import ShopCreate, ShopUpdate
 
 
-class CRUDShop(CRUDBase[Shop, ShopCreate, ShopUpdate]):
+class CRUDShop(CRUDBase[ShopTable, ShopCreate, ShopUpdate]):
     pass
 
 
-shop_crud = CRUDShop(Shop)
+shop_crud = CRUDShop(ShopTable)

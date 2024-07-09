@@ -16,16 +16,13 @@ from uuid import UUID
 import structlog
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
-from pydantic import BaseModel
 from sqlalchemy import String, cast, or_
 from sqlalchemy.inspection import inspect as sa_inspect
-from sqlalchemy.orm import Session
 from sqlalchemy.sql import expression
 
 from server.api.models import transform_json
 from server.db import db
 from server.db.database import BaseModel
-from server.db.models import CategoryTranslation, ProductTranslation, TagTranslation
 
 logger = structlog.getLogger()
 
@@ -185,7 +182,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             pass
 
         try:
-            db_obj = self.model(**{**obj_in_data, 'shop_id': shop_id})
+            db_obj = self.model(**{**obj_in_data, "shop_id": shop_id})
             db.session.add(db_obj)
             db.session.flush()
 
