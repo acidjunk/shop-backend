@@ -90,8 +90,8 @@ def update(*, category_id: UUID, shop_id: UUID, item_in: CategoryUpdate) -> Any:
         obj_in=item_in,
     )
 
-    if category.shop_id is not None:
-        invalidateShopCache(category.shop_id)
+    # if category.shop_id is not None:
+    #     invalidateShopCache(category.shop_id)
 
     return category
 
