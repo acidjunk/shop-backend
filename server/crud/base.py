@@ -23,6 +23,8 @@ from sqlalchemy.sql import expression
 from server.api.models import transform_json
 from server.db import db
 from server.db.database import BaseModel
+# Below translation model imports are necessary for the create_by_shop_id, update, and delete_by_shop_id functions
+from server.db.models import CategoryTranslationTable, ProductTranslationTable, TagTranslationTable
 
 logger = structlog.getLogger()
 
@@ -163,7 +165,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         if translation_data:
             translation_name = db_obj.__class__.__name__.split("Table")[0]
-            translation_model = globals().get(translation_name + "Translation", None)
+            translation_model = globals().get(translation_name + "TranslationTable", None)
             translation_data[translation_name.lower() + "_id"] = db_obj.id
             translation = translation_model(**translation_data)
             db.session.add(translation)
@@ -188,7 +190,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
             if translation_data:
                 translation_name = db_obj.__class__.__name__.split("Table")[0]
-                translation_model = globals().get(translation_name + "Translation", None)
+                translation_model = globals().get(translation_name + "TranslationTable", None)
                 translation_data[translation_name.lower() + "_id"] = db_obj.id
                 translation = translation_model(**translation_data)
                 db.session.add(translation)
@@ -214,7 +216,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if "translation" in update_data:
             translation_data = update_data.pop("translation")
             translation_name = db_obj.__class__.__name__.split("Table")[0]
-            translation_model = globals().get(translation_name + "Translation", None)
+            translation_model = globals().get(translation_name + "TranslationTable", None)
             translation = (
                 db.session.query(translation_model).filter_by(**{translation_name.lower() + "_id": db_obj.id}).first()
             )
@@ -251,7 +253,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         if obj.translation:
             translation_name = obj.__class__.__name__.split("Table")[0]
-            translation_model = globals().get(translation_name + "Translation", None)
+            translation_model = globals().get(translation_name + "TranslationTable", None)
             if translation_model:
                 translation_obj = (
                     db.session.query(translation_model).filter(translation_model.id == obj.translation.id).first()

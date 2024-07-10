@@ -151,7 +151,7 @@ class TagTable(BaseModel):
     __tablename__ = "tags"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
-    name = Column(String(60), unique=True, index=True)
+    name = Column(String(60), index=True)
 
     shop = relationship("ShopTable", lazy=True)
     products_to_tags = relationship("ProductToTagTable", cascade="save-update, merge, delete")
@@ -165,9 +165,9 @@ class TagTranslationTable(BaseModel):
     __tablename__ = "tag_translations"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     tag_id = Column("tag_id", UUIDType, ForeignKey("tags.id"))
-    main_name = Column(String(TAG_LENGTH), unique=True, index=True)
-    alt1_name = Column(String(TAG_LENGTH), unique=True, index=True, nullable=False)
-    alt2_name = Column(String(TAG_LENGTH), unique=True, index=True, nullable=False)
+    main_name = Column(String(TAG_LENGTH), index=True)
+    alt1_name = Column(String(TAG_LENGTH), index=True, nullable=False)
+    alt2_name = Column(String(TAG_LENGTH), index=True, nullable=False)
     tag = relationship("TagTable", back_populates="translation")
 
 
@@ -193,8 +193,8 @@ class CategoryTable(BaseModel):
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     shop = relationship("ShopTable", lazy=True)
     order_number = Column(Integer, default=0)
-    image_1 = Column(String(255), unique=True, index=True)
-    image_2 = Column(String(255), unique=True, index=True)
+    image_1 = Column(String(255), index=True)
+    image_2 = Column(String(255), index=True)
     translation = relationship("CategoryTranslationTable", back_populates="category", uselist=False)
 
     def __repr__(self):
@@ -205,12 +205,12 @@ class CategoryTranslationTable(BaseModel):
     __tablename__ = "category_translations"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     category_id = Column("category_id", UUIDType, ForeignKey("categories.id"))
-    main_name = Column(String(255), unique=True, index=True)
-    main_description = Column(String(), unique=True, index=True, nullable=True)
-    alt1_name = Column(String(255), unique=True, index=True, nullable=True)
-    alt1_description = Column(String(), unique=True, index=True, nullable=True)
-    alt2_name = Column(String(255), unique=True, index=True, nullable=True)
-    alt2_description = Column(String(), unique=True, index=True, nullable=True)
+    main_name = Column(String(255), index=True)
+    main_description = Column(String(), index=True, nullable=True)
+    alt1_name = Column(String(255), index=True, nullable=True)
+    alt1_description = Column(String(),index=True, nullable=True)
+    alt2_name = Column(String(255), index=True, nullable=True)
+    alt2_description = Column(String(), index=True, nullable=True)
     category = relationship("CategoryTable", back_populates="translation")
 
 
@@ -246,12 +246,12 @@ class ProductTable(BaseModel):
     discounted_price = Column(Float(), nullable=True)
     discounted_from = Column(DateTime, nullable=True)
     discounted_to = Column(DateTime, nullable=True)
-    image_1 = Column(String(255), unique=True, index=True)
-    image_2 = Column(String(255), unique=True, index=True)
-    image_3 = Column(String(255), unique=True, index=True)
-    image_4 = Column(String(255), unique=True, index=True)
-    image_5 = Column(String(255), unique=True, index=True)
-    image_6 = Column(String(255), unique=True, index=True)
+    image_1 = Column(String(255), index=True)
+    image_2 = Column(String(255), index=True)
+    image_3 = Column(String(255), index=True)
+    image_4 = Column(String(255), index=True)
+    image_5 = Column(String(255), index=True)
+    image_6 = Column(String(255), index=True)
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
     modified_at = Column(
         UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP")
@@ -270,15 +270,15 @@ class ProductTranslationTable(BaseModel):
     __tablename__ = "product_translations"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     product_id = Column("product_id", UUIDType, ForeignKey("products.id"))
-    main_name = Column(String(255), unique=True, index=True)
-    main_description = Column(String(), unique=True, index=True)
-    main_description_short = Column(String(), unique=True, index=True, nullable=True)
-    alt1_name = Column(String(255), unique=True, index=True, nullable=True)
-    alt1_description = Column(String(), unique=True, index=True, nullable=True)
-    alt1_description_short = Column(String(), unique=True, index=True, nullable=True)
-    alt2_name = Column(String(255), unique=True, index=True, nullable=True)
-    alt2_description = Column(String(), unique=True, index=True, nullable=True)
-    alt2_description_short = Column(String(), unique=True, index=True, nullable=True)
+    main_name = Column(String(255), index=True)
+    main_description = Column(String(), index=True)
+    main_description_short = Column(String(), index=True, nullable=True)
+    alt1_name = Column(String(255), index=True, nullable=True)
+    alt1_description = Column(String(), index=True, nullable=True)
+    alt1_description_short = Column(String(), index=True, nullable=True)
+    alt2_name = Column(String(255), index=True, nullable=True)
+    alt2_description = Column(String(), index=True, nullable=True)
+    alt2_description_short = Column(String(), index=True, nullable=True)
 
     product = relationship("ProductTable", back_populates="translation")
 
