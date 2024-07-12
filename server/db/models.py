@@ -131,6 +131,7 @@ class ShopTable(BaseModel):
     name = Column(String(255), nullable=False, unique=True, index=True)
     description = Column(String(255), unique=True)
     allowed_ips = Column(postgresql.JSONB())
+    config = Column(postgresql.JSONB())
     vat_standard = Column(Float, default=21.0)
     vat_lower_1 = Column(Float, default=10.0)
     vat_lower_2 = Column(Float, default=5.0)
