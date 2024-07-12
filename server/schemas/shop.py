@@ -73,3 +73,7 @@ class ShopLastPendingOrder(ShopEmptyBase):
 
 class ShopIp(BoilerplateBaseModel):
     ip: str
+
+
+class ShopConfig(ShopEmptyBase):
+    config: dict

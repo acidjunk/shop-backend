@@ -15,6 +15,7 @@ from server.crud.crud_shop import shop_crud
 from server.db.models import ShopTable, UserTable
 from server.schemas.shop import (
     ShopCacheStatus,
+    ShopConfig,
     ShopCreate,
     ShopIp,
     ShopLastCompletedOrder,
@@ -195,6 +196,18 @@ def update(
 @router.delete("/{shop_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(shop_id: UUID, current_user: UserTable = Depends(deps.get_current_active_superuser)) -> None:
     return shop_crud.delete(id=shop_id)
+
+
+@router.get("/config/{id}", response_model=ShopConfig)
+def get_config(
+    id: UUID,
+    current_user: UserTable = Depends(deps.get_current_active_superuser),
+) -> ShopConfig:
+    shop = shop_crud.get(id)
+    if not shop:
+        raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
+
+    return shop
 
 
 @router.get("/allowed-ips/{id}", response_model=List[str])
