@@ -201,7 +201,6 @@ def delete(shop_id: UUID, current_user: UserTable = Depends(deps.get_current_act
 @router.get("/config/{id}", response_model=ShopConfig)
 def get_config(
     id: UUID,
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> ShopConfig:
     shop = shop_crud.get(id)
     if not shop:
