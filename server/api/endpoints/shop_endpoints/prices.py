@@ -50,7 +50,7 @@ def to_response_model(product: ProductTable, lang: Lang) -> ProductResponse:
             tags=[tag.translation.main_name for tag in product.tags],
             name=product.translation.main_name,
             description_short=product.translation.main_description_short,
-            description=product.translation.main_description_short,
+            description=product.translation.main_description,
             tax_category=product.tax_category,
             price=product.price,
         )
@@ -61,7 +61,7 @@ def to_response_model(product: ProductTable, lang: Lang) -> ProductResponse:
             tags=[tag.translation.alt1_name for tag in product.tags],
             name=product.translation.alt1_name,
             description_short=product.translation.alt1_description_short,
-            description=product.translation.alt1_description_short,
+            description=product.translation.alt1_description,
             tax_category=product.tax_category,
             price=product.price,
         )
@@ -72,7 +72,7 @@ def to_response_model(product: ProductTable, lang: Lang) -> ProductResponse:
             tags=[tag.translation.alt2_name for tag in product.tags],
             name=product.translation.alt2_name,
             description_short=product.translation.alt2_description_short,
-            description=product.translation.alt2_description_short,
+            description=product.translation.alt2_description,
             tax_category=product.tax_category,
             price=product.price,
         )
