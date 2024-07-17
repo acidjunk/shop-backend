@@ -226,12 +226,12 @@ class OrderTable(BaseModel):
     # total = Column(Float())
     # status = Column(String(), default="pending")
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
-    # completed_by = Column("completed_by", UUID(as_uuid=True), ForeignKey("user.id"), nullable=True)
+    # completed_by = Column("completed_by", UUIDType, ForeignKey("user.id"), nullable=True)
     # completed_at = Column(DateTime, nullable=True)
     #
-    # shop = relationship("Shop", lazy=True)
-    # user = relationship("UsersTable", backref=backref("orders", uselist=False))
-    # table = relationship("Table", backref=backref("shop_tables", uselist=False))
+    # shop = relationship("ShopTable", lazy=True)
+    # user = relationship("UserTable", backref=backref("orders", uselist=False))
+    # account = relationship("AccountTable", backref=backref("accounts", uselist=False))
     #
     # def __repr__(self):
     #     return "<Order for shop: %s with total: %s>" % (self.shop.name, self.total)

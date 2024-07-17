@@ -19,6 +19,7 @@ from server.api import deps
 from server.api.endpoints import forms, shops, images, users, login, downloads, health, licenses
 from server.api.endpoints.shop_endpoints import (
     tags,
+    orders,
     products,
     category_images,
     categories,
@@ -56,7 +57,7 @@ api_router.include_router(
 # SHOP specific endpoints
 api_router.include_router(shops.router, prefix="/shops", tags=["shops"])
 api_router.include_router(prices.router, prefix="/shops/{shop_id}/prices", tags=["shops"])
-# api_router.include_router(orders.router, prefix="/orders", tags=["orders"])
+api_router.include_router(orders.router, prefix="/orders", tags=["orders"])
 api_router.include_router(
     categories.router,
     prefix="/shops/{shop_id}/categories",
