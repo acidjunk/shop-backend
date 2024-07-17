@@ -223,18 +223,18 @@ class OrderTable(BaseModel):
     shop_id = Column(UUIDType, ForeignKey("shops.id"), index=True)
     account_id = Column(UUIDType, ForeignKey("accounts.id"), nullable=True)
     order_info = Column(postgresql.JSONB())
-    # total = Column(Float())
-    # status = Column(String(), default="pending")
+    total = Column(Float())
+    status = Column(String(), default="pending")
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
-    # completed_by = Column("completed_by", UUIDType, ForeignKey("user.id"), nullable=True)
-    # completed_at = Column(DateTime, nullable=True)
-    #
-    # shop = relationship("ShopTable", lazy=True)
-    # user = relationship("UserTable", backref=backref("orders", uselist=False))
-    # account = relationship("AccountTable", backref=backref("accounts", uselist=False))
-    #
-    # def __repr__(self):
-    #     return "<Order for shop: %s with total: %s>" % (self.shop.name, self.total)
+    completed_by = Column("completed_by", UUIDType, ForeignKey("users.id"), nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+
+    shop = relationship("ShopTable", lazy=True)
+    user = relationship("UserTable", backref=backref("orders", uselist=False))
+    account = relationship("Account", backref=backref("accounts", uselist=False))
+
+    def __repr__(self):
+        return "<Order for shop: %s with total: %s>" % (self.shop.name, self.total)
 
 
 class ProductTable(BaseModel):
