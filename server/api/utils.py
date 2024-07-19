@@ -19,7 +19,7 @@ import structlog
 from fastapi import HTTPException, Request
 
 from server.crud.crud_role import role_crud
-from server.db.models import Shop, UsersTable
+from server.db.models import ShopTable, UserTable
 
 logger = structlog.get_logger(__name__)
 
@@ -124,7 +124,7 @@ def is_ip_allowed(request: Request, shop):
     return False
 
 
-def is_user_allowed_in_shop(user: UsersTable, shop: Shop, roles_allowed: Optional[str] = None):
+def is_user_allowed_in_shop(user: UserTable, shop: ShopTable, roles_allowed: Optional[str] = None):
     if roles_allowed is None:
         roles_allowed = [""]
     for role_str in roles_allowed:
