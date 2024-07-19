@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+from contextlib import asynccontextmanager
 
 import structlog
+from alembic import command
+from alembic.config import Config
 from fastapi import Request
 from fastapi.applications import FastAPI
 
@@ -49,18 +52,34 @@ structlog.configure(
 
 logger = structlog.get_logger(__name__)
 
+
+def run_migrations():
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
+
+
+@asynccontextmanager
+async def lifespan(app_: FastAPI):
+    logger.info("Starting up...")
+    logger.info("run alembic upgrade head...")
+    run_migrations()
+    yield
+    logger.info("Shutting down...")
+
+
 app = FastAPI(
     title="Pricelist FastAPI",
     description="Backend for price-lists.",
     openapi_url="/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
-    version="0.1.0",
+    version="0.2.0",
     default_response_class=JSONResponse,
     # root_path="/backend",
-    servers=[
-        {"url": "/"},
-    ],
+    # servers=[
+    #     {"url": "/"},
+    # ],
+    lifespan=lifespan,
 )
 
 app.include_router(api_router)
