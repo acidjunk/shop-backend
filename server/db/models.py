@@ -210,7 +210,7 @@ class CategoryTranslationTable(BaseModel):
     main_name = Column(String(255), index=True)
     main_description = Column(String(), index=True, nullable=True)
     alt1_name = Column(String(255), index=True, nullable=True)
-    alt1_description = Column(String(),index=True, nullable=True)
+    alt1_description = Column(String(), index=True, nullable=True)
     alt2_name = Column(String(255), index=True, nullable=True)
     alt2_description = Column(String(), index=True, nullable=True)
     category = relationship("CategoryTable", back_populates="translation")
