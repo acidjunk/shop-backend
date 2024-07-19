@@ -1,6 +1,6 @@
 # Shop backend
 
-A backend for serving pricelists.
+A backend for serving pricelists
 
 ## Server
 
