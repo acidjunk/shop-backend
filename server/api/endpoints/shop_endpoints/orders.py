@@ -115,9 +115,7 @@ def show_all_pending_orders_per_shop(
     common: dict = Depends(common_parameters),
     current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> List[OrderSchema]:
-    query = (OrderTable.query.filter(OrderTable.shop_id == shop_id)
-             .filter(OrderTable.status == "pending")
-             )
+    query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(OrderTable.status == "pending")
     orders, header_range = order_crud.get_multi(
         query_parameter=query,
         skip=common["skip"],
@@ -143,9 +141,9 @@ def show_all_complete_orders_per_shop(
     common: dict = Depends(common_parameters),
     current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> List[OrderSchema]:
-    query = (OrderTable.query.filter(OrderTable.shop_id == shop_id)
-             .filter(or_(OrderTable.status == "complete", OrderTable.status == "cancelled"))
-             )
+    query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(
+        or_(OrderTable.status == "complete", OrderTable.status == "cancelled")
+    )
     orders, header_range = order_crud.get_multi(
         query_parameter=query,
         skip=common["skip"],

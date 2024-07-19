@@ -142,7 +142,7 @@ def get_products(
 def get_cart_products(
     shop_id: UUID,
     lang: Lang,
-    cart: Cart
+    cart: Cart,
     # response: Response,
 ) -> list[dict]:
     products = (
@@ -159,14 +159,22 @@ def get_cart_products(
 
     for product in products:
         if lang == Lang.ALT1:
-            if product.translation.alt1_name is None or product.translation.alt1_description is None or product.translation.alt1_description_short is None:
+            if (
+                product.translation.alt1_name is None
+                or product.translation.alt1_description is None
+                or product.translation.alt1_description_short is None
+            ):
                 response_product = to_response_model(product, Lang.MAIN, shop)
                 response_products.append(response_product)
             else:
                 response_product = to_response_model(product, lang, shop)
                 response_products.append(response_product)
         elif lang == Lang.ALT2:
-            if product.translation.alt2_name is None or product.translation.alt2_description is None or product.translation.alt2_description_short is None:
+            if (
+                product.translation.alt2_name is None
+                or product.translation.alt2_description is None
+                or product.translation.alt2_description_short is None
+            ):
                 response_product = to_response_model(product, Lang.MAIN, shop)
                 response_products.append(response_product)
             else:

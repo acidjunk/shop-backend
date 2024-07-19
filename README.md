@@ -65,7 +65,7 @@ all needed data (e.g. examples etc.) and the Schema branch.
 
 ### Schema migration
 
-Run this command prior to your first schema migration:
+Run this command prior to your first schema migration or let the webserver create you DB:
 
 ```bash
 PYTHONPATH=. alembic upgrade heads

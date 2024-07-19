@@ -308,7 +308,9 @@ def invalidateShopCache(shop_id):
 def invalidateCompletedOrdersCache(order_id):
     item = order_crud.get(order_id)
     shop = shop_crud.get(item.shop_id)
-    shop_in = ShopUpdate(name=shop.name, description=shop.description, last_completed_order=str(order_id), modified_at=None)
+    shop_in = ShopUpdate(
+        name=shop.name, description=shop.description, last_completed_order=str(order_id), modified_at=None
+    )
     payload = {"connectionType": "completed_orders", "shopId": str(shop.id)}
     sendMessageToWebSocketServer(payload)
     try:
@@ -320,7 +322,9 @@ def invalidateCompletedOrdersCache(order_id):
 def invalidatePendingOrdersCache(order_id):
     item = order_crud.get(order_id)
     shop = shop_crud.get(item.shop_id)
-    shop_in = ShopUpdate(name=shop.name, description=shop.description, last_pending_order=str(order_id), modified_at=None)
+    shop_in = ShopUpdate(
+        name=shop.name, description=shop.description, last_pending_order=str(order_id), modified_at=None
+    )
     payload = {"connectionType": "pending_orders", "shopId": str(shop.id)}
     sendMessageToWebSocketServer(payload)
     try:
