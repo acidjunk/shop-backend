@@ -177,7 +177,8 @@ class Account(BaseModel):
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     name = Column(String(255))
-    # Todo: add a md5 repr of the name, so e-mail can safely be used as an identifer?
+    # a hash for the name, so sensible info can be used as an identifier
+    hash_name = Column(String(255), nullable=True, index=True)
 
     shop = relationship("ShopTable", lazy=True)
 
