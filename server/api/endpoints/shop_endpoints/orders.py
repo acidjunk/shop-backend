@@ -165,7 +165,7 @@ def show_all_complete_orders_per_shop(
 
 
 @router.get("/{id}")
-def get_by_id(id: UUID, current_user: UserTable = Depends(deps.get_current_active_superuser)) -> OrderSchema:
+def get_by_id(id: UUID) -> OrderSchema:
     order = order_crud.get(id)
     if not order:
         raise_status(HTTPStatus.NOT_FOUND, f"Order with id {id} not found")
@@ -292,7 +292,8 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
 
 @router.patch("/{order_id}", response_model=OrderUpdated, status_code=HTTPStatus.CREATED)
 def patch(
-    *, order_id: UUID, item_in: OrderBase, current_user: UserTable = Depends(deps.get_current_active_user)
+    *, order_id: UUID, item_in: OrderBase,
+        # current_user: UserTable = Depends(deps.get_current_active_user)
 ) -> OrderUpdated:
     order = order_crud.get(order_id)
     if not order:
@@ -305,7 +306,7 @@ def patch(
         and not order.completed_at
     ):
         order.completed_at = datetime.utcnow()
-        order.completed_by = current_user.id
+        # order.completed_by = current_user.id
 
     order = order_crud.update(
         db_obj=order,

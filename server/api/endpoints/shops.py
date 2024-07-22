@@ -209,6 +209,24 @@ def get_config(
     return shop
 
 
+@router.put("/config/{id}", response_model=ShopConfig, status_code=HTTPStatus.CREATED)
+def update_config(
+    id: UUID,
+    item_in: ShopConfig,
+    current_user: UserTable = Depends(deps.get_current_active_superuser)
+) -> ShopConfig:
+    shop = shop_crud.get(id=id)
+    logger.info("Updating shop", data=shop)
+    if not shop:
+        raise HTTPException(status_code=404, detail="Shop not found")
+
+    shop = shop_crud.update(
+        db_obj=shop,
+        obj_in=item_in,
+    )
+    return shop
+
+
 @router.get("/allowed-ips/{id}", response_model=List[str])
 def get_allowed_ips(
     id: UUID,
