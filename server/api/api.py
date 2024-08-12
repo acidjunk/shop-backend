@@ -21,6 +21,7 @@ from server.api.endpoints.shop_endpoints import (
     tags,
     orders,
     products,
+    product_images,
     category_images,
     categories,
     products_to_tags,
@@ -70,12 +71,12 @@ api_router.include_router(
     tags=["shops", "categories"],
     dependencies=[Depends(deps.get_current_active_superuser)],
 )
-# api_router.include_router(
-#     product_images.router,
-#     prefix="/shops/{shop_id}/products-images",
-#     tags=["products-images"],
-#     dependencies=[Depends(deps.get_current_active_superuser)],
-# )
+api_router.include_router(
+    product_images.router,
+    prefix="/shops/{shop_id}/products-images",
+    tags=["products-images"],
+    dependencies=[Depends(deps.get_current_active_superuser)],
+)
 api_router.include_router(products.router, prefix="/shops/{shop_id}/products", tags=["shops", "products"])
 api_router.include_router(
     products_to_tags.router,

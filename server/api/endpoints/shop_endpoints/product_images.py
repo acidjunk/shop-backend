@@ -1,12 +1,13 @@
 from datetime import datetime
 from http import HTTPStatus
 from uuid import UUID
+from fastapi import APIRouter, UploadFile
 
+import copy
 import structlog
 from fastapi.param_functions import Depends
 from starlette.responses import Response
 
-from server.api.api_v1.router_fix import APIRouter
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.api.helpers import name_file, upload_file
@@ -39,33 +40,60 @@ def get_by_id(id: UUID):
 
 
 @router.put("/{id}", status_code=HTTPStatus.CREATED)
-def put(*, id: UUID, item_in: ProductUpdate):
-    item = product_crud.get(id=id)
-    # todo: raise 404 o abort
-
-    data = dict(item_in)
+def put(shop_id: UUID, id: UUID, files: list[UploadFile]):
+    item = product_crud.get_id_by_shop_id(shop_id=shop_id, id=id)
+    item_in = copy.copy(item)
+    image_cols = ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6"]
+    for i, file in enumerate(files):
+        if i < len(image_cols):
+            item_in.__setattr__(image_cols[i], file)
 
     product_update = False
-    image_cols = ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6"]
     for image_col in image_cols:
-        if data.get(image_col) and type(data[image_col]) == dict:
-            name = name_file(image_col, item.name, getattr(item, image_col))
-            upload_file(data[image_col]["src"], name) if item.name != "Test Product" else None
-            product_update = True
-            item_in.__setattr__(image_col, name)
+        name = name_file(image_col, item.translation.main_name, getattr(item, image_col))
+        print(name)
+        # upload_file(item_in[image_col], name) if item.name != "Test Product" else None
+        product_update = True
+        item_in.__setattr__(image_col, name)
 
-    if product_update:
-        item_in.__setattr__(
-            "complete", True if data.get("image_1") and item.description_nl and item.description_en else False
-        )
-        item_in.__setattr__("modified_at", datetime.utcnow())
-
-        item = product_crud.update(
-            db_obj=item,
-            obj_in=item_in,
-        )
+    # if product_update:
+    #     item_in.__setattr__("modified_at", datetime.utcnow())
+    #     item = product_crud.update(
+    #         obj_in=item_in,
+    #         db_obj=item
+    #     )
 
     return item
+
+
+# @router.put("/{id}", status_code=HTTPStatus.CREATED)
+# def put(*, id: UUID, item_in: ProductUpdate):
+#     item = product_crud.get(id=id)
+#     # todo: raise 404 o abort
+#
+#     data = dict(item_in)
+#
+#     product_update = False
+#     image_cols = ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6"]
+#     for image_col in image_cols:
+#         if data.get(image_col) and type(data[image_col]) == dict:
+#             name = name_file(image_col, item.name, getattr(item, image_col))
+#             upload_file(data[image_col]["src"], name) if item.name != "Test Product" else None
+#             product_update = True
+#             item_in.__setattr__(image_col, name)
+#
+#     if product_update:
+#         item_in.__setattr__(
+#             "complete", True if data.get("image_1") and item.description_nl and item.description_en else False
+#         )
+#         item_in.__setattr__("modified_at", datetime.utcnow())
+#
+#         item = product_crud.update(
+#             db_obj=item,
+#             obj_in=item_in,
+#         )
+#
+#     return item
 
 
 @router.put("/delete/{id}", status_code=HTTPStatus.CREATED)

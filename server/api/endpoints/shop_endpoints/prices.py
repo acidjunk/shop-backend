@@ -116,26 +116,42 @@ def get_products(
         .filter(ProductTable.shop_id == shop_id)
     )
 
-    if lang == Lang.ALT1:
-        # filter out products and categories with missing translations
-        products = (
-            products.filter(ProductTranslationTable.alt1_name.is_not(None))
-            .filter(ProductTranslationTable.alt1_description.is_not(None))
-            .filter(ProductTranslationTable.alt1_description_short.is_not(None))
-            .filter(CategoryTranslationTable.alt1_name.is_not(None))
-        )
-    if lang == Lang.ALT2:
-        # filter out products and categories with missing translations
-        products = (
-            products.filter(ProductTranslationTable.alt2_name.is_not(None))
-            .filter(ProductTranslationTable.alt2_description.is_not(None))
-            .filter(ProductTranslationTable.alt2_description_short.is_not(None))
-            .filter(CategoryTranslationTable.alt2_name.is_not(None))
-        )
+    response_products = []
 
     shop = shop_crud.get(shop_id)
 
-    return [to_response_model(product, lang, shop) for product in products]
+    for product in products:
+        if lang == Lang.ALT1:
+            if (
+                    product.translation.alt1_name is not None
+                    and product.translation.alt1_description is not None
+                    and product.translation.alt1_description_short is not None
+                    and product.category.translation.alt1_name is not None
+                    and product.translation.alt1_name
+                    and product.translation.alt1_description
+                    and product.translation.alt1_description_short
+                    and product.category.translation.alt1_name
+            ):
+                response_product = to_response_model(product, lang, shop)
+                response_products.append(response_product)
+        elif lang == Lang.ALT2:
+            if (
+                    product.translation.alt2_name is not None
+                    and product.translation.alt2_description is not None
+                    and product.translation.alt2_description_short is not None
+                    and product.category.translation.alt2_name is not None
+                    and product.translation.alt2_name
+                    and product.translation.alt2_description
+                    and product.translation.alt2_description_short
+                    and product.category.translation.alt2_name
+            ):
+                response_product = to_response_model(product, lang, shop)
+                response_products.append(response_product)
+        else:
+            response_product = to_response_model(product, lang, shop)
+            response_products.append(response_product)
+
+    return response_products
 
 
 @router.post("/", response_model=list[ProductResponse])
@@ -163,6 +179,11 @@ def get_cart_products(
                 product.translation.alt1_name is None
                 or product.translation.alt1_description is None
                 or product.translation.alt1_description_short is None
+                or product.category.translation.alt1_name is None
+                or not product.translation.alt1_name
+                or not product.translation.alt1_description
+                or not product.translation.alt1_description_short
+                or not product.category.translation.alt1_name
             ):
                 response_product = to_response_model(product, Lang.MAIN, shop)
                 response_products.append(response_product)
@@ -174,6 +195,11 @@ def get_cart_products(
                 product.translation.alt2_name is None
                 or product.translation.alt2_description is None
                 or product.translation.alt2_description_short is None
+                or product.category.translation.alt2_name is None
+                or not product.translation.alt2_name
+                or not product.translation.alt2_description
+                or not product.translation.alt2_description_short
+                or not product.category.translation.alt2_name
             ):
                 response_product = to_response_model(product, Lang.MAIN, shop)
                 response_products.append(response_product)
