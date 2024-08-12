@@ -6,4 +6,5 @@ pytest
 pytest-cov
 pytest-xdist
 pytest_benchmark
+httpx
 
