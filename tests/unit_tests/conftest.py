@@ -6,6 +6,7 @@ from typing import cast
 import pytest
 from alembic import command
 from alembic.config import Config
+from fastapi import HTTPException
 from fastapi.applications import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, make_url, text
@@ -191,6 +192,43 @@ def fastapi_app(database, db_uri):
             username="test",
             email="test@pricelist.info",
         )
+
+    app.dependency_overrides[get_current_active_superuser] = get_current_active_superuser_override
+
+    return app
+
+
+@pytest.fixture(scope="session", autouse=True)
+def fastapi_app_not_authenticated(database, db_uri):
+    app = FastAPI(
+        title="Shop backend",
+        description="Backend for shop.",
+        openapi_url="/openapi.json",
+        docs_url="/docs",
+        redoc_url="/redoc",
+        version="0.2.0",
+        default_response_class=JSONResponse,
+    )
+    init_database(app_settings)
+
+    app.include_router(api_router)
+
+    app.add_middleware(SessionMiddleware, secret_key=app_settings.SESSION_SECRET)
+    app.add_middleware(DBSessionMiddleware, database=db)
+    origins = app_settings.CORS_ORIGINS.split(",")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_methods=app_settings.CORS_ALLOW_METHODS,
+        allow_headers=app_settings.CORS_ALLOW_HEADERS,
+        expose_headers=app_settings.CORS_EXPOSE_HEADERS,
+    )
+
+    # app.add_exception_handler(FormException, form_error_handler)
+    app.add_exception_handler(ProblemDetailException, problem_detail_handler)
+
+    def get_current_active_superuser_override():
+        raise HTTPException(status_code=401, detail="Not authenticated")
 
     app.dependency_overrides[get_current_active_superuser] = get_current_active_superuser_override
 

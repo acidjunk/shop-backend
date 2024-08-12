@@ -26,14 +26,8 @@ def get_endpoints(fastapi_app):
     return url_list
 
 
-def test_endpoint_auth(monkeypatch, fastapi_app):
-
-    # ensure fastapi fixture user is logged out:
-    def get_current_active_superuser_override():
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    fastapi_app.dependency_overrides[get_current_active_superuser] = get_current_active_superuser_override
-    test_client = TestClient(fastapi_app)
+def test_endpoint_auth(monkeypatch, fastapi_app_not_authenticated):
+    test_client = TestClient(fastapi_app_not_authenticated)
 
     responses = []
     for endpoint in get_endpoints(fastapi_app=test_client.app):
