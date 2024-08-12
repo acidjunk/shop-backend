@@ -83,17 +83,17 @@ class AppSettings(BaseSettings):
     # DB (probably only postgres for now; we use UUID postgres dialect for the ID's)
     DATABASE_URI: str = "postgresql://shop:shop@localhost/shop"
 
-    @validator("DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
-        if isinstance(v, str):
-            return v
-        return PostgresDsn.build(
-            scheme="postgresql",
-            user=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
-        )
+    # @validator("DATABASE_URI", pre=True)
+    # def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    #     if isinstance(v, str):
+    #         return v
+    #     return PostgresDsn.build(
+    #         scheme="postgresql",
+    #         user=values.get("POSTGRES_USER"),
+    #         password=values.get("POSTGRES_PASSWORD"),
+    #         host=values.get("POSTGRES_SERVER"),
+    #         path=f"/{values.get('POSTGRES_DB') or ''}",
+    #     )
 
     MAX_WORKERS: int = 5
     CACHE_HOST: str = "127.0.0.1"

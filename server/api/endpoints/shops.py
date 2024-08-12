@@ -3,7 +3,7 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 import structlog
-from fastapi import HTTPException, APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
@@ -211,9 +211,7 @@ def get_config(
 
 @router.put("/config/{id}", response_model=ShopConfig, status_code=HTTPStatus.CREATED)
 def update_config(
-    id: UUID,
-    item_in: ShopConfig,
-    current_user: UserTable = Depends(deps.get_current_active_superuser)
+    id: UUID, item_in: ShopConfig, current_user: UserTable = Depends(deps.get_current_active_superuser)
 ) -> ShopConfig:
     shop = shop_crud.get(id=id)
     logger.info("Updating shop", data=shop)

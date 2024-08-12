@@ -28,7 +28,7 @@ from starlette.responses import JSONResponse
 
 from server.api.api import api_router
 from server.api.error_handling import ProblemDetailException
-from server.db import db
+from server.db import db, init_database
 from server.db.database import DBSessionMiddleware
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
 from server.settings import app_settings
@@ -81,6 +81,7 @@ app = FastAPI(
     # ],
     lifespan=lifespan,
 )
+init_database(app_settings)
 
 app.include_router(api_router)
 

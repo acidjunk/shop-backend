@@ -28,7 +28,6 @@ from sqlalchemy_utils import UUIDType
 from server.db.database import BaseModel, Database
 from server.settings import app_settings
 
-
 logger = structlog.get_logger(__name__)
 
 TAG_LENGTH = 100

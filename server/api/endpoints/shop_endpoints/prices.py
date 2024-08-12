@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from server.crud.crud_shop import shop_crud
 from server.db import ProductTable
-from server.db.models import ProductTranslationTable, CategoryTable, CategoryTranslationTable
+from server.db.models import CategoryTable, CategoryTranslationTable, ProductTranslationTable
 
 router = APIRouter()
 logger = structlog.get_logger(__name__)

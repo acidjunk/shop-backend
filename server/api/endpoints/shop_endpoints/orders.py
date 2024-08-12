@@ -5,12 +5,11 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 import structlog
-from fastapi import HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
 from server.api import deps
-from fastapi import APIRouter
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.api.helpers import _query_with_filters, invalidateCompletedOrdersCache, invalidatePendingOrdersCache
@@ -19,8 +18,8 @@ from server.crud.crud_account import account_crud
 from server.crud.crud_order import order_crud
 from server.crud.crud_shop import shop_crud
 from server.db.models import OrderTable, UserTable
-from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.schemas.account import AccountCreate
+from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 
 logger = structlog.get_logger(__name__)
 
@@ -292,8 +291,10 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
 
 @router.patch("/{order_id}", response_model=OrderUpdated, status_code=HTTPStatus.CREATED)
 def patch(
-    *, order_id: UUID, item_in: OrderBase,
-        # current_user: UserTable = Depends(deps.get_current_active_user)
+    *,
+    order_id: UUID,
+    item_in: OrderBase,
+    # current_user: UserTable = Depends(deps.get_current_active_user)
 ) -> OrderUpdated:
     order = order_crud.get(order_id)
     if not order:

@@ -1,4 +1,4 @@
-# Copyright 2024 René Dohmen <acidjunk@gmail.com>
+# Copyright 2019-2020 SURF.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,19 +11,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
-
-# Todo: when we drop python 3.9 support -> move Callable, Generator, Iterator to collections.abc
-# https://stackoverflow.com/questions/65858528/is-collections-abc-callable-bugged-in-python-3-9-1
-from typing import Any, Callable, ClassVar, Dict, Generator, Iterator, List, Optional, Set, cast
+from typing import Any, ClassVar, cast
 from uuid import uuid4
 
 import structlog
 from sqlalchemy import create_engine
 from sqlalchemy import inspect as sa_inspect
-from sqlalchemy.ext.declarative import DeclarativeMeta, as_declarative
-from sqlalchemy.orm import Query, Session, scoped_session, sessionmaker
+from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy.orm import Query, Session, as_declarative, scoped_session, sessionmaker
 from sqlalchemy.sql.schema import MetaData
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -56,8 +54,7 @@ class BaseModelMeta(DeclarativeMeta):
     def query(self) -> SearchQuery:
         if self._query is not None:
             return self._query
-        else:
-            raise NoSessionError("Cant get session. Please, call BaseModel.set_query() first")
+        raise NoSessionError("Cant get session. Please, call BaseModel.set_query() first")
 
 
 @as_declarative(metaclass=BaseModelMeta)
@@ -66,11 +63,11 @@ class _Base:
 
     __abstract__ = True
 
-    _json_include: List = []
-    _json_exclude: List = []
+    _json_include: list = []
+    _json_exclude: list = []
 
-    def __json__(self, excluded_keys: Set = set()) -> Dict:  # noqa: B006
-        ins = sa_inspect(self)
+    def __json__(self, excluded_keys: set = set()) -> dict:  # noqa: B006
+        ins: Any = sa_inspect(self)
 
         columns = set(ins.mapper.column_attrs.keys())
         relationships = set(ins.mapper.relationships.keys())
@@ -154,13 +151,12 @@ class BaseModel(_Base):
 
 
 class WrappedSession(Session):
-    """This Session class allows us to disable commit during usage."""
+    """This Session class allows us to disable commit during steps."""
 
     def commit(self) -> None:
         if self.info.get("disabled", False):
             self.info.get("logger", logger).warning(
-                "Function inside WrappedSession tried to issue a commit. It should not! "
-                "Will execute commit on behalf of step function when it returns."
+                "Tried to issue a commit. It should not! Transactional will execute commit when it returns."
             )
         else:
             super().commit()
@@ -173,18 +169,13 @@ ENGINE_ARGUMENTS = {
     "json_serializer": json_dumps,
     "json_deserializer": json_loads,
 }
-SESSION_ARGUMENTS = {
-    "class_": WrappedSession,
-    "autocommit": False,
-    "autoflush": True,
-    "query_cls": SearchQuery,
-}
+SESSION_ARGUMENTS = {"class_": WrappedSession, "autocommit": False, "autoflush": True, "query_cls": SearchQuery}
 
 
 class Database:
     """Setup and contain our database connection.
 
-    This is used to be able to setup the database in an uniform way while allowing easy testing and session management.
+    This is used to be able to set up the database in a uniform way while allowing easy testing and session management.
 
     Session management is done using ``scoped_session`` with a special scopefunc, because we cannot use
     threading.local(). Contextvar does the right thing with respect to asyncio and behaves similar to threading.local().
@@ -202,9 +193,8 @@ class Database:
         self.scoped_session = scoped_session(self.session_factory, self._scopefunc)
         BaseModel.set_query(cast(SearchQuery, self.scoped_session.query_property()))
 
-    def _scopefunc(self) -> Optional[str]:
-        scope_str = self.request_context.get()
-        return scope_str
+    def _scopefunc(self) -> str | None:
+        return self.request_context.get()
 
     @property
     def session(self) -> WrappedSession:
@@ -214,11 +204,11 @@ class Database:
     def database_scope(self, **kwargs: Any) -> Generator["Database", None, None]:
         """Create a new database session (scope).
 
-        This creates a new database session to handle all the database connection from a single scope (request or CLI).
-        This method should typically only been called in request middleware or at the start of a CLI script.
+        This creates a new database session to handle all the database connection from a single scope (request or workflow).
+        This method should typically only been called in request middleware or at the start of workflows.
 
         Args:
-            ``**kwargs``: Optional session kw args for this session
+            kwargs: Optional session kw args for this session
         """
         token = self.request_context.set(str(uuid4()))
         self.scoped_session(**kwargs)
@@ -254,16 +244,16 @@ def disable_commit(db: Database, log: BoundLogger) -> Iterator:
         yield
     finally:
         if restore:
-            log.debug("Reenabling commit.")
+            log.debug("Re-enabling commit.")
             db.session.info["disabled"] = False
             db.session.info["logger"] = None
 
 
 @contextmanager
 def transactional(db: Database, log: BoundLogger) -> Iterator:
-    """Run a function in an implicit transaction with automatic rollback or commit.
+    """Run a step function in an implicit transaction with automatic rollback or commit.
 
-    It will rollback in case of error, commit otherwise. It will also disable the `commit()` method
+    It will roll back in case of error, commit otherwise. It will also disable the `commit()` method
     on `BaseModel.session` for the time `transactional` is in effect.
     """
     try:
@@ -275,6 +265,6 @@ def transactional(db: Database, log: BoundLogger) -> Iterator:
         log.warning("Rolling back transaction.")
         raise
     finally:
-        # Extra safe guard rollback. If the commit failed there is still a failed transaction open.
+        # Extra safeguard rollback. If the commit failed there is still a failed transaction open.
         # BTW: without a transaction in progress this method is a pass-through.
         db.session.rollback()

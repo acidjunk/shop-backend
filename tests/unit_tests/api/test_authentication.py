@@ -4,27 +4,13 @@ import uuid
 import pytest
 
 EXCLUDED_ENDPOINTS = [
-    {"path": "/api/reset-password/", "name": "reset_password", "method": "POST"},
-    {"path": "/api/health/", "name": "get_health", "method": "GET"},
-    {"path": "/api/health/ping/", "name": "pong", "method": "GET"},
-    {"path": "/api/kinds/", "name": "get_multi", "method": "GET"},
-    {"path": "/api/kinds/{id}/", "name": "get_id", "method": "GET"},
-    {"path": "/api/products/", "name": "get_multi", "method": "GET"},
-    {"path": "/api/products/{id}/", "name": "get_id", "method": "GET"},
-    {"path": "/api/shop_endpoints/{id}/", "name": "get_id", "method": "GET"},
-    {"path": "/api/shop_endpoints/cache-status/{id}/", "name": "get_cache_status", "method": "GET"},
-    {"path": "/api/shop_endpoints/last-completed-order/{id}/", "name": "get_last_completed_order", "method": "GET"},
-    {"path": "/api/shop_endpoints/last-pending-order/{id}/", "name": "get_last_pending_order", "method": "GET"},
-    {"path": "/api/shop_endpoints-to-prices/", "name": "get_multi", "method": "GET"},
-    {"path": "/api/shop_endpoints-to-prices/{id}/", "name": "get_id", "method": "GET"},
-    {"path": "/api/orders/check/{ids}/", "name": "check", "method": "GET"},
-    {"path": "/api/orders/", "name": "create", "method": "POST"},
-    {"path": "/api/chat/", "name": "get", "method": "GET"},
-    {"path": "/api/images/signed-url/{image_name}/", "name": "get_signed_url", "method": "GET"},
-    {"path": "/api/images/move/", "name": "move_images", "method": "POST"},
-    {"path": "/api/images/delete-temp/", "name": "delete_temporary_images", "method": "POST"},
-    {"path": "/api/downloads/{file_name}/", "name": "get_signed_download_link", "method": "GET"},
-    {"path": "/api/downloads/send/", "name": "send_download_link_via_email", "method": "POST"},
+    {"path": "/reset-password/", "name": "reset_password", "method": "POST"},
+    {"path": "/health/", "name": "get_health", "method": "GET"},
+    {"path": "/products/", "name": "get_multi", "method": "GET"},
+    {"path": "/products/{id}/", "name": "get_id", "method": "GET"},
+    {"path": "/shops/{shop_id}/prices/", "name": "get_products", "method": "GET"},
+    {"path": "/shops/{shop_id}/prices/", "name": "get_cart_products", "method": "POST"},
+    {"path": "/orders/", "name": "create", "method": "POST"},
 ]
 
 

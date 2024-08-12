@@ -3,7 +3,7 @@ from typing import Any, List
 from uuid import UUID
 
 import structlog
-from fastapi import HTTPException, APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 

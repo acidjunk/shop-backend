@@ -13,19 +13,19 @@
 
 """Module that implements process related API endpoints."""
 
-from fastapi import Depends, APIRouter
+from fastapi import APIRouter, Depends
 
 from server.api import deps
-from server.api.endpoints import forms, shops, images, users, login, downloads, health, licenses
+from server.api.endpoints import downloads, forms, health, images, licenses, login, shops, users
 from server.api.endpoints.shop_endpoints import (
-    tags,
-    orders,
-    products,
-    category_images,
-    categories,
-    products_to_tags,
     accounts,
+    categories,
+    category_images,
+    orders,
     prices,
+    products,
+    products_to_tags,
+    tags,
 )
 
 api_router = APIRouter()
