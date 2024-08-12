@@ -56,7 +56,8 @@ class ShopSchema(ShopInDBBase):
 
 
 class ShopWithPrices(ShopInDBBase):
-    prices: List[dict]
+    # prices: List[dict]
+    pass
 
 
 class ShopCacheStatus(ShopEmptyBase):

@@ -24,6 +24,6 @@ structlog
 uvicorn[standard]~=0.29.0
 itsdangerous
 pydantic-forms
-pydantic-settings==2.2.1
+pydantic-settings~=2.4.0
 python-multipart
 wheel

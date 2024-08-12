@@ -15,6 +15,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
 
 from server.api.api import api_router
+from server.api.deps import get_current_active_superuser, get_current_user
 from server.api.error_handling import ProblemDetailException
 from server.db import db, init_database
 from server.db.database import (
@@ -25,6 +26,7 @@ from server.db.database import (
     DBSessionMiddleware,
     SearchQuery,
 )
+from server.db.models import ShopTable, UserTable
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
 from server.settings import app_settings
 
@@ -181,6 +183,17 @@ def fastapi_app(database, db_uri):
     # app.add_exception_handler(FormException, form_error_handler)
     app.add_exception_handler(ProblemDetailException, problem_detail_handler)
 
+    def get_current_active_superuser_override() -> UserTable:
+        import uuid
+
+        return UserTable(
+            id=uuid.uuid4(),
+            username="test",
+            email="test@pricelist.info",
+        )
+
+    app.dependency_overrides[get_current_active_superuser] = get_current_active_superuser_override
+
     return app
 
 
@@ -189,6 +202,12 @@ def test_client(fastapi_app):
     return TestClient(fastapi_app)
 
 
-# @pytest.fixture()
-# def shop():
-#     return make_shop()
+@pytest.fixture()
+def shop():
+    shop = ShopTable(name="Test Shop", description="Test Shop Description")
+    db.session.add(shop)
+    db.session.commit()
+
+    return str(shop.id)
+    # todo: finish factory?
+    # return make_shop()

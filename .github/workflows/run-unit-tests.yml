@@ -7,15 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ 3.9 ]
-    container: python:3.9.16-slim
+        python-version: [ 3.11 ]
+    container: python:3.11-slim
     services:
       postgres:
         image: postgres:12.7-alpine
         # Provide the password for postgres
         env:
-          POSTGRES_PASSWORD: boilerplate
-          POSTGRES_USER: boilerplate
+          POSTGRES_PASSWORD: shop
+          POSTGRES_USER: shop
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
@@ -31,7 +31,7 @@ jobs:
         run: |
           apt update
           apt install curl -y
-          pip install -r requirements/all.txt
+          pip install -r requirements/test.txt
 #          python -m pip install --upgrade pip
 #          pip install flit
 #          flit install --deps develop --symlink
@@ -39,9 +39,9 @@ jobs:
       - name: Run Unit tests
         run: PYTHONPATH=. DATABASE_URI=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST/$POSTGRES_DB pytest --cov-branch --cov=server tests/unit_tests
         env:
-          POSTGRES_DB: boilerplate-test
-          POSTGRES_USER: boilerplate
-          POSTGRES_PASSWORD: boilerplate
+          POSTGRES_DB: shop-test
+          POSTGRES_USER: shop
+          POSTGRES_PASSWORD: shop
           POSTGRES_HOST: postgres
 #      - name: "Upload coverage to Codecov"
 #        uses: codecov/codecov-action@v1

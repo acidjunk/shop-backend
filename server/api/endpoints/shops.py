@@ -82,7 +82,7 @@ def get_last_pending_order(id: UUID) -> ShopLastPendingOrder:
 
 
 @router.get("/{id}", response_model=ShopWithPrices)
-def get_by_id(id: UUID, is_horeca: Optional[bool] = None):
+def get_by_id(id: UUID):
     """List Shop"""
     item = load(ShopTable, id)
     # price_relations = None
