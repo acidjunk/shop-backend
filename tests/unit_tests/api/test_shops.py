@@ -8,7 +8,7 @@ from server.utils.json import json_dumps
 
 def test_shops_get_multi(test_client, shop):
     # todo: implement correct shop and shops fixtures
-    response = test_client.get(f"/shops")
+    response = test_client.get("/shops")
     assert response.status_code == 200
     shops = response.json()
     assert 2 == len(shops)  # 2 shops, one from the fixture, one "Default shop" from the migrations
@@ -21,6 +21,11 @@ def test_shop_get_by_id(shop, test_client):
     assert HTTPStatus.OK == response.status_code
     shop = response.json()
     assert shop["name"] == "Test Shop"
+
+
+def test_shop_fixture(shop_with_categories):
+    shop = ShopTable.query.filter_by(id=shop_with_categories).first()
+    assert len(shop.shop_to_category) == 2
 
 
 #

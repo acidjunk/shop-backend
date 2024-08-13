@@ -16,7 +16,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
 
 from server.api.api import api_router
-from server.api.deps import get_current_active_superuser, get_current_user
+from server.api.deps import get_current_active_superuser
 from server.api.error_handling import ProblemDetailException
 from server.db import db, init_database
 from server.db.database import (
@@ -27,9 +27,11 @@ from server.db.database import (
     DBSessionMiddleware,
     SearchQuery,
 )
-from server.db.models import ShopTable, UserTable
+from server.db.models import ProductTable, UserTable
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
 from server.settings import app_settings
+from tests.unit_tests.factories.categories import make_category
+from tests.unit_tests.factories.shop import make_shop
 
 
 def run_migrations(db_uri: str) -> None:
@@ -242,10 +244,29 @@ def test_client(fastapi_app):
 
 @pytest.fixture()
 def shop():
-    shop = ShopTable(name="Test Shop", description="Test Shop Description")
-    db.session.add(shop)
-    db.session.commit()
+    return make_shop(with_products=False)
 
-    return str(shop.id)
-    # todo: finish factory?
-    # return make_shop()
+
+@pytest.fixture()
+def shop_with_categories():
+    shop_id = make_shop(with_products=False)
+    make_category(shop_id=shop_id)
+    make_category(shop_id=shop_id, main_name="Main Cat2", alt1_name="Alt1 cat2", alt2_name="Alt2 cat2")
+    return shop_id
+
+
+@pytest.fixture()
+def product(shop):
+    p = ProductTable(
+        shop_id=shop,
+    )
+
+
+@pytest.fixture()
+def shop_with_products():
+    return make_shop(with_products=True)
+
+
+#
+#
+#
