@@ -18,7 +18,7 @@ from typing import Optional
 
 import sqlalchemy
 import structlog
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, TypeDecorator, text
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, TypeDecorator, text
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import Dialect
 from sqlalchemy.exc import DontWrapMixin
@@ -178,7 +178,8 @@ class Account(BaseModel):
     name = Column(String(255))
     # a hash for the name, so sensible info can be used as an identifier
     hash_name = Column(String(255), nullable=True, index=True)
-
+    # details for address and customer name
+    details = Column("details", JSON, nullable=True)
     shop = relationship("ShopTable", lazy=True)
 
     def __repr__(self):
@@ -242,11 +243,16 @@ class ProductTable(BaseModel):
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     category_id = Column("category_id", UUIDType, ForeignKey("categories.id"), index=True)
-    price = Column(Float(), nullable=False)
+    price = Column(Float(), nullable=True)
     tax_category = Column(String(20), default="vat_standard")
     discounted_price = Column(Float(), nullable=True)
     discounted_from = Column(DateTime, nullable=True)
     discounted_to = Column(DateTime, nullable=True)
+    recurring_price_monthly = Column(Float(), nullable=True)
+    recurring_price_yearly = Column(Float(), nullable=True)
+    max_one = Column(Boolean(), default=False)
+    digital = Column(String(255), nullable=True)  # if provided: links to original asset
+    shippable = Column(Boolean(), default=True)
     image_1 = Column(String(255), index=True)
     image_2 = Column(String(255), index=True)
     image_3 = Column(String(255), index=True)
