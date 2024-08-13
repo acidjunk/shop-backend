@@ -37,8 +37,7 @@ def get_shop(shop_id: UUID):
 def get_multi(
     shop_id: UUID,
     response: Response,
-    common: dict = Depends(common_parameters),
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    common: dict = Depends(common_parameters)
 ) -> List[ProductWithDefaultPrice]:
     # shop = get_shop(shop_id)
     products, header_range = product_crud.get_multi_by_shop_id(
@@ -96,7 +95,7 @@ def get_by_id(product_id: UUID, shop_id: UUID) -> ProductWithDetailsAndPrices:
 
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create(
-    shop_id: UUID, data: ProductCreate = Body(...), current_user: UserTable = Depends(deps.get_current_active_employee)
+    shop_id: UUID, data: ProductCreate = Body(...)
 ) -> None:
     logger.info("Saving product", data=data)
     product = product_crud.create_by_shop_id(obj_in=data, shop_id=shop_id)
@@ -108,8 +107,7 @@ def update(
     *,
     product_id: UUID,
     shop_id: UUID,
-    item_in: ProductUpdate,
-    current_user: UserTable = Depends(deps.get_current_active_employee),
+    item_in: ProductUpdate
 ) -> Any:
     product = product_crud.get_id_by_shop_id(shop_id, product_id)
     logger.info("Updating product", data=product)
@@ -125,6 +123,6 @@ def update(
 
 @router.delete("/{product_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(
-    product_id: UUID, shop_id: UUID, current_user: UserTable = Depends(deps.get_current_active_superuser)
+    product_id: UUID, shop_id: UUID
 ) -> None:
     return product_crud.delete_by_shop_id(shop_id=shop_id, id=product_id)

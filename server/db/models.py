@@ -166,8 +166,8 @@ class TagTranslationTable(BaseModel):
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     tag_id = Column("tag_id", UUIDType, ForeignKey("tags.id"))
     main_name = Column(String(TAG_LENGTH), index=True)
-    alt1_name = Column(String(TAG_LENGTH), index=True, nullable=False)
-    alt2_name = Column(String(TAG_LENGTH), index=True, nullable=False)
+    alt1_name = Column(String(TAG_LENGTH), index=True, nullable=True)
+    alt2_name = Column(String(TAG_LENGTH), index=True, nullable=True)
     tag = relationship("TagTable", back_populates="translation")
 
 

@@ -190,6 +190,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             db.session.flush()
 
             if translation_data:
+                for field in translation_data:
+                    if translation_data[field] is "":
+                        translation_data[field] = None
                 translation_name = db_obj.__class__.__name__.split("Table")[0]
                 translation_model = globals().get(translation_name + "TranslationTable", None)
                 translation_data[translation_name.lower() + "_id"] = db_obj.id
@@ -223,7 +226,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             )
             if translation:
                 for field in translation_data:
-                    setattr(translation, field, translation_data[field])
+                    if translation_data[field] is not "":
+                        setattr(translation, field, translation_data[field])
+                    else:
+                        setattr(translation, field, None)
                 db.session.add(translation)
 
         # Update DB record

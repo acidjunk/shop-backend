@@ -30,8 +30,12 @@ from server.db.database import (
 from server.db.models import ProductTable, UserTable
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
 from server.settings import app_settings
-from tests.unit_tests.factories.categories import make_category
+from tests.unit_tests.factories.account import make_account
+from tests.unit_tests.factories.categories import make_category, make_category_translated
+from tests.unit_tests.factories.order import make_pending_order
+from tests.unit_tests.factories.product import make_product, make_translated_product
 from tests.unit_tests.factories.shop import make_shop
+from tests.unit_tests.factories.tag import make_tag
 
 
 def run_migrations(db_uri: str) -> None:
@@ -251,22 +255,64 @@ def shop():
 def shop_with_categories():
     shop_id = make_shop(with_products=False)
     make_category(shop_id=shop_id)
-    make_category(shop_id=shop_id, main_name="Main Cat2", alt1_name="Alt1 cat2", alt2_name="Alt2 cat2")
+    make_category(shop_id=shop_id, main_name="Main Cat 2", main_description="Main Cat Desc 2")
     return shop_id
 
 
 @pytest.fixture()
-def product(shop):
-    p = ProductTable(
-        shop_id=shop,
-    )
+def shop_with_products():
+    shop_id = make_shop(with_products=False)
+    category = make_category(shop_id=shop_id)
+    make_product(shop_id=shop_id, category_id=category)
+    make_product(shop_id=shop_id, category_id=category, main_name="Main Product 2")
+    return shop_id
 
 
 @pytest.fixture()
-def shop_with_products():
-    return make_shop(with_products=True)
+def shop_with_tags():
+    shop_id = make_shop(with_products=False)
+    make_tag(shop_id=shop_id)
+    make_tag(shop_id=shop_id)
+    return shop_id
 
 
-#
-#
-#
+@pytest.fixture()
+def category(shop):
+    return make_category(shop_id=shop)
+
+
+@pytest.fixture()
+def tag(shop):
+    return make_tag(shop_id=shop)
+
+
+@pytest.fixture()
+def product(shop):
+    category = make_category(shop_id=shop)
+    return make_product(shop_id=shop, category_id=category)
+
+
+@pytest.fixture()
+def product_translated(shop):
+    category = make_category_translated(shop_id=shop)
+    return make_translated_product(shop_id=shop, category_id=category)
+
+
+@pytest.fixture()
+def product_translated_category_untranslated(shop):
+    category = make_category(shop_id=shop)
+    return make_translated_product(shop_id=shop, category_id=category)
+
+
+@pytest.fixture()
+def pending_order(shop):
+    account = make_account(shop_id=shop)
+    category = make_category(shop_id=shop)
+    product_1 = make_product(shop_id=shop, category_id=category)
+    product_2 = make_product(shop_id=shop, category_id=category)
+    return make_pending_order(
+        shop_id=shop,
+        account_id=account,
+        product_id_1=product_1,
+        product_id_2=product_2
+    )

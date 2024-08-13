@@ -1,3 +1,17 @@
+def test_orders_get_multi(shop, pending_order, test_client):
+    response = test_client.get(f"/orders/")
+    assert response.status_code == 200
+    orders = response.json()
+    assert 1 == len(orders)
+    assert 2 == len(orders[0]["order_info"])
+    info_total = 0
+    for order in orders:
+        for info in order['order_info']:
+            info_total += info["price"]
+        # Total matches info total
+        assert order["total"] == info_total
+
+
 # from server.api.endpoints.shop_endpoints.orders import get_price_rules_total
 # from server.crud.crud_order import order_crud
 # from server.schemas.order import OrderItem

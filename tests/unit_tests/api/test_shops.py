@@ -23,7 +23,7 @@ def test_shop_get_by_id(shop, test_client):
     assert shop["name"] == "Test Shop"
 
 
-def test_shop_fixture(shop_with_categories):
+def test_shop_with_categories(shop_with_categories):
     shop = ShopTable.query.filter_by(id=shop_with_categories).first()
     assert len(shop.shop_to_category) == 2
 
