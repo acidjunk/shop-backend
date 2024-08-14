@@ -19,6 +19,7 @@ from server.schemas.base import BoilerplateBaseModel
 class AccountBase(BoilerplateBaseModel):
     shop_id: UUID
     name: str
+    details: dict
 
 
 # Properties to receive via API on creation
