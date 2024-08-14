@@ -16,11 +16,7 @@ def make_product(
     main_description="Test Product Description",
     price=1.0,
 ):
-    product = ProductTable(
-        shop_id=shop_id,
-        category_id=category_id,
-        price=price
-    )
+    product = ProductTable(shop_id=shop_id, category_id=category_id, price=price)
     db.session.add(product)
     db.session.commit()
 
@@ -29,7 +25,7 @@ def make_product(
         product_id=product.id,
         main_name=main_name,
         main_description=main_description,
-        main_description_short=main_description_short
+        main_description_short=main_description_short,
     )
 
     db.session.add(trans)
@@ -52,11 +48,7 @@ def make_translated_product(
     alt2_description_short="Test Produkt Kurzbeschreibung",
     price=1.0,
 ):
-    product = ProductTable(
-        shop_id=shop_id,
-        category_id=category_id,
-        price=price
-    )
+    product = ProductTable(shop_id=shop_id, category_id=category_id, price=price)
     db.session.add(product)
     db.session.commit()
 
@@ -71,11 +63,10 @@ def make_translated_product(
         alt1_description_short=alt1_description_short,
         alt2_name=alt2_name,
         alt2_description=alt2_description,
-        alt2_description_short=alt2_description_short
+        alt2_description_short=alt2_description_short,
     )
 
     db.session.add(trans)
     db.session.commit()
 
     return product.id
-

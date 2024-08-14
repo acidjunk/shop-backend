@@ -1,6 +1,7 @@
+from http import HTTPStatus
+
 from server.db.models import ProductTable
 from server.utils.json import json_dumps
-from http import HTTPStatus
 
 
 def test_products_get_multi(shop_with_products, test_client):
@@ -27,14 +28,14 @@ def test_products_create(shop, category, test_client):
             "main_name": "Create Product Test",
             "main_description": "Update Product Test Description",
             "main_description_short": "Update Product Test Description Short",
-            "alt1_name": ""
+            "alt1_name": "",
         },
         "image_1": "",
         "image_2": "",
         "image_3": "",
         "image_4": "",
         "image_5": "",
-        "image_6": ""
+        "image_6": "",
     }
 
     response = test_client.post(f"/shops/{shop}/products/", data=json_dumps(body))
@@ -53,14 +54,14 @@ def test_products_update(shop, product, category, test_client):
         "translation": {
             "main_name": "Update Product Test",
             "main_description": "Update Product Test Description",
-            "main_description_short": "Update Product Test Description Short"
+            "main_description_short": "Update Product Test Description Short",
         },
         "image_1": "",
         "image_2": "",
         "image_3": "",
         "image_4": "",
         "image_5": "",
-        "image_6": ""
+        "image_6": "",
     }
 
     response = test_client.put(f"/shops/{shop}/products/{product}", data=json_dumps(body))

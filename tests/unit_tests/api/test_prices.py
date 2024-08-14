@@ -9,11 +9,8 @@ def test_prices_get_multi(shop, product, test_client):
 
 
 def test_prices_get_multi_untranslated(
-        shop,
-        product,
-        product_translated,
-        product_translated_category_untranslated,
-        test_client):
+    shop, product, product_translated, product_translated_category_untranslated, test_client
+):
     response = test_client.get(f"/shops/{shop}/prices/?lang=alt1")
     assert response.status_code == 200
     prices = response.json()
@@ -23,11 +20,7 @@ def test_prices_get_multi_untranslated(
 
 
 def test_cart_prices_get_multi(shop, product, test_client):
-    body = {
-        'products': [
-            product
-        ]
-    }
+    body = {"products": [product]}
 
     response = test_client.post(f"/shops/{shop}/prices/?lang=main", data=json_dumps(body))
     assert response.status_code == 200
@@ -36,12 +29,7 @@ def test_cart_prices_get_multi(shop, product, test_client):
 
 
 def test_cart_prices_get_multi_untranslated(shop, product, product_translated, test_client):
-    body = {
-        'products': [
-            product,
-            product_translated
-        ]
-    }
+    body = {"products": [product, product_translated]}
 
     response = test_client.post(f"/shops/{shop}/prices/?lang=alt1", data=json_dumps(body))
     assert response.status_code == 200

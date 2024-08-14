@@ -80,7 +80,7 @@ api_router.include_router(
     products.router,
     prefix="/shops/{shop_id}/products",
     tags=["shops", "products"],
-    dependencies=[Depends(deps.get_current_active_superuser)]
+    dependencies=[Depends(deps.get_current_active_superuser)],
 )
 api_router.include_router(
     products_to_tags.router,

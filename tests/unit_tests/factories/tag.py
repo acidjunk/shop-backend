@@ -8,12 +8,7 @@ from server.db.models import TagTable, TagTranslationTable
 logger = structlog.getLogger(__name__)
 
 
-def make_tag(
-    shop_id: UUID,
-    main_name="Tag for Testing",
-    alt1_name="Tag voor Testen",
-    alt2_name="Tag zum Testen"
-):
+def make_tag(shop_id: UUID, main_name="Tag for Testing", alt1_name="Tag voor Testen", alt2_name="Tag zum Testen"):
     tag = TagTable(shop_id=shop_id, name=main_name)
     db.session.add(tag)
     db.session.commit()
@@ -23,4 +18,3 @@ def make_tag(
     db.session.add(trans)
     db.session.commit()
     return tag.id
-

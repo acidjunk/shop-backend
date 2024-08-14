@@ -6,7 +6,7 @@ def test_orders_get_multi(shop, pending_order, test_client):
     assert 2 == len(orders[0]["order_info"])
     info_total = 0
     for order in orders:
-        for info in order['order_info']:
+        for info in order["order_info"]:
             info_total += info["price"]
         # Total matches info total
         assert order["total"] == info_total

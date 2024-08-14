@@ -248,12 +248,17 @@ def test_client(fastapi_app):
 
 @pytest.fixture()
 def shop():
-    return make_shop(with_products=False)
+    return make_shop(with_config=False)
+
+
+@pytest.fixture()
+def shop_with_config():
+    return make_shop(with_config=True)
 
 
 @pytest.fixture()
 def shop_with_categories():
-    shop_id = make_shop(with_products=False)
+    shop_id = make_shop(with_config=False)
     make_category(shop_id=shop_id)
     make_category(shop_id=shop_id, main_name="Main Cat 2", main_description="Main Cat Desc 2")
     return shop_id
@@ -261,7 +266,7 @@ def shop_with_categories():
 
 @pytest.fixture()
 def shop_with_products():
-    shop_id = make_shop(with_products=False)
+    shop_id = make_shop(with_config=False)
     category = make_category(shop_id=shop_id)
     make_product(shop_id=shop_id, category_id=category)
     make_product(shop_id=shop_id, category_id=category, main_name="Main Product 2")
@@ -270,7 +275,7 @@ def shop_with_products():
 
 @pytest.fixture()
 def shop_with_tags():
-    shop_id = make_shop(with_products=False)
+    shop_id = make_shop(with_config=False)
     make_tag(shop_id=shop_id)
     make_tag(shop_id=shop_id)
     return shop_id
@@ -310,9 +315,4 @@ def pending_order(shop):
     category = make_category(shop_id=shop)
     product_1 = make_product(shop_id=shop, category_id=category)
     product_2 = make_product(shop_id=shop, category_id=category)
-    return make_pending_order(
-        shop_id=shop,
-        account_id=account,
-        product_id_1=product_1,
-        product_id_2=product_2
-    )
+    return make_pending_order(shop_id=shop, account_id=account, product_id_1=product_1, product_id_2=product_2)

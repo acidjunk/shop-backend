@@ -23,8 +23,8 @@ def test_tags_create(shop, test_client):
         "translation": {
             "main_name": "Create Tag Test",
             "alt1_name": "Update Tag Test Alt1",
-            "alt2_name": "Update Tag Test Alt2"
-        }
+            "alt2_name": "Update Tag Test Alt2",
+        },
     }
 
     response = test_client.post(f"/shops/{shop}/tags/", data=json_dumps(body))
@@ -40,8 +40,8 @@ def test_tags_update(shop, tag, test_client):
         "translation": {
             "main_name": "Update Tag Test",
             "alt1_name": "Update Tag Test Alt1",
-            "alt2_name": "Update Tag Test Alt2"
-        }
+            "alt2_name": "Update Tag Test Alt2",
+        },
     }
 
     response = test_client.put(f"/shops/{shop}/tags/{tag}", data=json_dumps(body))
@@ -53,6 +53,7 @@ def test_tags_update(shop, tag, test_client):
 def test_tags_delete(shop, tag, test_client):
     response = test_client.delete(f"/shops/{shop}/tags/{tag}")
     assert response.status_code == 204
+
 
 # from http import HTTPStatus
 # from uuid import uuid4

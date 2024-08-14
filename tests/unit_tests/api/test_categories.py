@@ -23,8 +23,8 @@ def test_categories_create(shop, test_client):
         "translation": {
             "main_name": "Create Category Test",
             "main_description": "Create Category Test Description",
-            "alt1_name": ""
-        }
+            "alt1_name": "",
+        },
     }
 
     response = test_client.post(f"/shops/{shop}/categories/", data=json_dumps(body))
@@ -41,8 +41,8 @@ def test_categories_update(shop, category, test_client):
         "translation": {
             "main_name": "Update Category Test",
             "main_description": "Update Category Test Description",
-            "alt1_name": ""
-        }
+            "alt1_name": "",
+        },
     }
 
     response = test_client.put(f"/shops/{shop}/categories/{category}", data=json_dumps(body))

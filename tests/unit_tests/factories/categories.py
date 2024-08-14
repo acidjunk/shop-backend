@@ -8,19 +8,13 @@ from server.db.models import CategoryTable, CategoryTranslationTable
 logger = structlog.getLogger(__name__)
 
 
-def make_category(
-    shop_id: UUID,
-    main_name="Main name",
-    main_description="Main description"
-):
+def make_category(shop_id: UUID, main_name="Main name", main_description="Main description"):
     category = CategoryTable(shop_id=shop_id)
     db.session.add(category)
     db.session.commit()
 
     # create translations
-    trans = CategoryTranslationTable(
-        category_id=category.id, main_name=main_name, main_description=main_description
-    )
+    trans = CategoryTranslationTable(category_id=category.id, main_name=main_name, main_description=main_description)
     db.session.add(trans)
     db.session.commit()
 

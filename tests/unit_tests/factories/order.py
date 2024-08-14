@@ -18,18 +18,18 @@ def make_pending_order(
 ):
     order_info = [
         {
-            'description': 'Test Order Description',
-            'product_name': "Test Product",
-            'price': 1.0,
-            'quantity': 1,
-            'product_id': product_id_1
+            "description": "Test Order Description",
+            "product_name": "Test Product",
+            "price": 1.0,
+            "quantity": 1,
+            "product_id": product_id_1,
         },
         {
-            'description': 'Test Order Description',
-            'product_name': "Test Product 2",
-            'price': 1.0,
-            'quantity': 1,
-            'product_id': product_id_2
+            "description": "Test Order Description",
+            "product_name": "Test Product 2",
+            "price": 1.0,
+            "quantity": 1,
+            "product_id": product_id_2,
         },
     ]
     order = OrderTable(
