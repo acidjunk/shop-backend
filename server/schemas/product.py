@@ -37,7 +37,12 @@ class ProductTranslationBase(BoilerplateBaseModel):
 class ProductBase(BoilerplateBaseModel):
     shop_id: UUID
     category_id: UUID
-    price: float
+    price: Optional[float] = None
+    recurring_price_monthly: Optional[float] = None
+    recurring_price_yearly: Optional[float] = None
+    max_one: bool
+    shippable: bool
+    digital: Optional[str] = None
     # Todo: make enum with: vat_standard, vat_lower_1, vat_lower_2, vat_lower_3, vat_special, vat_zero
     tax_category: str
     discounted_price: Optional[float] = None

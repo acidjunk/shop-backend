@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 
 from more_itertools import one
@@ -23,7 +24,7 @@ def test_shop_get_by_id(shop, test_client):
     assert shop["name"] == "Test Shop"
 
 
-def test_shop_fixture(shop_with_categories):
+def test_shop_with_categories(shop_with_categories):
     shop = ShopTable.query.filter_by(id=shop_with_categories).first()
     assert len(shop.shop_to_category) == 2
 
@@ -68,3 +69,28 @@ def test_shop_create(test_client):
 #     assert HTTPStatus.NO_CONTENT == response.status_code
 #     shops = test_client.get("/api/shop_endpoints", headers=superuser_token_headers).json()
 #     assert len(shops) == 1  # Changed to 1 because admin has 2 shop_endpoints now
+
+
+def test_shop_get_config(test_client, shop_with_config):
+    response = test_client.get(f"/shops/config/{shop_with_config}")
+    assert 200 == response.status_code
+    response_config = response.json()
+    expected_config = {"config": {}}
+    assert response_config["config"] == expected_config
+
+
+def test_shop_create_config(test_client, shop):
+    body = {"config": {}}
+
+    response = test_client.put(f"/shops/config/{shop}", data=json.dumps(body))
+    assert 201 == response.status_code
+    config = response.json()
+    assert config == body
+
+
+def test_shop_update_config(test_client, shop_with_config):
+    body = {"config": {"short_shop_name": "Test"}}
+    response = test_client.put(f"/shops/config/{shop_with_config}", data=json_dumps(body))
+    assert 201 == response.status_code
+    config = response.json()
+    assert config == body

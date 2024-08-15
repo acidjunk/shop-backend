@@ -6,9 +6,13 @@ logger = structlog.getLogger(__name__)
 
 
 def make_shop(
-    with_products=False,
+    with_config=False,
 ):
-    shop = ShopTable(name="Test Shop", description="Test Shop Description")
+    if with_config:
+        config = {"config": {}}
+        shop = ShopTable(name="Test Shop", description="Test Shop Description", config=config)
+    else:
+        shop = ShopTable(name="Test Shop", description="Test Shop Description")
     db.session.add(shop)
     db.session.commit()
     return shop.id

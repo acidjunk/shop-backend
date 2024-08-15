@@ -163,6 +163,7 @@ def get_cart_products(
                 product.translation.alt1_name is None
                 or product.translation.alt1_description is None
                 or product.translation.alt1_description_short is None
+                or product.category.translation.alt1_name is None
             ):
                 response_product = to_response_model(product, Lang.MAIN, shop)
                 response_products.append(response_product)
@@ -174,6 +175,7 @@ def get_cart_products(
                 product.translation.alt2_name is None
                 or product.translation.alt2_description is None
                 or product.translation.alt2_description_short is None
+                or product.category.translation.alt2_name is None
             ):
                 response_product = to_response_model(product, Lang.MAIN, shop)
                 response_products.append(response_product)

@@ -76,7 +76,12 @@ api_router.include_router(
 #     tags=["products-images"],
 #     dependencies=[Depends(deps.get_current_active_superuser)],
 # )
-api_router.include_router(products.router, prefix="/shops/{shop_id}/products", tags=["shops", "products"])
+api_router.include_router(
+    products.router,
+    prefix="/shops/{shop_id}/products",
+    tags=["shops", "products"],
+    dependencies=[Depends(deps.get_current_active_superuser)],
+)
 api_router.include_router(
     products_to_tags.router,
     prefix="/shops/{shop_id}/products-to-tags",
