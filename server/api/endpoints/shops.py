@@ -206,6 +206,9 @@ def get_config(
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
 
+    if shop.stripe_public_key is not None:
+        shop.config["stripe_public_key"] = shop.stripe_public_key
+
     return shop
 
 

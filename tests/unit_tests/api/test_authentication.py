@@ -14,6 +14,8 @@ EXCLUDED_ENDPOINTS = [
     {"path": "/shops/{shop_id}/prices/", "name": "get_products", "method": "GET"},
     {"path": "/shops/{shop_id}/prices/", "name": "get_cart_products", "method": "POST"},
     {"path": "/orders/", "name": "create", "method": "POST"},
+    {"path": "/shops/{shop_id}/stripe/", "name": "create_payment_intent", "method": "POST"},
+    {"path": "/shops/{shop_id}/stripe/subscription", "name": "create_subscription_intent", "method": "POST"},
 ]
 
 

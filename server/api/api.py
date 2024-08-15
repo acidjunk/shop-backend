@@ -25,6 +25,7 @@ from server.api.endpoints.shop_endpoints import (
     prices,
     products,
     products_to_tags,
+    stripe,
     tags,
 )
 
@@ -99,6 +100,12 @@ api_router.include_router(
     prefix="/shops/{shop_id}/accounts",
     tags=["shops", "accounts"],
     dependencies=[Depends(deps.get_current_active_superuser)],
+)
+api_router.include_router(
+    stripe.router,
+    prefix="/shops/{shop_id}/stripe",
+    tags=["stripe"],
+    # dependencies=[Depends(deps.get_current_active_superuser)],
 )
 
 # api_router.include_router(

@@ -27,3 +27,4 @@ pydantic-forms
 pydantic-settings~=2.4.0
 python-multipart
 wheel
+stripe==10.7.0
