@@ -60,11 +60,9 @@ def run_migrations():
 
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
-    logger.info("Starting up...")
     logger.info("run alembic upgrade head...")
     run_migrations()
     yield
-    logger.info("Shutting down...")
 
 
 app = FastAPI(
