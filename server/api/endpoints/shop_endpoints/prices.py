@@ -32,6 +32,11 @@ class ProductResponse(BaseModel):
     tax_category: str
     tax_percentage: float
     price: float
+    recurring_price_monthly: float | None = None
+    recurring_price_yearly: float | None = None
+    max_one: bool
+    shippable: bool
+    digital: str | None = None
     discounted_price: float | None = None
     discounted_from: datetime | None = None
     discounted_to: datetime | None = None
@@ -62,6 +67,11 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             tax_category=product.tax_category,
             tax_percentage=tax,
             price=product.price,
+            recurring_price_monthly=product.recurring_price_monthly,
+            recurring_price_yearly=product.recurring_price_yearly,
+            max_one=product.max_one,
+            shippable=product.shippable,
+            digital=product.digital,
         )
     elif lang == Lang.ALT1:
         product_response = ProductResponse(
@@ -74,6 +84,11 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             tax_category=product.tax_category,
             tax_percentage=tax,
             price=product.price,
+            recurring_price_monthly=product.recurring_price_monthly,
+            recurring_price_yearly=product.recurring_price_yearly,
+            max_one=product.max_one,
+            shippable=product.shippable,
+            digital=product.digital,
         )
     elif lang == Lang.ALT2:
         product_response = ProductResponse(
@@ -86,6 +101,11 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             tax_category=product.tax_category,
             tax_percentage=tax,
             price=product.price,
+            recurring_price_monthly=product.recurring_price_monthly,
+            recurring_price_yearly=product.recurring_price_yearly,
+            max_one=product.max_one,
+            shippable=product.shippable,
+            digital=product.digital,
         )
     else:
         raise ValueError(f"Unsupported language: {lang}")

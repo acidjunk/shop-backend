@@ -4,6 +4,7 @@ from operator import or_
 from typing import Any, List, Optional
 from uuid import UUID
 
+import stripe
 import structlog
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.param_functions import Body, Depends
@@ -17,7 +18,7 @@ from server.api.utils import is_ip_allowed, validate_uuid4
 from server.crud.crud_account import account_crud
 from server.crud.crud_order import order_crud
 from server.crud.crud_shop import shop_crud
-from server.db.models import OrderTable, UserTable
+from server.db.models import Account, OrderTable, UserTable
 from server.schemas.account import AccountCreate
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 
@@ -229,15 +230,31 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
     if data.customer_order_id:
         del data.customer_order_id
     shop_id = data.shop_id
-    shop = shop_crud.get(str(shop_id))
+    shop = shop_crud.get(shop_id)
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {shop_id} not found")
 
     if data.account_name and not data.account_id:
-        account_data = AccountCreate(shop_id=data.shop_id, name=data.account_name)
-        account = account_crud.create(obj_in=account_data)
-        data.account_id = account.id
-        del data.account_name
+        accounts = Account.query.filter(Account.shop_id == shop_id)
+        new_account = True
+        for account in accounts:
+            if account.name == data.account_name:
+                new_account = False
+                data.account_id = account.id
+                del data.account_name
+                break
+
+        if new_account:
+            details = {}
+            if shop.stripe_secret_key:
+                stripe.api_key = shop.stripe_secret_key
+                customer = stripe.Customer.create(email=data.account_name)
+                details["stripe_customer_id"] = customer.id
+
+            account_data = AccountCreate(shop_id=data.shop_id, name=data.account_name, details=details)
+            account = account_crud.create(obj_in=account_data)
+            data.account_id = account.id
+            del data.account_name
 
     if not is_ip_allowed(request, shop) and str(data.account_id) != "0999fbcd-a72b-4cc2-abbe-41ccd466cdaf":
         # allow test table to bypass IP check if any
