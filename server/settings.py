@@ -154,6 +154,11 @@ class AppSettings(BaseSettings):
     S3_TEMPORARY_ACCESS_KEY_ID: str = "CHANGEME"
     S3_TEMPORARY_ACCESS_KEY: str = "CHANGEME"
 
+    S3_BUCKET_UPLOAD_ACCESS_KEY_ID: str = "CHANGEME"
+    S3_BUCKET_UPLOAD_SECRET_ACCESS_KEY: str = "CHANGEME"
+    S3_BUCKET_UPLOAD_IMAGES_NAME: str = "CHANGE_THIS_FOR_UPLOAD"  # used to store images
+    S3_BUCKET_UPLOAD_DOWNLOADS_NAME: str = "CHANGE_THIS_FOR_DOWNLOADS"  # used to store downloads
+
     class Config:
         env_file = ".env"
 
