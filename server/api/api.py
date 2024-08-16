@@ -28,6 +28,7 @@ from server.api.endpoints.shop_endpoints import (
     stripe,
     tags,
 )
+from server.api.endpoints.shop_endpoints.images import router as shop_image_router
 
 api_router = APIRouter()
 
@@ -71,6 +72,13 @@ api_router.include_router(
     tags=["shops", "categories"],
     dependencies=[Depends(deps.get_current_active_superuser)],
 )
+api_router.include_router(
+    shop_image_router,
+    prefix="/shops/{shop_id}/images",
+    tags=["shops", "images"],
+    dependencies=[Depends(deps.get_current_active_superuser)],
+)
+
 # api_router.include_router(
 #     product_images.router,
 #     prefix="/shops/{shop_id}/products-images",

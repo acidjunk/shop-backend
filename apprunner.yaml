@@ -21,3 +21,11 @@ run:
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/DATABASE_URI"
     - name: SESSION_SECRET
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/SESSION_SECRET"
+    - name: S3_BUCKET_UPLOAD_ACCESS_KEY_ID
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/S3_BUCKET_UPLOAD_ACCESS_KEY_ID"
+    - name: S3_BUCKET_UPLOAD_SECRET_ACCESS_KEY
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/S3_BUCKET_UPLOAD_SECRET_ACCESS_KEY"
+    - name: S3_BUCKET_UPLOAD_IMAGES_NAME
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/S3_BUCKET_UPLOAD_IMAGES_NAME"
+    - name: S3_BUCKET_UPLOAD_DOWNLOADS_NAME
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/S3_BUCKET_UPLOAD_DOWNLOADS_NAME"

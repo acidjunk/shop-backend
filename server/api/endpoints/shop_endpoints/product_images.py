@@ -34,7 +34,7 @@ def get_multi(response: Response, common: dict = Depends(common_parameters)):
 def get_by_id(id: UUID):
     product = product_crud.get(id)
     if not product:
-        raise_status(HTTPStatus.NOT_FOUND, f"Category with id {id} not found")
+        raise_status(HTTPStatus.NOT_FOUND, f"Product with id {id} not found")
     return product
 
 
