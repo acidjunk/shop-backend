@@ -31,7 +31,7 @@ class ProductResponse(BaseModel):
     description: str
     tax_category: str
     tax_percentage: float
-    price: float
+    price: float | None = None
     recurring_price_monthly: float | None = None
     recurring_price_yearly: float | None = None
     max_one: bool
