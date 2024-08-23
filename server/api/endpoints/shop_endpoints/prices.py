@@ -37,6 +37,7 @@ class ProductResponse(BaseModel):
     max_one: bool
     shippable: bool
     digital: str | None = None
+    featured: bool
     discounted_price: float | None = None
     discounted_from: datetime | None = None
     discounted_to: datetime | None = None
@@ -72,6 +73,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             max_one=product.max_one,
             shippable=product.shippable,
             digital=product.digital,
+            featured=product.featured,
         )
     elif lang == Lang.ALT1:
         product_response = ProductResponse(
@@ -89,6 +91,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             max_one=product.max_one,
             shippable=product.shippable,
             digital=product.digital,
+            featured=product.featured,
         )
     elif lang == Lang.ALT2:
         product_response = ProductResponse(
@@ -106,6 +109,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             max_one=product.max_one,
             shippable=product.shippable,
             digital=product.digital,
+            featured=product.featured,
         )
     else:
         raise ValueError(f"Unsupported language: {lang}")

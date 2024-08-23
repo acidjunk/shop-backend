@@ -255,6 +255,7 @@ class ProductTable(BaseModel):
     max_one = Column(Boolean(), default=False)
     digital = Column(String(255), nullable=True)  # if provided: links to original asset
     shippable = Column(Boolean(), default=True)
+    featured = Column(Boolean(), default=False)
     image_1 = Column(String(255), index=True)
     image_2 = Column(String(255), index=True)
     image_3 = Column(String(255), index=True)
