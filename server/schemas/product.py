@@ -43,11 +43,12 @@ class ProductBase(BoilerplateBaseModel):
     max_one: bool
     shippable: bool
     digital: Optional[str] = None
+    featured: bool
     # Todo: make enum with: vat_standard, vat_lower_1, vat_lower_2, vat_lower_3, vat_special, vat_zero
     tax_category: str
     discounted_price: Optional[float] = None
-    # discounted_from: Optional[datetime] = None
-    # discounted_to: Optional[datetime] = None
+    discounted_from: Optional[datetime] = None
+    discounted_to: Optional[datetime] = None
     image_1: Union[Optional[dict], Optional[str]]
     image_2: Union[Optional[dict], Optional[str]]
     image_3: Union[Optional[dict], Optional[str]]

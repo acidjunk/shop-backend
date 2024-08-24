@@ -36,8 +36,8 @@ class CategoryBase(BoilerplateBaseModel):
     icon: Optional[str] = None
     order_number: Optional[int] = None
     translation: CategoryTranslationBase
-    # image_1: Union[Optional[dict], Optional[str]]
-    # image_2: Union[Optional[dict], Optional[str]]
+    image_1: Union[Optional[dict], Optional[str]]
+    image_2: Union[Optional[dict], Optional[str]]
 
 
 # Properties to receive via API on creation

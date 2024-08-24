@@ -26,6 +26,7 @@ def test_products_create(shop, category, test_client):
         "tax_category": "vat_zero",
         "max_one": False,
         "shippable": True,
+        "featured": False,
         "translation": {
             "main_name": "Create Product Test",
             "main_description": "Update Product Test Description",
@@ -55,6 +56,7 @@ def test_products_update(shop, product, category, test_client):
         "tax_category": "vat_zero",
         "max_one": False,
         "shippable": True,
+        "featured": False,
         "translation": {
             "main_name": "Update Product Test",
             "main_description": "Update Product Test Description",
