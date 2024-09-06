@@ -25,8 +25,9 @@ def test_categories_create(shop, test_client):
             "main_description": "Create Category Test Description",
             "alt1_name": "",
         },
-        "image_1": "",
-        "image_2": "",
+        "main_image": "",
+        "alt1_image": "",
+        "alt2_image": "",
     }
 
     response = test_client.post(f"/shops/{shop}/categories/", data=json_dumps(body))
@@ -45,8 +46,9 @@ def test_categories_update(shop, category, test_client):
             "main_description": "Update Category Test Description",
             "alt1_name": "",
         },
-        "image_1": "",
-        "image_2": "",
+        "main_image": "",
+        "alt1_image": "",
+        "alt2_image": "",
     }
 
     response = test_client.put(f"/shops/{shop}/categories/{category}", data=json_dumps(body))

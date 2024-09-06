@@ -197,8 +197,9 @@ class CategoryTable(BaseModel):
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     shop = relationship("ShopTable", lazy=True)
     order_number = Column(Integer, default=0)
-    image_1 = Column(String(255), index=True)
-    image_2 = Column(String(255), index=True)
+    main_image = Column(String(255), index=True)
+    alt1_image = Column(String(255), index=True)
+    alt2_image = Column(String(255), index=True)
     translation = relationship("CategoryTranslationTable", back_populates="category", uselist=False)
 
     def __repr__(self):
