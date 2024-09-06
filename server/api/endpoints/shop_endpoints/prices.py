@@ -11,6 +11,7 @@ from server.db import ProductTable
 from server.db.models import CategoryTable, CategoryTranslationTable, ProductTranslationTable
 
 router = APIRouter()
+
 logger = structlog.get_logger(__name__)
 
 
