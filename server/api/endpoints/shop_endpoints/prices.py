@@ -11,6 +11,7 @@ from server.db import ProductTable
 from server.db.models import CategoryTable, CategoryTranslationTable, ProductTranslationTable
 
 router = APIRouter()
+
 logger = structlog.get_logger(__name__)
 
 
@@ -25,6 +26,7 @@ class Lang(str, Enum):
 class ProductResponse(BaseModel):
     id: str
     category: str
+    category_image: str | None = None
     tags: list[str] = []
     name: str
     description_short: str
@@ -61,59 +63,57 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
         product_response = ProductResponse(
             id=str(product.id),
             category=product.category.translation.main_name,
+            category_image=product.category.main_image,
             tags=[tag.translation.main_name for tag in product.tags],
             name=product.translation.main_name,
             description_short=product.translation.main_description_short,
             description=product.translation.main_description,
             tax_category=product.tax_category,
             tax_percentage=tax,
-            price=product.price,
-            recurring_price_monthly=product.recurring_price_monthly,
-            recurring_price_yearly=product.recurring_price_yearly,
             max_one=product.max_one,
             shippable=product.shippable,
-            digital=product.digital,
             featured=product.featured,
         )
     elif lang == Lang.ALT1:
         product_response = ProductResponse(
             id=str(product.id),
             category=product.category.translation.alt1_name,
+            category_image=(
+                product.category.alt1_image if product.category.alt1_image is None else product.category.main_image
+            ),
             tags=[tag.translation.alt1_name for tag in product.tags],
             name=product.translation.alt1_name,
             description_short=product.translation.alt1_description_short,
             description=product.translation.alt1_description,
             tax_category=product.tax_category,
             tax_percentage=tax,
-            price=product.price,
-            recurring_price_monthly=product.recurring_price_monthly,
-            recurring_price_yearly=product.recurring_price_yearly,
             max_one=product.max_one,
             shippable=product.shippable,
-            digital=product.digital,
             featured=product.featured,
         )
     elif lang == Lang.ALT2:
         product_response = ProductResponse(
             id=str(product.id),
             category=product.category.translation.alt2_name,
+            category_image=(
+                product.category.alt2_image if product.category.alt2_image is None else product.category.main_image
+            ),
             tags=[tag.translation.alt2_name for tag in product.tags],
             name=product.translation.alt2_name,
             description_short=product.translation.alt2_description_short,
             description=product.translation.alt2_description,
             tax_category=product.tax_category,
             tax_percentage=tax,
-            price=product.price,
-            recurring_price_monthly=product.recurring_price_monthly,
-            recurring_price_yearly=product.recurring_price_yearly,
             max_one=product.max_one,
             shippable=product.shippable,
-            digital=product.digital,
             featured=product.featured,
         )
     else:
         raise ValueError(f"Unsupported language: {lang}")
 
+    product_response.price = product.price
+    product_response.recurring_price_monthly = product.recurring_price_monthly
+    product_response.recurring_price_yearly = product.recurring_price_yearly
     product_response.discounted_price = product.discounted_price
     product_response.discounted_from = product.discounted_from
     product_response.discounted_to = product.discounted_to
@@ -123,6 +123,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
     product_response.image_4 = product.image_4
     product_response.image_5 = product.image_5
     product_response.image_6 = product.image_6
+    product_response.digital = product.digital
 
     return product_response
 
