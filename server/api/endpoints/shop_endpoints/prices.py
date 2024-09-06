@@ -77,7 +77,9 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
         product_response = ProductResponse(
             id=str(product.id),
             category=product.category.translation.alt1_name,
-            category_image=product.category.alt1_image if product.category.alt1_image is None else product.category.main_image,
+            category_image=product.category.alt1_image
+            if product.category.alt1_image is None
+            else product.category.main_image,
             tags=[tag.translation.alt1_name for tag in product.tags],
             name=product.translation.alt1_name,
             description_short=product.translation.alt1_description_short,
@@ -92,7 +94,9 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
         product_response = ProductResponse(
             id=str(product.id),
             category=product.category.translation.alt2_name,
-            category_image=product.category.alt2_image if product.category.alt2_image is None else product.category.main_image,
+            category_image=product.category.alt2_image
+            if product.category.alt2_image is None
+            else product.category.main_image,
             tags=[tag.translation.alt2_name for tag in product.tags],
             name=product.translation.alt2_name,
             description_short=product.translation.alt2_description_short,
