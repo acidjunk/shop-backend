@@ -131,6 +131,7 @@ class ShopTable(BaseModel):
     description = Column(String(255), unique=True)
     allowed_ips = Column(postgresql.JSONB())
     config = Column(postgresql.JSONB())
+    config_version = Column(Integer, nullable=False, server_default="1")
     stripe_secret_key = Column(String(255), nullable=True)
     stripe_public_key = Column(String(255), nullable=True)
     vat_standard = Column(Float, default=21.0)
