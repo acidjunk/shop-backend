@@ -208,8 +208,6 @@ def get_config(
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
 
-    shop.config = json.loads(shop.config)
-
     return shop
 
 
