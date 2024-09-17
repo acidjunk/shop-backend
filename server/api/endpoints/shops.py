@@ -17,6 +17,7 @@ from server.db.models import ShopTable, UserTable
 from server.schemas.shop import (
     ShopCacheStatus,
     ShopConfig,
+    ShopConfigUpdate,
     ShopCreate,
     ShopIp,
     ShopLastCompletedOrder,
@@ -24,7 +25,6 @@ from server.schemas.shop import (
     ShopSchema,
     ShopUpdate,
     ShopWithPrices,
-    ShopConfigUpdate,
 )
 
 router = APIRouter()
