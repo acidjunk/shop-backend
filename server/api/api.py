@@ -29,6 +29,7 @@ from server.api.endpoints.shop_endpoints import (
     tags,
 )
 from server.api.endpoints.shop_endpoints.images import router as shop_image_router
+from server.security import cognito_eu
 
 api_router = APIRouter()
 
@@ -64,19 +65,19 @@ api_router.include_router(
     categories.router,
     prefix="/shops/{shop_id}/categories",
     tags=["categories"],
-    dependencies=[Depends(deps.get_current_active_superuser)],
+    dependencies=[Depends(cognito_eu.auth_required)],
 )
 api_router.include_router(
     category_images.router,
     prefix="/shops/{shop_id}/categories-images",
     tags=["shops", "categories"],
-    dependencies=[Depends(deps.get_current_active_superuser)],
+    dependencies=[Depends(cognito_eu.auth_required)],
 )
 api_router.include_router(
     shop_image_router,
     prefix="/shops/{shop_id}/images",
     tags=["shops", "images"],
-    dependencies=[Depends(deps.get_current_active_superuser)],
+    dependencies=[Depends(cognito_eu.auth_required)],
 )
 
 # api_router.include_router(
@@ -89,25 +90,25 @@ api_router.include_router(
     products.router,
     prefix="/shops/{shop_id}/products",
     tags=["shops", "products"],
-    dependencies=[Depends(deps.get_current_active_superuser)],
+    dependencies=[Depends(cognito_eu.auth_required)],
 )
 api_router.include_router(
     products_to_tags.router,
     prefix="/shops/{shop_id}/products-to-tags",
     tags=["shops", "products"],
-    dependencies=[Depends(deps.get_current_active_superuser)],
+    dependencies=[Depends(cognito_eu.auth_required)],
 )
 api_router.include_router(
     tags.router,
     prefix="/shops/{shop_id}/tags",
     tags=["shops", "products"],
-    dependencies=[Depends(deps.get_current_active_superuser)],
+    dependencies=[Depends(cognito_eu.auth_required)],
 )
 api_router.include_router(
     accounts.router,
     prefix="/shops/{shop_id}/accounts",
     tags=["shops", "accounts"],
-    dependencies=[Depends(deps.get_current_active_superuser)],
+    dependencies=[Depends(cognito_eu.auth_required)],
 )
 api_router.include_router(
     stripe.router,

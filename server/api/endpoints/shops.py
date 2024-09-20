@@ -24,6 +24,7 @@ from server.schemas.shop import (
     ShopUpdate,
     ShopWithPrices,
 )
+from server.security import cognito_eu
 
 router = APIRouter()
 logger = structlog.get_logger(__name__)
@@ -33,7 +34,7 @@ logger = structlog.get_logger(__name__)
 def get_multi(
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(cognito_eu.auth_required),
 ) -> List[ShopSchema]:
     shops, header_range = shop_crud.get_multi(
         skip=common["skip"],
@@ -46,9 +47,7 @@ def get_multi(
 
 
 @router.post("/", response_model=ShopSchema, status_code=HTTPStatus.CREATED)
-def create(
-    data: ShopCreate = Body(...), current_user: UserTable = Depends(deps.get_current_active_superuser)
-) -> ShopSchema:
+def create(data: ShopCreate = Body(...), current_user: UserTable = Depends(cognito_eu.auth_required)) -> ShopSchema:
     logger.info("Saving shop", data=data)
     shop = shop_crud.create(obj_in=data)
     return shop
