@@ -44,6 +44,7 @@ class AppSettings(BaseSettings):
     # COGNITO SETTING
     AWS_COGNITO_USERPOOL_ID: str = "AWS_COGNITO_USERPOOL_ID"
     AWS_COGNITO_CLIENT_ID: str = "AWS_COGNITO_CLIENT_ID"
+    AWS_COGNITO_REGION: str = "eu-central-1"
 
     # OAUTH settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
@@ -178,7 +179,7 @@ class AuthSetting(BaseSettings):
     jwt_header_name: str = "Authorization"
     userpools: dict[str, dict[str, Any]] = {
         "eu": {
-            "region": "eu-central-1",
+            "region": app_settings.AWS_COGNITO_REGION,
             "userpool_id": app_settings.AWS_COGNITO_USERPOOL_ID,
             "app_client_id": [app_settings.AWS_COGNITO_CLIENT_ID],  # Example with multiple ids
         },
