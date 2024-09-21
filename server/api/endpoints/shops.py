@@ -36,7 +36,6 @@ def get_multi(
     common: dict = Depends(common_parameters),
     current_user: UserTable = Depends(cognito_eu.auth_required),
 ) -> List[ShopSchema]:
-    print(current_user)
     shops, header_range = shop_crud.get_multi(
         skip=common["skip"],
         limit=common["limit"],
