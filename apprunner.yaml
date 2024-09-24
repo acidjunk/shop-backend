@@ -29,3 +29,7 @@ run:
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/S3_BUCKET_UPLOAD_IMAGES_NAME"
     - name: S3_BUCKET_UPLOAD_DOWNLOADS_NAME
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/S3_BUCKET_UPLOAD_DOWNLOADS_NAME"
+    - name: AWS_COGNITO_CLIENT_ID
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/AWS_COGNITO_CLIENT_ID"
+    - name: AWS_COGNITO_USERPOOL_ID
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/AWS_COGNITO_USERPOOL_ID"
