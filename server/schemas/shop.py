@@ -11,10 +11,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
-from typing import List, Optional
+from typing import Annotated, List, Optional
 from uuid import UUID
 
+from pydantic import EmailStr, UrlConstraints
+from pydantic_core import Url
+from pydantic_extra_types.phone_numbers import PhoneNumber
+
 from server.schemas.base import BoilerplateBaseModel
+
+
+class PhoneNumberNl(PhoneNumber):
+    default_region_code = "NL"
+    phone_format = "INTERNATIONAL"
+
+
+HttpUrl = Annotated[
+    Url,
+    UrlConstraints(max_length=2083, allowed_schemes=["https"]),
+]
 
 
 class ShopEmptyBase(BoilerplateBaseModel):
@@ -76,5 +91,67 @@ class ShopIp(BoilerplateBaseModel):
     ip: str
 
 
-class ShopConfig(ShopEmptyBase):
-    config: dict
+class ConfigurationLanguageFieldMenuItems(BoilerplateBaseModel):
+    about: str
+    cart: str
+    checkout: str
+    products: str
+    contact: str
+    policies: str
+    terms: str
+    privacy_policy: str
+    return_policy: str
+    website: str
+    phone: str
+    email: str
+    address: str
+
+
+class ConfigurationLanguageFieldStaticTexts(BoilerplateBaseModel):
+    about: str
+    terms: str
+    privacy_policy: str
+    return_policy: str
+
+
+class ConfigurationLanguageFields(BoilerplateBaseModel):
+    language_name: str
+    menu_items: ConfigurationLanguageFieldMenuItems
+    static_texts: ConfigurationLanguageFieldStaticTexts
+
+
+class ConfigurationLanguages(BoilerplateBaseModel):
+    main: ConfigurationLanguageFields
+    alt1: ConfigurationLanguageFields | None = None
+    alt2: ConfigurationLanguageFields | None = None
+
+
+class ConfigurationContact(BoilerplateBaseModel):
+    company: str
+    website: str | None = None
+    phone: PhoneNumberNl
+    email: EmailStr
+    address: str
+    twitter: str | None = None
+    facebook: str | None = None
+    instagram: str | None = None
+
+
+class ConfigurationV1(BoilerplateBaseModel):
+    short_shop_name: str
+    main_banner: str
+    alt1_banner: str | None = None
+    alt2_banner: str | None = None
+    languages: ConfigurationLanguages
+    contact: ConfigurationContact
+
+
+class ShopConfig(BoilerplateBaseModel):
+    config: ConfigurationV1
+    config_version: int
+    stripe_public_key: str
+
+
+class ShopConfigUpdate(BoilerplateBaseModel):
+    config: ConfigurationV1
+    config_version: int
