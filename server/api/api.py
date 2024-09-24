@@ -40,7 +40,7 @@ api_router.include_router(
     forms.router,
     prefix="/forms",
     tags=["forms"],
-    dependencies=[Depends(deps.get_current_active_user)],
+    dependencies=[Depends(cognito_eu.auth_required)],
 )
 api_router.include_router(images.router, prefix="/images", tags=["images"])
 
