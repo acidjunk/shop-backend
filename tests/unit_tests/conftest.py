@@ -9,6 +9,7 @@ from alembic.config import Config
 from fastapi import HTTPException
 from fastapi.applications import FastAPI
 from fastapi.testclient import TestClient
+from fastapi_cognito import CognitoToken
 from sqlalchemy import create_engine, make_url, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 from starlette.middleware.cors import CORSMiddleware
@@ -29,6 +30,7 @@ from server.db.database import (
 )
 from server.db.models import ProductTable, UserTable
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
+from server.security import cognito_eu
 from server.settings import app_settings
 from tests.unit_tests.factories.account import make_account
 from tests.unit_tests.factories.categories import make_category, make_category_translated
@@ -190,16 +192,21 @@ def fastapi_app(database, db_uri):
     # app.add_exception_handler(FormException, form_error_handler)
     app.add_exception_handler(ProblemDetailException, problem_detail_handler)
 
-    def get_current_active_superuser_override() -> UserTable:
-        import uuid
-
-        return UserTable(
-            id=uuid.uuid4(),
-            username="test",
-            email="test@pricelist.info",
+    def get_current_active_superuser_override() -> CognitoToken:
+        CognitoToken(
+            client_id="1234",
+            sub="5678",
+            token_use="access",
+            scope="openid profile email",
+            auth_time=1727169594,
+            iss="https://cognito-idp.eu-central-1.amazonaws.com/secret",
+            exp=9727169594,
+            iat=9727169594,
+            jti="jti",
+            username="5678",
         )
 
-    app.dependency_overrides[get_current_active_superuser] = get_current_active_superuser_override
+    app.dependency_overrides[cognito_eu.auth_required] = get_current_active_superuser_override
 
     return app
 
@@ -236,7 +243,7 @@ def fastapi_app_not_authenticated(database, db_uri):
     def get_current_active_superuser_override():
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    app.dependency_overrides[get_current_active_superuser] = get_current_active_superuser_override
+    app.dependency_overrides[cognito_eu.auth_required] = get_current_active_superuser_override
 
     return app
 

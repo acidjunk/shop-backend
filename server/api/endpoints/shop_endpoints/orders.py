@@ -21,6 +21,7 @@ from server.crud.crud_shop import shop_crud
 from server.db.models import Account, OrderTable, UserTable
 from server.schemas.account import AccountCreate
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
+from server.security import cognito_eu
 
 logger = structlog.get_logger(__name__)
 
@@ -92,7 +93,7 @@ def get_price_rules_total(order_items):
 def get_multi(
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(cognito_eu.auth_required),
 ) -> List[OrderSchema]:
     orders, header_range = order_crud.get_multi(
         skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]

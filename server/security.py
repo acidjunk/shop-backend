@@ -13,15 +13,19 @@
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union
 
+from fastapi_cognito import CognitoAuth, CognitoSettings
 from jose import jwt
 from passlib.context import CryptContext
 from structlog import get_logger
 
-from server.settings import app_settings
+from server.settings import auth_settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 logger = get_logger(__name__)
+
+
+cognito_eu = CognitoAuth(settings=CognitoSettings.from_global_settings(auth_settings))
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
