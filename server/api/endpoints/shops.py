@@ -26,6 +26,7 @@ from server.schemas.shop import (
     ShopUpdate,
     ShopWithPrices,
 )
+from server.security import cognito_eu
 
 router = APIRouter()
 logger = structlog.get_logger(__name__)
@@ -35,7 +36,7 @@ logger = structlog.get_logger(__name__)
 def get_multi(
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(cognito_eu.auth_required),
 ) -> List[ShopSchema]:
     shops, header_range = shop_crud.get_multi(
         skip=common["skip"],
@@ -48,9 +49,7 @@ def get_multi(
 
 
 @router.post("/", response_model=ShopSchema, status_code=HTTPStatus.CREATED)
-def create(
-    data: ShopCreate = Body(...), current_user: UserTable = Depends(deps.get_current_active_superuser)
-) -> ShopSchema:
+def create(data: ShopCreate = Body(...), current_user: UserTable = Depends(cognito_eu.auth_required)) -> ShopSchema:
     logger.info("Saving shop", data=data)
     shop = shop_crud.create(obj_in=data)
     return shop
@@ -180,9 +179,7 @@ def get_by_id(id: UUID):
 
 
 @router.put("/{shop_id}", response_model=ShopSchema, status_code=HTTPStatus.CREATED)
-def update(
-    *, shop_id: UUID, item_in: ShopUpdate, current_user: UserTable = Depends(deps.get_current_active_superuser)
-) -> None:
+def update(*, shop_id: UUID, item_in: ShopUpdate, current_user: UserTable = Depends(cognito_eu.auth_required)) -> None:
     shop = shop_crud.get(id=shop_id)
     logger.info("Updating shop", data=shop)
     if not shop:
@@ -196,7 +193,7 @@ def update(
 
 
 @router.delete("/{shop_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
-def delete(shop_id: UUID, current_user: UserTable = Depends(deps.get_current_active_superuser)) -> None:
+def delete(shop_id: UUID, current_user: UserTable = Depends(cognito_eu.auth_required)) -> None:
     return shop_crud.delete(id=shop_id)
 
 
@@ -213,7 +210,7 @@ def get_config(
 
 @router.put("/config/{id}", response_model=ShopConfigUpdate, status_code=HTTPStatus.CREATED)
 def update_config(
-    id: UUID, item_in: ShopConfigUpdate, current_user: UserTable = Depends(deps.get_current_active_superuser)
+    id: UUID, item_in: ShopConfigUpdate, current_user: UserTable = Depends(cognito_eu.auth_required)
 ) -> ShopConfig:
     shop = shop_crud.get(id=id)
     logger.info("Updating shop", data=shop)
@@ -230,7 +227,7 @@ def update_config(
 @router.get("/allowed-ips/{id}", response_model=List[str])
 def get_allowed_ips(
     id: UUID,
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    current_user: UserTable = Depends(cognito_eu.auth_required),
 ) -> List[str]:
     shop = shop_crud.get(id)
     if not shop:
@@ -243,7 +240,7 @@ def get_allowed_ips(
 
 
 @router.post("/allowed-ips/{id}", response_model=List[str])
-def add_new_ip(id: UUID, new_ip: ShopIp, current_user: UserTable = Depends(deps.get_current_active_superuser)):
+def add_new_ip(id: UUID, new_ip: ShopIp, current_user: UserTable = Depends(cognito_eu.auth_required)):
     shop = shop_crud.get(id)
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
@@ -263,7 +260,7 @@ def add_new_ip(id: UUID, new_ip: ShopIp, current_user: UserTable = Depends(deps.
 
 
 @router.post("/allowed-ips/{id}/remove", response_model=List[str])
-def remove_ip(id: UUID, old_ip: ShopIp, current_user: UserTable = Depends(deps.get_current_active_superuser)):
+def remove_ip(id: UUID, old_ip: ShopIp, current_user: UserTable = Depends(cognito_eu.auth_required)):
     shop = shop_crud.get(id)
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")

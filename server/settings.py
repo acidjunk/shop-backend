@@ -40,6 +40,12 @@ class AppSettings(BaseSettings):
     EMAILS_ENABLED: bool = False
     # SESSION_SECRET: str = "".join(secrets.choice(string.ascii_letters) for i in range(16))  # noqa: S311
     SESSION_SECRET: str = "CHANGEME"
+
+    # COGNITO SETTING
+    AWS_COGNITO_USERPOOL_ID: str = "AWS_COGNITO_USERPOOL_ID"
+    AWS_COGNITO_CLIENT_ID: str = "AWS_COGNITO_CLIENT_ID"
+    AWS_COGNITO_REGION: str = "eu-central-1"
+
     # OAUTH settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
     JWT_ALGORITHM: str = "HS256"
@@ -164,3 +170,20 @@ class AppSettings(BaseSettings):
 
 
 app_settings = AppSettings()
+
+
+class AuthSetting(BaseSettings):
+    # COGNITO SETTING
+    check_expiration: bool = True
+    jwt_header_prefix: str = "Bearer"
+    jwt_header_name: str = "Authorization"
+    userpools: dict[str, dict[str, Any]] = {
+        "eu": {
+            "region": app_settings.AWS_COGNITO_REGION,
+            "userpool_id": app_settings.AWS_COGNITO_USERPOOL_ID,
+            "app_client_id": [app_settings.AWS_COGNITO_CLIENT_ID],  # Example with multiple ids
+        },
+    }
+
+
+auth_settings = AuthSetting()
