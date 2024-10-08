@@ -64,7 +64,6 @@ api_router.include_router(
     orders.router,
     prefix="/orders",
     tags=["orders"],
-    dependencies=[Depends(cognito_eu.auth_required)],
 )
 api_router.include_router(
     categories.router,
