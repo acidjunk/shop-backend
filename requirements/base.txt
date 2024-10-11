@@ -29,3 +29,5 @@ pydantic-settings~=2.4.0
 python-multipart
 wheel
 stripe==10.7.0
+phonenumbers==8.13.45
+pydantic_extra_types==2.9.0

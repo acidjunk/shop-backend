@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 from typing import Any, List, Optional
 from uuid import UUID
@@ -16,6 +17,7 @@ from server.db.models import ShopTable, UserTable
 from server.schemas.shop import (
     ShopCacheStatus,
     ShopConfig,
+    ShopConfigUpdate,
     ShopCreate,
     ShopIp,
     ShopLastCompletedOrder,
@@ -203,15 +205,12 @@ def get_config(
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
 
-    if shop.stripe_public_key is not None:
-        shop.config["stripe_public_key"] = shop.stripe_public_key
-
     return shop
 
 
-@router.put("/config/{id}", response_model=ShopConfig, status_code=HTTPStatus.CREATED)
+@router.put("/config/{id}", response_model=ShopConfigUpdate, status_code=HTTPStatus.CREATED)
 def update_config(
-    id: UUID, item_in: ShopConfig, current_user: UserTable = Depends(cognito_eu.auth_required)
+    id: UUID, item_in: ShopConfigUpdate, current_user: UserTable = Depends(cognito_eu.auth_required)
 ) -> ShopConfig:
     shop = shop_crud.get(id=id)
     logger.info("Updating shop", data=shop)
