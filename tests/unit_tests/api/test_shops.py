@@ -263,6 +263,7 @@ def test_shop_create_config(test_client, shop):
                 "facebook": "https://example.com/",
                 "instagram": "https://example.com/",
             },
+            "homepage_sections": {"show_new_products": True, "show_featured_products": True, "show_categories": True},
         },
         "config_version": 0,
     }
@@ -364,6 +365,7 @@ def test_shop_update_config(test_client, shop_with_config):
                 "facebook": "https://example.com/",
                 "instagram": "https://example.com/",
             },
+            "homepage_sections": {"show_new_products": True, "show_featured_products": True, "show_categories": True},
         },
         "config_version": 0,
     }
