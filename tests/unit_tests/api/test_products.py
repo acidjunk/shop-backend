@@ -27,6 +27,7 @@ def test_products_create(shop, category, test_client):
         "max_one": False,
         "shippable": True,
         "featured": False,
+        "new_product": False,
         "translation": {
             "main_name": "Create Product Test",
             "main_description": "Update Product Test Description",
@@ -57,6 +58,7 @@ def test_products_update(shop, product, category, test_client):
         "max_one": False,
         "shippable": True,
         "featured": False,
+        "new_product": False,
         "translation": {
             "main_name": "Update Product Test",
             "main_description": "Update Product Test Description",

@@ -5,6 +5,7 @@ import structlog
 from server.db import ShopTable, db
 from server.schemas.shop import (
     ConfigurationContact,
+    ConfigurationHomepageSections,
     ConfigurationLanguageFieldMenuItems,
     ConfigurationLanguageFields,
     ConfigurationLanguageFieldStaticTexts,
@@ -45,6 +46,10 @@ def make_shop(
             language_name="string", menu_items=menu_items, static_texts=static_texts
         )
 
+        homepage_sections = ConfigurationHomepageSections(
+            show_new_products=True, show_featured_products=True, show_categories=True
+        )
+
         config_languages = ConfigurationLanguages(main=language_fields, alt1=language_fields, alt2=language_fields)
 
         config_contact = ConfigurationContact(
@@ -65,6 +70,7 @@ def make_shop(
             alt1_banner="string",
             alt2_banner="string",
             contact=config_contact,
+            homepage_sections=homepage_sections
         )
 
         config = ShopConfigUpdate(config=top_config, config_version=0)
