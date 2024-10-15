@@ -70,7 +70,7 @@ def make_shop(
             alt1_banner="string",
             alt2_banner="string",
             contact=config_contact,
-            homepage_sections=homepage_sections
+            homepage_sections=homepage_sections,
         )
 
         config = ShopConfigUpdate(config=top_config, config_version=0)
