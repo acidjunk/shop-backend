@@ -137,6 +137,12 @@ class ConfigurationContact(BoilerplateBaseModel):
     instagram: str | None = None
 
 
+class ConfigurationHomepageSections(BoilerplateBaseModel):
+    show_new_products: bool = True
+    show_featured_products: bool = True
+    show_categories: bool = True
+
+
 class ConfigurationV1(BoilerplateBaseModel):
     short_shop_name: str
     main_banner: str
@@ -144,6 +150,7 @@ class ConfigurationV1(BoilerplateBaseModel):
     alt2_banner: str | None = None
     languages: ConfigurationLanguages
     contact: ConfigurationContact
+    homepage_sections: ConfigurationHomepageSections
 
 
 class ShopConfig(BoilerplateBaseModel):
