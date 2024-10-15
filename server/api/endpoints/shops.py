@@ -209,9 +209,7 @@ def get_config(
 
 
 @router.put("/config/{id}", response_model=ShopConfigUpdate, status_code=HTTPStatus.CREATED)
-def update_config(
-    id: UUID, item_in: ShopConfigUpdate
-) -> ShopConfig:
+def update_config(id: UUID, item_in: ShopConfigUpdate) -> ShopConfig:
     shop = shop_crud.get(id=id)
     logger.info("Updating shop", data=shop)
     if not shop:
