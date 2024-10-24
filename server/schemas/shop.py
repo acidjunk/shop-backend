@@ -145,6 +145,7 @@ class ConfigurationHomepageSections(BoilerplateBaseModel):
 
 class ConfigurationV1(BoilerplateBaseModel):
     short_shop_name: str
+    logo: str
     main_banner: str
     alt1_banner: str | None = None
     alt2_banner: str | None = None
