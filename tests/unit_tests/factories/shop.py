@@ -69,6 +69,7 @@ def make_shop(
             main_banner="string",
             alt1_banner="string",
             alt2_banner="string",
+            logo="string",
             contact=config_contact,
             homepage_sections=homepage_sections,
         )

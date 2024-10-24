@@ -179,6 +179,7 @@ def test_shop_create_config(test_client, shop):
             "main_banner": "string",
             "alt1_banner": "string",
             "alt2_banner": "string",
+            "logo": "string",
             "languages": {
                 "main": {
                     "language_name": "string",
@@ -281,6 +282,7 @@ def test_shop_update_config(test_client, shop_with_config):
             "main_banner": "string",
             "alt1_banner": "string",
             "alt2_banner": "string",
+            "logo": "string",
             "languages": {
                 "main": {
                     "language_name": "string",
