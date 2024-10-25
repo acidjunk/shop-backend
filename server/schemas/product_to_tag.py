@@ -21,7 +21,6 @@ class ProductToTagBase(BoilerplateBaseModel):
     product_id: UUID
     tag_id: UUID
     shop_id: UUID
-    amount: int
 
 
 # Properties to receive via API on creation
