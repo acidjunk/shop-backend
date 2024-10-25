@@ -26,7 +26,7 @@ uvicorn[standard]~=0.29.0
 itsdangerous
 pydantic-forms
 pydantic-settings~=2.4.0
-python-multipart
+python-multipart==0.0.12
 wheel
 stripe==10.7.0
 phonenumbers==8.13.45
