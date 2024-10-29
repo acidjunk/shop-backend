@@ -18,7 +18,7 @@ from typing import Optional
 
 import sqlalchemy
 import structlog
-from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, TypeDecorator, text
+from sqlalchemy import JSON, Boolean, Column, DateTime, Enum, Float, ForeignKey, Integer, String, TypeDecorator, text
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import Dialect
 from sqlalchemy.exc import DontWrapMixin
@@ -26,6 +26,7 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy_utils import UUIDType
 
 from server.db.database import BaseModel, Database
+from server.schemas.shop import ShopType
 from server.settings import app_settings
 
 logger = structlog.get_logger(__name__)
@@ -128,6 +129,7 @@ class ShopTable(BaseModel):
     __tablename__ = "shops"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     name = Column(String(255), nullable=False, unique=True, index=True)
+    shop_type = Column(Enum(ShopType), nullable=False, server_default="Basic Webshop")
     description = Column(String(255), unique=True)
     allowed_ips = Column(postgresql.JSONB())
     config = Column(postgresql.JSONB())
