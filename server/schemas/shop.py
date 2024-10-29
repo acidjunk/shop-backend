@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
+from enum import Enum
 from typing import Annotated, List, Optional
 from uuid import UUID
 
@@ -154,9 +155,17 @@ class ConfigurationV1(BoilerplateBaseModel):
     homepage_sections: ConfigurationHomepageSections
 
 
+class ShopType(str, Enum):
+    BASIC = "Basic Webshop"
+    BASIC_PLUS = "Basic Webshop Plus"
+    CUSTOM = "Custom Webshop"
+    CUSTOM_PLUS = "Custom Webshop Plus"
+
+
 class ShopConfig(BoilerplateBaseModel):
     config: ConfigurationV1
     config_version: int
+    shop_type: ShopType
     stripe_public_key: str
 
 
