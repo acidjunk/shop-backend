@@ -74,3 +74,7 @@ class CategoryImageDelete(CategoryEmptyBase):
 
 class CategoryIsDeletable(CategoryEmptyBase):
     is_deletable: bool
+
+
+class CategoryOrder(BoilerplateBaseModel):
+    order_number: int
