@@ -16,9 +16,10 @@ from server.db.models import CategoryTable
 from server.schemas.category import (
     CategoryCreate,
     CategoryIsDeletable,
+    CategoryOrder,
     CategorySchema,
     CategoryUpdate,
-    CategoryWithNames, CategoryOrder,
+    CategoryWithNames,
 )
 
 logger = structlog.get_logger(__name__)
@@ -106,17 +107,9 @@ def swap(shop_id: UUID, category_id: UUID, move_up: bool):
     if not category:
         raise HTTPException(status_code=404, detail="category not found")
 
-    last_category = (
-        CategoryTable.query.filter_by(shop_id=shop_id)
-        .order_by(CategoryTable.order_number.desc())
-        .first()
-    )
+    last_category = CategoryTable.query.filter_by(shop_id=shop_id).order_by(CategoryTable.order_number.desc()).first()
 
-    first_category = (
-        CategoryTable.query.filter_by(shop_id=shop_id)
-        .order_by(CategoryTable.order_number.asc())
-        .first()
-    )
+    first_category = CategoryTable.query.filter_by(shop_id=shop_id).order_by(CategoryTable.order_number.asc()).first()
 
     old_order_number = category.order_number
     new_order_number = None
@@ -130,11 +123,7 @@ def swap(shop_id: UUID, category_id: UUID, move_up: bool):
             raise HTTPException(status_code=400, detail="Cannot move down further - Maximum order number achieved.")
         new_order_number = old_order_number + 1
 
-    category_to_swap = (
-        CategoryTable.query.filter_by(shop_id=shop_id)
-        .filter_by(order_number=new_order_number)
-        .first()
-    )
+    category_to_swap = CategoryTable.query.filter_by(shop_id=shop_id).filter_by(order_number=new_order_number).first()
 
     category_crud.update(db_obj=category, obj_in=CategoryOrder(order_number=new_order_number), commit=False)
 

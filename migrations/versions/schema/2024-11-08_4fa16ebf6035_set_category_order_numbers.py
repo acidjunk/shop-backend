@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '4fa16ebf6035'
-down_revision = '5476ce1082c1'
+revision = "4fa16ebf6035"
+down_revision = "5476ce1082c1"
 branch_labels = None
 depends_on = None
 
@@ -27,18 +27,23 @@ def upgrade() -> None:
         shop_id = shop_id_tuple[0]
 
         # Select categories for this shop_id and sort them by id or another field
-        categories = conn.execute(sa.text("""
+        categories = conn.execute(
+            sa.text(
+                """
                 SELECT id FROM categories
                 WHERE shop_id = :shop_id
                 ORDER BY id ASC
-            """), {'shop_id': shop_id}).fetchall()
+            """
+            ),
+            {"shop_id": shop_id},
+        ).fetchall()
 
         # Update each category with an incremented order_number
         for index, category in enumerate(categories):
             category_id = category[0]
             conn.execute(
                 sa.text("UPDATE categories SET order_number = :order_number WHERE id = :id"),
-                {'order_number': index + 1, 'id': category_id}
+                {"order_number": index + 1, "id": category_id},
             )
 
 
