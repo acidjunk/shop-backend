@@ -24,7 +24,7 @@ from server.schemas.shop import (
     ShopLastPendingOrder,
     ShopSchema,
     ShopUpdate,
-    ShopWithPrices, ConfigurationV1,
+    ShopWithPrices,
 )
 from server.security import cognito_eu
 
