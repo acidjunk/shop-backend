@@ -50,6 +50,7 @@ class ProductBase(BoilerplateBaseModel):
     discounted_price: Optional[float] = None
     discounted_from: Optional[datetime] = None
     discounted_to: Optional[datetime] = None
+    order_number: Optional[int] = None
     image_1: Union[Optional[dict], Optional[str]]
     image_2: Union[Optional[dict], Optional[str]]
     image_3: Union[Optional[dict], Optional[str]]
@@ -101,3 +102,7 @@ class ProductWithDetailsAndPrices(ProductWithDetails):
 
 class ProductImageDelete(ProductEmptyBase):
     image: str
+
+
+class ProductOrder(BoilerplateBaseModel):
+    order_number: int

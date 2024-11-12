@@ -69,7 +69,7 @@ api_router.include_router(
     categories.router,
     prefix="/shops/{shop_id}/categories",
     tags=["categories"],
-    # dependencies=[Depends(cognito_eu.auth_required)],
+    dependencies=[Depends(cognito_eu.auth_required)],
 )
 api_router.include_router(
     category_images.router,

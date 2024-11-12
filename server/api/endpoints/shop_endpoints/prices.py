@@ -28,6 +28,7 @@ class ProductResponse(BaseModel):
     category: str
     category_image: str | None = None
     category_order_number: int
+    order_number: int
     tags: list[str] = []
     name: str
     description_short: str
@@ -67,6 +68,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             category=product.category.translation.main_name,
             category_image=product.category.main_image,
             category_order_number=product.category.order_number,
+            order_number=product.order_number,
             tags=[tag.translation.main_name for tag in product.tags],
             name=product.translation.main_name,
             description_short=product.translation.main_description_short,
@@ -86,6 +88,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
                 product.category.alt1_image if product.category.alt1_image else product.category.main_image
             ),
             category_order_number=product.category.order_number,
+            order_number=product.order_number,
             tags=[tag.translation.alt1_name for tag in product.tags],
             name=product.translation.alt1_name,
             description_short=product.translation.alt1_description_short,
@@ -105,6 +108,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
                 product.category.alt2_image if product.category.alt2_image else product.category.main_image
             ),
             category_order_number=product.category.order_number,
+            order_number=product.order_number,
             tags=[tag.translation.alt2_name for tag in product.tags],
             name=product.translation.alt2_name,
             description_short=product.translation.alt2_description_short,

@@ -261,6 +261,7 @@ class ProductTable(BaseModel):
     shippable = Column(Boolean(), default=True)
     featured = Column(Boolean(), default=False)
     new_product = Column(Boolean(), default=False)
+    order_number = Column(Integer, default=0)
     image_1 = Column(String(255), index=True)
     image_2 = Column(String(255), index=True)
     image_3 = Column(String(255), index=True)

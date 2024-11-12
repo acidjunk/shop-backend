@@ -105,7 +105,7 @@ def update(*, category_id: UUID, shop_id: UUID, item_in: CategoryUpdate) -> Any:
 def swap(shop_id: UUID, category_id: UUID, move_up: bool):
     category = category_crud.get_id_by_shop_id(shop_id, category_id)
     if not category:
-        raise HTTPException(status_code=404, detail="category not found")
+        raise HTTPException(status_code=404, detail="Category not found")
 
     last_category = CategoryTable.query.filter_by(shop_id=shop_id).order_by(CategoryTable.order_number.desc()).first()
 
@@ -125,12 +125,10 @@ def swap(shop_id: UUID, category_id: UUID, move_up: bool):
 
     category_to_swap = CategoryTable.query.filter_by(shop_id=shop_id).filter_by(order_number=new_order_number).first()
 
-    category_crud.update(db_obj=category, obj_in=CategoryOrder(order_number=new_order_number), commit=False)
+    if category_to_swap is not None:
+        category_crud.update(db_obj=category_to_swap, obj_in=CategoryOrder(order_number=old_order_number), commit=False)
 
-    category_crud.update(
-        db_obj=category_to_swap,
-        obj_in=CategoryOrder(order_number=old_order_number),
-    )
+    category_crud.update(db_obj=category, obj_in=CategoryOrder(order_number=new_order_number))
 
     return 201
 
