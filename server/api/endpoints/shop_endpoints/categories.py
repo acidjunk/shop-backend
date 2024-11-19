@@ -12,9 +12,11 @@ from server.api.error_handling import raise_status
 from server.api.helpers import invalidateShopCache
 from server.crud import crud_shop
 from server.crud.crud_category import category_crud
+from server.db.models import CategoryTable
 from server.schemas.category import (
     CategoryCreate,
     CategoryIsDeletable,
+    CategoryOrder,
     CategorySchema,
     CategoryUpdate,
     CategoryWithNames,
@@ -74,6 +76,9 @@ def get_by_name(name: str, shop_id: UUID) -> CategorySchema:
 
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create(shop_id: UUID, data: CategoryCreate = Body(...)) -> None:
+    category = CategoryTable.query.filter_by(shop_id=shop_id).order_by(CategoryTable.order_number.desc()).first()
+    data.order_number = (category.order_number + 1) if category is not None else 0
+
     logger.info("Saving category", data=data)
     return category_crud.create_by_shop_id(obj_in=data, shop_id=shop_id)
 
@@ -94,6 +99,38 @@ def update(*, category_id: UUID, shop_id: UUID, item_in: CategoryUpdate) -> Any:
     #     invalidateShopCache(category.shop_id)
 
     return category
+
+
+@router.put("/{category_id}/swap", response_model=None, status_code=HTTPStatus.CREATED)
+def swap(shop_id: UUID, category_id: UUID, move_up: bool):
+    category = category_crud.get_id_by_shop_id(shop_id, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    last_category = CategoryTable.query.filter_by(shop_id=shop_id).order_by(CategoryTable.order_number.desc()).first()
+
+    first_category = CategoryTable.query.filter_by(shop_id=shop_id).order_by(CategoryTable.order_number.asc()).first()
+
+    old_order_number = category.order_number
+    new_order_number = None
+
+    if move_up:
+        if old_order_number == first_category.order_number:
+            raise HTTPException(status_code=400, detail="Cannot move up further - Minimum order number achieved.")
+        new_order_number = old_order_number - 1
+    else:
+        if old_order_number == last_category.order_number:
+            raise HTTPException(status_code=400, detail="Cannot move down further - Maximum order number achieved.")
+        new_order_number = old_order_number + 1
+
+    category_to_swap = CategoryTable.query.filter_by(shop_id=shop_id).filter_by(order_number=new_order_number).first()
+
+    if category_to_swap is not None:
+        category_crud.update(db_obj=category_to_swap, obj_in=CategoryOrder(order_number=old_order_number), commit=False)
+
+    category_crud.update(db_obj=category, obj_in=CategoryOrder(order_number=new_order_number))
+
+    return HTTPStatus.CREATED
 
 
 @router.delete("/{category_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)

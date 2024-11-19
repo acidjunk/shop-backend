@@ -12,9 +12,10 @@ from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud import crud_shop
 from server.crud.crud_product import product_crud
-from server.db.models import UserTable
+from server.db.models import ProductTable, UserTable
 from server.schemas.product import (
     ProductCreate,
+    ProductOrder,
     ProductSchema,
     ProductUpdate,
     ProductWithDefaultPrice,
@@ -93,6 +94,14 @@ def get_by_id(product_id: UUID, shop_id: UUID) -> ProductWithDetailsAndPrices:
 
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create(shop_id: UUID, data: ProductCreate = Body(...)) -> None:
+    product = (
+        ProductTable.query.filter_by(shop_id=shop_id)
+        .filter_by(category_id=data.category_id)
+        .order_by(ProductTable.order_number.desc())
+        .first()
+    )
+    data.order_number = (product.order_number + 1) if product is not None else 0
+
     logger.info("Saving product", data=data)
     product = product_crud.create_by_shop_id(obj_in=data, shop_id=shop_id)
     return product
@@ -110,6 +119,53 @@ def update(*, product_id: UUID, shop_id: UUID, item_in: ProductUpdate) -> Any:
         obj_in=item_in,
     )
     return product
+
+
+@router.put("/{product_id}/swap", response_model=None, status_code=HTTPStatus.CREATED)
+def swap(shop_id: UUID, product_id: UUID, move_up: bool):
+    product = product_crud.get_id_by_shop_id(shop_id, product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    last_product = (
+        ProductTable.query.filter_by(shop_id=shop_id)
+        .filter_by(category_id=product.category_id)
+        .order_by(ProductTable.order_number.desc())
+        .first()
+    )
+
+    first_product = (
+        ProductTable.query.filter_by(shop_id=shop_id)
+        .filter_by(category_id=product.category_id)
+        .order_by(ProductTable.order_number.asc())
+        .first()
+    )
+
+    old_order_number = product.order_number
+    new_order_number = None
+
+    if move_up:
+        if old_order_number == first_product.order_number:
+            raise HTTPException(status_code=400, detail="Cannot move up further - Minimum order number achieved.")
+        new_order_number = old_order_number - 1
+    else:
+        if old_order_number == last_product.order_number:
+            raise HTTPException(status_code=400, detail="Cannot move down further - Maximum order number achieved.")
+        new_order_number = old_order_number + 1
+
+    product_to_swap = (
+        ProductTable.query.filter_by(shop_id=shop_id)
+        .filter_by(category_id=product.category_id)
+        .filter_by(order_number=new_order_number)
+        .first()
+    )
+
+    if product_to_swap is not None:
+        product_crud.update(db_obj=product_to_swap, obj_in=ProductOrder(order_number=old_order_number), commit=False)
+
+    product_crud.update(db_obj=product, obj_in=ProductOrder(order_number=new_order_number))
+
+    return HTTPStatus.CREATED
 
 
 @router.delete("/{product_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
