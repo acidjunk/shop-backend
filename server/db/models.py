@@ -170,7 +170,7 @@ class TagTranslationTable(BaseModel):
     __tablename__ = "tag_translations"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     tag_id = Column("tag_id", UUIDType, ForeignKey("tags.id"))
-    main_name = Column(String(TAG_LENGTH), index=True)
+    main_name = Column(String(TAG_LENGTH), index=True, nullable=False)
     alt1_name = Column(String(TAG_LENGTH), index=True, nullable=True)
     alt2_name = Column(String(TAG_LENGTH), index=True, nullable=True)
     tag = relationship("TagTable", back_populates="translation")
@@ -213,8 +213,8 @@ class CategoryTranslationTable(BaseModel):
     __tablename__ = "category_translations"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     category_id = Column("category_id", UUIDType, ForeignKey("categories.id"))
-    main_name = Column(String(255), index=True)
-    main_description = Column(String(), index=True, nullable=True)
+    main_name = Column(String(255), index=True, nullable=False)
+    main_description = Column(String(), index=True, nullable=False)
     alt1_name = Column(String(255), index=True, nullable=True)
     alt1_description = Column(String(), index=True, nullable=True)
     alt2_name = Column(String(255), index=True, nullable=True)
@@ -286,9 +286,9 @@ class ProductTranslationTable(BaseModel):
     __tablename__ = "product_translations"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     product_id = Column("product_id", UUIDType, ForeignKey("products.id"))
-    main_name = Column(String(255), index=True)
-    main_description = Column(String(), index=True)
-    main_description_short = Column(String(), index=True, nullable=True)
+    main_name = Column(String(255), index=True, nullable=False)
+    main_description = Column(String(), index=True, nullable=False)
+    main_description_short = Column(String(), index=True, nullable=False)
     alt1_name = Column(String(255), index=True, nullable=True)
     alt1_description = Column(String(), index=True, nullable=True)
     alt1_description_short = Column(String(), index=True, nullable=True)
