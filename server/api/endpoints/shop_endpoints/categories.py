@@ -130,7 +130,7 @@ def swap(shop_id: UUID, category_id: UUID, move_up: bool):
 
     category_crud.update(db_obj=category, obj_in=CategoryOrder(order_number=new_order_number))
 
-    return 201
+    return HTTPStatus.CREATED
 
 
 @router.delete("/{category_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)

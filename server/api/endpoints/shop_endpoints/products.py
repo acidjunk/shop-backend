@@ -165,7 +165,7 @@ def swap(shop_id: UUID, product_id: UUID, move_up: bool):
 
     product_crud.update(db_obj=product, obj_in=ProductOrder(order_number=new_order_number))
 
-    return 201
+    return HTTPStatus.CREATED
 
 
 @router.delete("/{product_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
