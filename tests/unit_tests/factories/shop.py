@@ -47,7 +47,7 @@ def make_shop(
         )
 
         homepage_sections = ConfigurationHomepageSections(
-            show_new_products=True, show_featured_products=True, show_categories=True
+            show_new_products=True, show_featured_products=True, show_categories=True, show_shop_name=True
         )
 
         config_languages = ConfigurationLanguages(main=language_fields, alt1=language_fields, alt2=language_fields)
@@ -58,6 +58,8 @@ def make_shop(
             phone="+31 6 12345678",
             email="user@example.com",
             address="string",
+            zip_code="string",
+            city="string",
             twitter="https://example.com/",
             facebook="https://example.com/",
             instagram="https://example.com/",

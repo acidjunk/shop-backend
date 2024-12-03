@@ -133,6 +133,8 @@ class ConfigurationContact(BoilerplateBaseModel):
     phone: PhoneNumberNl
     email: EmailStr
     address: str
+    zip_code: str
+    city: str
     twitter: str | None = None
     facebook: str | None = None
     instagram: str | None = None
@@ -142,6 +144,7 @@ class ConfigurationHomepageSections(BoilerplateBaseModel):
     show_new_products: bool = True
     show_featured_products: bool = True
     show_categories: bool = True
+    show_shop_name: bool = True
 
 
 class ConfigurationV1(BoilerplateBaseModel):
