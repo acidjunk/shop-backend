@@ -170,6 +170,7 @@ class ShopConfig(BoilerplateBaseModel):
     config_version: int
     shop_type: ShopType
     stripe_public_key: str
+    id: UUID
 
 
 class ShopConfigUpdate(BoilerplateBaseModel):
