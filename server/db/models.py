@@ -129,6 +129,7 @@ class ShopTable(BaseModel):
     __tablename__ = "shops"
     id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
     name = Column(String(255), nullable=False, unique=True, index=True)
+    hostname = Column(String(255), nullable=True, unique=True)
     shop_type = Column(Enum(ShopType), nullable=False, server_default="Basic Webshop")
     description = Column(String(255), unique=True)
     allowed_ips = Column(postgresql.JSONB())

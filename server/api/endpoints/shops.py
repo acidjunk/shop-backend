@@ -208,6 +208,17 @@ def get_config(
     return shop
 
 
+@router.get("/config/hostname/{hostname}", response_model=ShopConfig)
+def get_config_by_hostname(
+    hostname: str,
+) -> ShopConfig:
+    shop = ShopTable.query.filter_by(hostname=hostname).first()
+    if not shop:
+        raise_status(HTTPStatus.NOT_FOUND, f"Shop with hostname {hostname} not found")
+
+    return shop
+
+
 @router.put("/config/{id}", response_model=ShopConfigUpdate, status_code=HTTPStatus.CREATED)
 def update_config(id: UUID, item_in: ShopConfigUpdate) -> ShopConfig:
     shop = shop_crud.get(id=id)
