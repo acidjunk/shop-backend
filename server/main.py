@@ -64,12 +64,12 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(
-    title="Pricelist FastAPI",
-    description="Backend for price-lists.",
+    title="ShopVirge API",
+    description="Backend for ShopVirge Shops.",
     openapi_url="/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
-    version="0.2.0",
+    version="0.2.1",
     default_response_class=JSONResponse,
     # root_path="/backend",
     # servers=[
