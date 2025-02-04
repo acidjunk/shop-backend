@@ -1,7 +1,7 @@
 """Initial scheme.
 
 Revision ID: e388a522215c
-Revises: 
+Revises:
 Create Date: 2024-06-11 19:54:43.066913
 
 """
