@@ -65,21 +65,36 @@ class UtcTimestamp(TypeDecorator):
 
 class ShopUserTable(BaseModel):
     __tablename__ = "shops_users"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     user_id = Column("user_id", UUIDType, ForeignKey("users.id"))
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"))
 
 
 class RoleUserTable(BaseModel):
     __tablename__ = "roles_users"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     user_id = Column("user_id", UUIDType, ForeignKey("users.id"))
     role_id = Column("role_id", UUIDType, ForeignKey("roles.id"))
 
 
 class RoleTable(BaseModel):
     __tablename__ = "roles"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     name = Column(String(80), unique=True)
     description = Column(String(255))
 
@@ -94,7 +109,12 @@ class RoleTable(BaseModel):
 
 class UserTable(BaseModel):
     __tablename__ = "users"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     email = Column(String(255), unique=True)
     first_name = Column(String(255), index=True)
     last_name = Column(String(255), index=True)
@@ -127,7 +147,12 @@ class UserTable(BaseModel):
 
 class ShopTable(BaseModel):
     __tablename__ = "shops"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     name = Column(String(255), nullable=False, unique=True, index=True)
     shop_type = Column(Enum(ShopType), nullable=False, server_default="Basic Webshop")
     description = Column(String(255), unique=True)
@@ -144,7 +169,9 @@ class ShopTable(BaseModel):
     vat_zero = Column(Float, default=0.0)
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
     modified_at = Column(
-        UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP")
+        UtcTimestamp,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
     )
     shop_to_category = relationship("CategoryTable", cascade="save-update, merge, delete")
 
@@ -154,7 +181,12 @@ class ShopTable(BaseModel):
 
 class TagTable(BaseModel):
     __tablename__ = "tags"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     name = Column(String(60), index=True)
 
@@ -168,7 +200,12 @@ class TagTable(BaseModel):
 
 class TagTranslationTable(BaseModel):
     __tablename__ = "tag_translations"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     tag_id = Column("tag_id", UUIDType, ForeignKey("tags.id"))
     main_name = Column(String(TAG_LENGTH), index=True, nullable=False)
     alt1_name = Column(String(TAG_LENGTH), index=True, nullable=True)
@@ -178,7 +215,12 @@ class TagTranslationTable(BaseModel):
 
 class Account(BaseModel):
     __tablename__ = "accounts"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     name = Column(String(255))
     # a hash for the name, so sensible info can be used as an identifier
@@ -193,7 +235,12 @@ class Account(BaseModel):
 
 class CategoryTable(BaseModel):
     __tablename__ = "categories"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     color = Column(String(20), default="#376E1A")
     # Todo: deal with translation in a correct way
     icon = Column(String(TAG_LENGTH), nullable=True)
@@ -211,7 +258,12 @@ class CategoryTable(BaseModel):
 
 class CategoryTranslationTable(BaseModel):
     __tablename__ = "category_translations"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     category_id = Column("category_id", UUIDType, ForeignKey("categories.id"))
     main_name = Column(String(255), index=True, nullable=False)
     main_description = Column(String(), index=True, nullable=False)
@@ -224,7 +276,12 @@ class CategoryTranslationTable(BaseModel):
 
 class OrderTable(BaseModel):
     __tablename__ = "orders"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     customer_order_id = Column(Integer)
     notes = Column(String, nullable=True)
     shop_id = Column(UUIDType, ForeignKey("shops.id"), index=True)
@@ -246,7 +303,12 @@ class OrderTable(BaseModel):
 
 class ProductTable(BaseModel):
     __tablename__ = "products"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     category_id = Column("category_id", UUIDType, ForeignKey("categories.id"), index=True)
     price = Column(Float(), nullable=True)
@@ -262,6 +324,7 @@ class ProductTable(BaseModel):
     featured = Column(Boolean(), default=False)
     new_product = Column(Boolean(), default=False)
     order_number = Column(Integer, default=0)
+    attributes = Column(postgresql.JSONB())
     image_1 = Column(String(255), index=True)
     image_2 = Column(String(255), index=True)
     image_3 = Column(String(255), index=True)
@@ -270,13 +333,19 @@ class ProductTable(BaseModel):
     image_6 = Column(String(255), index=True)
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
     modified_at = Column(
-        UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP")
+        UtcTimestamp,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
     )
 
     translation = relationship("ProductTranslationTable", back_populates="product", uselist=False)
     shop = relationship("ShopTable", lazy=True)
     category = relationship("CategoryTable", lazy=True)
-    tags = relationship("TagTable", secondary="products_to_tags", backref=backref("products", lazy="dynamic"))
+    tags = relationship(
+        "TagTable",
+        secondary="products_to_tags",
+        backref=backref("products", lazy="dynamic"),
+    )
 
     def __repr__(self):
         return f"{self.shop.name}: {self.translation.main_name}"
@@ -284,7 +353,12 @@ class ProductTable(BaseModel):
 
 class ProductTranslationTable(BaseModel):
     __tablename__ = "product_translations"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     product_id = Column("product_id", UUIDType, ForeignKey("products.id"))
     main_name = Column(String(255), index=True, nullable=False)
     main_description = Column(String(), index=True, nullable=False)
@@ -301,7 +375,12 @@ class ProductTranslationTable(BaseModel):
 
 class ProductToTagTable(BaseModel):
     __tablename__ = "products_to_tags"
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     product_id = Column("product_id", UUIDType, ForeignKey("products.id"), index=True)
     tag_id = Column("tag_id", UUIDType, ForeignKey("tags.id"), index=True)
@@ -312,7 +391,12 @@ class ProductToTagTable(BaseModel):
 class License(BaseModel):
     __tablename__ = "licenses"
     # Todo: determine if we can get rid of the improviser_user and if we need a shop_id
-    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
     name = Column(String(255), nullable=False)
     is_recurring = Column(Boolean, nullable=False)
     start_date = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
@@ -322,6 +406,8 @@ class License(BaseModel):
     order_id = Column(UUIDType, ForeignKey("orders.id"), index=True)
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
     modified_at = Column(
-        UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"), server_onupdate=text("CURRENT_TIMESTAMP")
+        UtcTimestamp,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
     )
     order = relationship("OrderTable", lazy=True)

@@ -40,6 +40,7 @@ class ProductResponse(BaseModel):
     recurring_price_yearly: float | None = None
     max_one: bool
     shippable: bool
+    attributes: dict | None = None
     digital: str | None = None
     featured: bool
     new_product: bool
@@ -79,6 +80,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             shippable=product.shippable,
             featured=product.featured,
             new_product=product.new_product,
+            attributes=product.attributes,
         )
     elif lang == Lang.ALT1:
         product_response = ProductResponse(
@@ -99,6 +101,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             shippable=product.shippable,
             featured=product.featured,
             new_product=product.new_product,
+            attributes=product.attributes,
         )
     elif lang == Lang.ALT2:
         product_response = ProductResponse(
@@ -119,6 +122,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             shippable=product.shippable,
             featured=product.featured,
             new_product=product.new_product,
+            attributes=product.attributes,
         )
     else:
         raise ValueError(f"Unsupported language: {lang}")

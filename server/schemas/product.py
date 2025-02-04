@@ -47,6 +47,7 @@ class ProductBase(BoilerplateBaseModel):
     new_product: bool
     # Todo: make enum with: vat_standard, vat_lower_1, vat_lower_2, vat_lower_3, vat_special, vat_zero
     tax_category: str
+    attributes: dict | None = None
     discounted_price: Optional[float] = None
     discounted_from: Optional[datetime] = None
     discounted_to: Optional[datetime] = None
