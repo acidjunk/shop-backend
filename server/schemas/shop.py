@@ -145,6 +145,7 @@ class ConfigurationHomepageSections(BoilerplateBaseModel):
     show_featured_products: bool = True
     show_categories: bool = True
     show_shop_name: bool = True
+    show_nav_categories: bool = False
 
 
 class ConfigurationV1(BoilerplateBaseModel):
