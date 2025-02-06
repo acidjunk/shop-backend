@@ -5,7 +5,6 @@ import structlog
 from server.db import ShopTable, db
 from server.schemas.shop import (
     ConfigurationContact,
-    ConfigurationHomepageSections,
     ConfigurationLanguageFieldMenuItems,
     ConfigurationLanguageFields,
     ConfigurationLanguageFieldStaticTexts,
@@ -13,6 +12,7 @@ from server.schemas.shop import (
     ConfigurationV1,
     ShopConfig,
     ShopConfigUpdate,
+    Toggles,
 )
 
 logger = structlog.getLogger(__name__)
@@ -46,8 +46,14 @@ def make_shop(
             language_name="string", menu_items=menu_items, static_texts=static_texts
         )
 
-        homepage_sections = ConfigurationHomepageSections(
-            show_new_products=True, show_featured_products=True, show_categories=True, show_shop_name=True
+        toggles = Toggles(
+            show_new_products=True,
+            show_featured_products=True,
+            show_categories=True,
+            show_shop_name=True,
+            show_nav_categories=False,
+            language_alt1_enabled=False,
+            language_alt2_enabled=False,
         )
 
         config_languages = ConfigurationLanguages(main=language_fields, alt1=language_fields, alt2=language_fields)
@@ -73,7 +79,7 @@ def make_shop(
             alt2_banner="string",
             logo="string",
             contact=config_contact,
-            homepage_sections=homepage_sections,
+            toggles=toggles,
         )
 
         config = ShopConfigUpdate(config=top_config, config_version=0)
@@ -82,10 +88,17 @@ def make_shop(
             name="Test Shop",
             description="Test Shop Description",
             config=config.model_dump(),
+            shop_type="{}",
             stripe_public_key="string",
         )
     else:
-        shop = ShopTable(name="Test Shop", description="Test Shop Description", stripe_public_key="string")
+        shop = ShopTable(
+            name="Test Shop",
+            description="Test Shop Description",
+            stripe_public_key="string",
+            config="{}",
+            shop_type="{}",
+        )
     db.session.add(shop)
     db.session.commit()
     return shop.id

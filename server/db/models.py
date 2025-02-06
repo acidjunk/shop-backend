@@ -154,10 +154,10 @@ class ShopTable(BaseModel):
         index=True,
     )
     name = Column(String(255), nullable=False, unique=True, index=True)
-    shop_type = Column(Enum(ShopType), nullable=False, server_default="Basic Webshop")
+    shop_type = Column(postgresql.JSONB(), nullable=False, server_default="{}")
     description = Column(String(255), unique=True)
     allowed_ips = Column(postgresql.JSONB())
-    config = Column(postgresql.JSONB())
+    config = Column(postgresql.JSONB(), nullable=False, server_default="{}")
     config_version = Column(Integer, nullable=False, server_default="1")
     stripe_secret_key = Column(String(255), nullable=True)
     stripe_public_key = Column(String(255), nullable=True)
