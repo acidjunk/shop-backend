@@ -21,7 +21,7 @@ from server.crud.crud_shop import shop_crud
 from server.db.models import Account, OrderTable, UserTable
 from server.schemas.account import AccountCreate
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
-from server.security import cognito_eu
+from server.security import auth_required
 
 logger = structlog.get_logger(__name__)
 
@@ -93,7 +93,7 @@ def get_price_rules_total(order_items):
 def get_multi(
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: UserTable = Depends(cognito_eu.auth_required),
+    current_user: UserTable = Depends(auth_required),
 ) -> List[OrderSchema]:
     orders, header_range = order_crud.get_multi(
         skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
@@ -114,7 +114,7 @@ def show_all_pending_orders_per_shop(
     shop_id: UUID,
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: UserTable = Depends(cognito_eu.auth_required),
+    current_user: UserTable = Depends(auth_required),
 ) -> List[OrderSchema]:
     query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(OrderTable.status == "pending")
     orders, header_range = order_crud.get_multi(
@@ -140,7 +140,7 @@ def show_all_complete_orders_per_shop(
     shop_id: UUID,
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: UserTable = Depends(cognito_eu.auth_required),
+    current_user: UserTable = Depends(auth_required),
 ) -> List[OrderSchema]:
     query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(
         or_(OrderTable.status == "complete", OrderTable.status == "cancelled")
@@ -312,7 +312,7 @@ def patch(
     *,
     order_id: UUID,
     item_in: OrderBase,
-    # current_user: UserTable = Depends(cognito_eu.auth_required)
+    # current_user: UserTable = Depends(auth_required)
 ) -> OrderUpdated:
     order = order_crud.get(order_id)
     if not order:
@@ -347,9 +347,7 @@ def patch(
 
 
 @router.put("/{order_id}", response_model=OrderUpdated, status_code=HTTPStatus.CREATED)
-def update(
-    *, order_id: UUID, item_in: OrderUpdate, current_user: UserTable = Depends(cognito_eu.auth_required)
-) -> OrderUpdated:
+def update(*, order_id: UUID, item_in: OrderUpdate, current_user: UserTable = Depends(auth_required)) -> OrderUpdated:
     order = order_crud.get(order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -378,5 +376,5 @@ def update(
 
 
 @router.delete("/{order_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
-def delete(order_id: UUID, current_user: UserTable = Depends(cognito_eu.auth_required)) -> None:
+def delete(order_id: UUID, current_user: UserTable = Depends(auth_required)) -> None:
     return order_crud.delete(id=order_id)
