@@ -44,6 +44,8 @@ class AppSettings(BaseSettings):
     # COGNITO SETTING
     AWS_COGNITO_USERPOOL_ID: str = "AWS_COGNITO_USERPOOL_ID"
     AWS_COGNITO_CLIENT_ID: str = "AWS_COGNITO_CLIENT_ID"
+    AWS_COGNITO_M2M_CLIENT_ID: str = "AWS_COGNITO_M2M_CLIENT_ID"
+    AWS_COGNITO_M2M_CLIENT_SECRET: str = "AWS_COGNITO_M2M_CLIENT_SECRET"
     AWS_COGNITO_REGION: str = "eu-central-1"
 
     # OAUTH settings
@@ -181,7 +183,10 @@ class AuthSetting(BaseSettings):
         "eu": {
             "region": app_settings.AWS_COGNITO_REGION,
             "userpool_id": app_settings.AWS_COGNITO_USERPOOL_ID,
-            "app_client_id": [app_settings.AWS_COGNITO_CLIENT_ID],  # Example with multiple ids
+            "app_client_id": [
+                app_settings.AWS_COGNITO_CLIENT_ID,
+                app_settings.AWS_COGNITO_M2M_CLIENT_ID,
+            ],
         },
     }
 

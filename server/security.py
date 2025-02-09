@@ -13,12 +13,14 @@
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union
 
-from fastapi_cognito import CognitoAuth, CognitoSettings
+from fastapi import HTTPException
+from fastapi.param_functions import Depends
+from fastapi_cognito import CognitoAuth, CognitoSettings, CognitoToken
 from jose import jwt
 from passlib.context import CryptContext
 from structlog import get_logger
 
-from server.settings import auth_settings
+from server.settings import app_settings, auth_settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -26,6 +28,18 @@ logger = get_logger(__name__)
 
 
 cognito_eu = CognitoAuth(settings=CognitoSettings.from_global_settings(auth_settings))
+
+
+def auth_required(token: CognitoToken = Depends(cognito_eu.auth_required)):
+    if token.client_id == app_settings.AWS_COGNITO_CLIENT_ID:
+        # No need to check scopes for user tokens
+        return token
+
+    # M2M tokens: check required scope
+    if token.scope != "api":
+        raise HTTPException(status_code=401, detail="Not enough permissions")
+
+    return token
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:

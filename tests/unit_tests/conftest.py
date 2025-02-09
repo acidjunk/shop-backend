@@ -30,7 +30,7 @@ from server.db.database import (
 )
 from server.db.models import ProductTable, UserTable
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
-from server.security import cognito_eu
+from server.security import auth_required
 from server.settings import app_settings
 from tests.unit_tests.factories.account import make_account
 from tests.unit_tests.factories.categories import make_category, make_category_translated
@@ -206,7 +206,7 @@ def fastapi_app(database, db_uri):
             username="5678",
         )
 
-    app.dependency_overrides[cognito_eu.auth_required] = get_current_active_superuser_override
+    app.dependency_overrides[auth_required] = get_current_active_superuser_override
 
     return app
 
@@ -243,7 +243,7 @@ def fastapi_app_not_authenticated(database, db_uri):
     def get_current_active_superuser_override():
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    app.dependency_overrides[cognito_eu.auth_required] = get_current_active_superuser_override
+    app.dependency_overrides[auth_required] = get_current_active_superuser_override
 
     return app
 
