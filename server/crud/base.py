@@ -151,7 +151,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
 
     def create(self, *, obj_in: CreateSchemaType) -> ModelType:
-        obj_in_data = transform_json(obj_in.dict())
+        obj_in_data = transform_json(obj_in.model_dump())
         # Todo: remove translate from base? We should handle this in a more generic way, for now a UGLY hack:
         translation_data = None
         try:
@@ -176,7 +176,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def create_by_shop_id(self, *, shop_id: any, obj_in: CreateSchemaType) -> ModelType:
-        obj_in_data = transform_json(obj_in.dict())
+        obj_in_data = transform_json(obj_in.model_dump())
         # Todo: remove translate from base? We should handle this in a more generic way, for now a UGLY hack:
         translation_data = None
         try:
@@ -209,7 +209,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def update(self, *, db_obj: ModelType, obj_in: UpdateSchemaType, commit: bool = True) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
-        update_data = obj_in.dict(exclude_unset=True)
+        update_data = obj_in.model_dump(exclude_unset=True)
 
         # # Handle int based foreign key types:
         # for k, v in update_data.items():
