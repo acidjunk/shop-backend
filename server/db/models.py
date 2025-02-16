@@ -107,6 +107,23 @@ class RoleTable(BaseModel):
         return hash(self.name)
 
 
+class APIKeyTable(BaseModel):
+    __tablename__ = "api_keys"
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
+    shop_id = Column(UUIDType, ForeignKey("shops.id"), nullable=False, index=True)
+    # keys are stored as a hash for security reasons
+    hashed_key = Column(String, nullable=False, unique=True, index=True)
+    created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
+    revoked_at = Column(UtcTimestamp, nullable=True)
+
+    shop = relationship("ShopTable", back_populates="api_keys")
+
+
 class UserTable(BaseModel):
     __tablename__ = "users"
     id = Column(
@@ -174,6 +191,7 @@ class ShopTable(BaseModel):
         server_onupdate=text("CURRENT_TIMESTAMP"),
     )
     shop_to_category = relationship("CategoryTable", cascade="save-update, merge, delete")
+    api_keys = relationship("APIKeyTable", back_populates="shop", cascade="all, delete-orphan")
 
     def __repr__(self):
         return self.name
