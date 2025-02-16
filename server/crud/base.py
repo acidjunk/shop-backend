@@ -50,10 +50,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def get(self, id: UUID | str) -> Optional[ModelType]:
-        return db.session.query(self.model).get(id)
+        return db.session.get(self.model, id)
 
     def get_id(self, id: UUID | str) -> Optional[ModelType]:
-        return db.session.query(self.model).get(id)
+        return db.session.get(self.model, id)
 
     def get_id_by_shop_id(self, shop_id: UUID, id: UUID) -> Optional[ModelType]:
         return db.session.query(self.model).filter(self.model.shop_id == shop_id, self.model.id == id).first()
@@ -246,7 +246,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def delete(self, *, id: str) -> None:
-        obj = db.session.query(self.model).get(id)
+        obj = db.session.get(self.model, id)
         if obj is None:
             raise NotFound
         db.session.delete(obj)
