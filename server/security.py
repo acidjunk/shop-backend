@@ -14,33 +14,93 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request, Security
 from fastapi.param_functions import Depends
+from fastapi.security import APIKeyHeader
 from fastapi_cognito import CognitoAuth, CognitoSettings, CognitoToken
 from jose import jwt
 from passlib.context import CryptContext
 from structlog import get_logger
 
+from server.crud.crud_api_key import api_key_crud
+from server.db.models import APIKeyTable
 from server.settings import app_settings, auth_settings
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 logger = get_logger(__name__)
 
-
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 cognito_eu = CognitoAuth(settings=CognitoSettings.from_global_settings(auth_settings))
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-def auth_required(token: CognitoToken = Depends(cognito_eu.auth_required)):
-    if token.client_id == app_settings.AWS_COGNITO_CLIENT_ID:
-        # No need to check scopes for user tokens
-        return token
+def api_key_auth_required(error: bool = True):
+    """
+    Checks if a valid API key is present in the request headers.
 
-    # M2M tokens: check required scope
-    if token.scope != "api":
-        raise HTTPException(status_code=401, detail="Not enough permissions")
+    :param bool error: If True, raises an HTTPException if no valid API key is present, otherwise returns None.
+    """
 
-    return token
+    def check_api_key(api_key: Optional[str] = Security(api_key_header)):
+        try:
+            if not api_key:
+                raise HTTPException(status_code=401, detail="API key required")
+
+            api_key_record = api_key_crud.get_by_hashed_key(api_key)
+            if (
+                not api_key_record
+                or api_key_record.revoked_at
+                or not pwd_context.verify(api_key, api_key_record.hashed_key)
+            ):
+                raise HTTPException(status_code=401, detail="Invalid API key")
+
+            return api_key_record
+        except HTTPException as e:
+            if error:
+                raise e
+            else:
+                return None
+
+    return check_api_key
+
+
+def cognito_auth_required(error: bool = True):
+    """
+    Checks if a valid Cognito JWT token is provided in the request.
+
+    :param bool error: If True, raises an HTTPException if no valid JWT token is present, otherwise returns None.
+    """
+
+    async def check_cognito_token(req: Request):
+        try:
+            token = await cognito_eu.auth_required(req)
+
+            # check if we are dealing with a plain user token or M2M token
+            if token.client_id == app_settings.AWS_COGNITO_CLIENT_ID:
+                # No need to check scopes for user tokens
+                return token
+
+            if token.scope != "api":
+                # M2M tokens: check required scope
+                raise HTTPException(status_code=401, detail="Insufficient permissions")
+
+            return token
+        except HTTPException as e:
+            if error:
+                raise e
+            else:
+                return None
+
+    return check_cognito_token
+
+
+def auth_required(
+    token: CognitoToken | None = Depends(cognito_auth_required(error=False)),
+    api_key: APIKeyTable | None = Depends(api_key_auth_required(error=False)),
+):
+    if not token or not api_key:
+        raise HTTPException(status_code=401, detail="Insufficient permissions")
+
+    return token or api_key
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
