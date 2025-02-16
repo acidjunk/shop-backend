@@ -10,6 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import secrets
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union
 
@@ -58,3 +59,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
+
+def generate_api_key():
+    raw_key = secrets.token_urlsafe(32)
+    hashed_key = pwd_context.hash(raw_key)
+    return raw_key, hashed_key

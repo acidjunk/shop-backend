@@ -16,23 +16,19 @@ from uuid import UUID
 from server.crud.base import CRUDBase
 from server.db import db
 from server.db.models import APIKeyTable
-from server.schemas.api_key import APIKeyCreate, APIKeyUpdate
+from server.schemas.api_key import APIKeyCreate
 
 
 class CRUDAPIKey(CRUDBase[APIKeyTable, APIKeyCreate, None]):
-    def get_multi_by_shop_id(self, shop_id: UUID):
-        return db.session.query(APIKeyTable).filter(APIKeyTable.shop_id == shop_id).all()
-
-    def get_by_hashed_key(self, hashed_key: str):
-        return db.session.query(APIKeyTable).filter(APIKeyTable.hashed_key == hashed_key).first()
-
     # this behaves more like a soft-delete
     def delete(self, id: UUID):
         db_obj = self.get(id)
-        db_obj.revoked_at = db_obj.revoked_at or datetime.utcnow()
+        if db_obj.revoked_at:
+            return
+
+        db_obj.revoked_at = datetime.utcnow()
         db.session.add(db_obj)
         db.session.commit()
-        return db_obj
 
 
 api_key_crud = CRUDAPIKey(APIKeyTable)

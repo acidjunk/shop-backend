@@ -12,8 +12,17 @@ class APIKeyCreate(BaseModel):
 
 
 # Additional properties stored in DB
-class APIKeyInDB(BaseModel):
+class APIKeyInDBBase(BaseModel):
     id: UUID
     shop_id: UUID
     created_at: datetime
     revoked_at: Optional[datetime]
+
+
+class APIKeyInDBGet(APIKeyInDBBase):
+    pass
+
+
+# During creation of an API key, we return the raw key a single time
+class APIKeyInDBCreate(APIKeyInDBBase):
+    api_key: str
