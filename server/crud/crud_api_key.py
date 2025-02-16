@@ -20,9 +20,12 @@ from server.schemas.api_key import APIKeyCreate
 
 
 class CRUDAPIKey(CRUDBase[APIKeyTable, APIKeyCreate, None]):
+    def get_by_hashed_key(self, hashed_key: str) -> APIKeyTable | None:
+        return db.session.query(APIKeyTable).filter(APIKeyTable.hashed_key == hashed_key).first()
+
     # this behaves more like a soft-delete
-    def delete(self, id: UUID):
-        db_obj = self.get(id)
+    def delete(self, shop_id: UUID, id: UUID) -> None:
+        db_obj = self.get_id_by_shop_id(shop_id, id)
         if db_obj.revoked_at:
             return
 

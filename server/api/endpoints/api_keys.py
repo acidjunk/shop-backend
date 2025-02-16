@@ -52,6 +52,7 @@ def create_api_key(
 
 @router.delete("/{api_key_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def revoke_api_key(
+    shop_id: UUID,
     api_key_id: UUID,
     current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> None:
@@ -59,6 +60,6 @@ def revoke_api_key(
     Revoke an API key for a shop.
     """
     try:
-        api_key_crud.delete(api_key_id)
+        api_key_crud.delete(shop_id, api_key_id)
     except Exception as e:
         raise HTTPException(HTTPStatus.BAD_REQUEST, detail=f"{e.__cause__}")
