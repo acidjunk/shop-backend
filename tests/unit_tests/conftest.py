@@ -9,7 +9,6 @@ from alembic.config import Config
 from fastapi import HTTPException
 from fastapi.applications import FastAPI
 from fastapi.testclient import TestClient
-from fastapi_cognito import CognitoToken
 from sqlalchemy import create_engine, make_url, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 from starlette.middleware.cors import CORSMiddleware
@@ -19,6 +18,7 @@ from starlette.responses import JSONResponse
 from server.api.api import api_router
 from server.api.deps import get_current_active_superuser
 from server.api.error_handling import ProblemDetailException
+from server.crud.crud_role import role_crud
 from server.db import db, init_database
 from server.db.database import (
     ENGINE_ARGUMENTS,
@@ -28,11 +28,11 @@ from server.db.database import (
     DBSessionMiddleware,
     SearchQuery,
 )
-from server.db.models import ProductTable, UserTable
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
-from server.security import auth_required
+from server.security import CustomCognitoToken, auth_required, cognito_auth_required
 from server.settings import app_settings
 from tests.unit_tests.factories.account import make_account
+from tests.unit_tests.factories.api_key import make_api_key
 from tests.unit_tests.factories.categories import make_category, make_category_translated
 from tests.unit_tests.factories.order import make_pending_order
 from tests.unit_tests.factories.product import make_product, make_translated_product
@@ -163,8 +163,7 @@ def db_session(database):
                 trans.rollback()
 
 
-@pytest.fixture(scope="session", autouse=True)
-def fastapi_app(database, db_uri):
+def base_fastapi_app():
     app = FastAPI(
         title="Shop backend",
         description="Backend for shop.",
@@ -192,10 +191,20 @@ def fastapi_app(database, db_uri):
     # app.add_exception_handler(FormException, form_error_handler)
     app.add_exception_handler(ProblemDetailException, problem_detail_handler)
 
-    def get_current_active_superuser_override() -> CognitoToken:
-        CognitoToken(
+    return app
+
+
+COGNITO_USER_ID = "e13013ec-0356-41e9-a54e-552e50879367"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def fastapi_app(database, db_uri):
+    app = base_fastapi_app()
+
+    def get_auth_required_override() -> CustomCognitoToken:
+        return CustomCognitoToken(
             client_id="1234",
-            sub="5678",
+            sub=COGNITO_USER_ID,
             token_use="access",
             scope="openid profile email",
             auth_time=1727169594,
@@ -206,44 +215,20 @@ def fastapi_app(database, db_uri):
             username="5678",
         )
 
-    app.dependency_overrides[auth_required] = get_current_active_superuser_override
+    app.dependency_overrides[cognito_auth_required] = get_auth_required_override
+    app.dependency_overrides[auth_required] = get_auth_required_override
 
     return app
 
 
 @pytest.fixture(scope="session", autouse=True)
 def fastapi_app_not_authenticated(database, db_uri):
-    app = FastAPI(
-        title="Shop backend",
-        description="Backend for shop.",
-        openapi_url="/openapi.json",
-        docs_url="/docs",
-        redoc_url="/redoc",
-        version="0.2.0",
-        default_response_class=JSONResponse,
-    )
-    init_database(app_settings)
+    app = base_fastapi_app()
 
-    app.include_router(api_router)
-
-    app.add_middleware(SessionMiddleware, secret_key=app_settings.SESSION_SECRET)
-    app.add_middleware(DBSessionMiddleware, database=db)
-    origins = app_settings.CORS_ORIGINS.split(",")
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_methods=app_settings.CORS_ALLOW_METHODS,
-        allow_headers=app_settings.CORS_ALLOW_HEADERS,
-        expose_headers=app_settings.CORS_EXPOSE_HEADERS,
-    )
-
-    # app.add_exception_handler(FormException, form_error_handler)
-    app.add_exception_handler(ProblemDetailException, problem_detail_handler)
-
-    def get_current_active_superuser_override():
+    def get_auth_required_override():
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    app.dependency_overrides[auth_required] = get_current_active_superuser_override
+    app.dependency_overrides[cognito_auth_required] = get_auth_required_override
 
     return app
 
@@ -323,3 +308,14 @@ def pending_order(shop):
     product_1 = make_product(shop_id=shop, category_id=category)
     product_2 = make_product(shop_id=shop, category_id=category)
     return make_pending_order(shop_id=shop, account_id=account, product_id_1=product_1, product_id_2=product_2)
+
+
+@pytest.fixture()
+def api_key_with_key():
+    return make_api_key(user_id=COGNITO_USER_ID)
+
+
+@pytest.fixture()
+def api_key(api_key_with_key):
+    the_api_key, _key = api_key_with_key
+    return the_api_key
