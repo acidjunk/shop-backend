@@ -16,7 +16,7 @@
 from fastapi import APIRouter, Depends
 
 from server.api import deps
-from server.api.endpoints import downloads, forms, health, images, licenses, login, shops, users
+from server.api.endpoints import api_keys, downloads, forms, health, images, licenses, login, shops, users
 from server.api.endpoints.shop_endpoints import (
     accounts,
     categories,
@@ -29,7 +29,7 @@ from server.api.endpoints.shop_endpoints import (
     tags,
 )
 from server.api.endpoints.shop_endpoints.images import router as shop_image_router
-from server.security import auth_required
+from server.security import auth_required, cognito_auth_required
 
 api_router = APIRouter()
 
@@ -127,3 +127,10 @@ api_router.include_router(
 #     tags=["shops-users"],
 #     dependencies=[Depends(deps.get_current_active_superuser)],
 # )
+
+api_router.include_router(
+    api_keys.router,
+    prefix="/api-keys",
+    tags=["api-keys"],
+    dependencies=[Depends(cognito_auth_required)],
+)
