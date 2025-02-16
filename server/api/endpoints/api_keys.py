@@ -5,10 +5,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.responses import Response
 
-from server.api import deps
 from server.api.deps import common_parameters
 from server.crud.crud_api_key import api_key_crud
-from server.db.models import UserTable
 from server.schemas.api_key import APIKeyCreate, APIKeyInDBCreate, APIKeyInDBGet
 from server.security import generate_api_key
 
@@ -20,7 +18,7 @@ def get_multi(
     response: Response,
     shop_id: UUID,
     common: dict = Depends(common_parameters),
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    # current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> List[APIKeyInDBGet]:
     """
     Retrieve all API keys for a shop.
@@ -36,10 +34,10 @@ def get_multi(
     return api_keys
 
 
-@router.post("/")
+@router.post("/", status_code=HTTPStatus.CREATED)
 def create_api_key(
     shop_id: UUID,
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    # current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> APIKeyInDBCreate:
     """
     Create a new API key for a shop.
@@ -47,14 +45,20 @@ def create_api_key(
     raw_key, hashed_key = generate_api_key()
     api_key_in = APIKeyCreate(shop_id=shop_id, hashed_key=hashed_key)
     db_obj = api_key_crud.create(obj_in=api_key_in)
-    return APIKeyInDBCreate(**db_obj, api_key=raw_key)
+    return APIKeyInDBCreate(
+        id=db_obj.id,
+        shop_id=db_obj.shop_id,
+        created_at=db_obj.created_at,
+        revoked_at=db_obj.revoked_at,
+        api_key=raw_key,
+    )
 
 
 @router.delete("/{api_key_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def revoke_api_key(
     shop_id: UUID,
     api_key_id: UUID,
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    # current_user: UserTable = Depends(deps.get_current_active_superuser),
 ) -> None:
     """
     Revoke an API key for a shop.

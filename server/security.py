@@ -93,11 +93,13 @@ def cognito_auth_required(error: bool = True):
     return check_cognito_token
 
 
+# We make use of error=False to postpone the dependencies from throwing.
+# This way we can check if either of the dependencies succeeded.
 def auth_required(
     token: CognitoToken | None = Depends(cognito_auth_required(error=False)),
     api_key: APIKeyTable | None = Depends(api_key_auth_required(error=False)),
 ):
-    if not token or not api_key:
+    if not token and not api_key:
         raise HTTPException(status_code=401, detail="Insufficient permissions")
 
     return token or api_key
