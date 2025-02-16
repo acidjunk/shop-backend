@@ -191,7 +191,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
             if translation_data:
                 for field in translation_data:
-                    if translation_data[field] is "":
+                    if translation_data[field] == "":
                         translation_data[field] = None
                 translation_name = db_obj.__class__.__name__.split("Table")[0]
                 translation_model = globals().get(translation_name + "TranslationTable", None)
@@ -226,7 +226,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             )
             if translation:
                 for field in translation_data:
-                    if translation_data[field] is not "":
+                    if translation_data[field] != "":
                         setattr(translation, field, translation_data[field])
                     else:
                         setattr(translation, field, None)
