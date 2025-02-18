@@ -33,6 +33,7 @@ from server.exception_handlers.generic_exception_handlers import problem_detail_
 from server.security import auth_required
 from server.settings import app_settings
 from tests.unit_tests.factories.account import make_account
+from tests.unit_tests.factories.api_key import make_api_key
 from tests.unit_tests.factories.categories import make_category, make_category_translated
 from tests.unit_tests.factories.order import make_pending_order
 from tests.unit_tests.factories.product import make_product, make_translated_product
@@ -323,3 +324,8 @@ def pending_order(shop):
     product_1 = make_product(shop_id=shop, category_id=category)
     product_2 = make_product(shop_id=shop, category_id=category)
     return make_pending_order(shop_id=shop, account_id=account, product_id_1=product_1, product_id_2=product_2)
+
+
+@pytest.fixture()
+def api_key(shop):
+    return make_api_key(shop_id=shop)
