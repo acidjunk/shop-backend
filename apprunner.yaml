@@ -33,3 +33,7 @@ run:
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/AWS_COGNITO_CLIENT_ID"
     - name: AWS_COGNITO_USERPOOL_ID
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/AWS_COGNITO_USERPOOL_ID"
+    - name: AWS_COGNITO_M2M_CLIENT_ID
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/AWS_COGNITO_M2M_CLIENT_ID"
+    - name: AWS_COGNITO_M2M_CLIENT_SECRET
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/AWS_COGNITO_M2M_CLIENT_SECRET"
