@@ -59,7 +59,7 @@ def run_migrations():
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
     logger.info("run alembic upgrade head...")
-    run_migrations()
+    # run_migrations()
     yield
 
 
