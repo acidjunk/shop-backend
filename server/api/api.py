@@ -69,7 +69,7 @@ api_router.include_router(
     categories.router,
     prefix="/shops/{shop_id}/categories",
     tags=["categories"],
-    dependencies=[Depends(auth_required)],
+    # dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
     category_images.router,
@@ -94,7 +94,7 @@ api_router.include_router(
     products.router,
     prefix="/shops/{shop_id}/products",
     tags=["shops", "products"],
-    dependencies=[Depends(auth_required)],
+    # dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
     products_to_tags.router,
