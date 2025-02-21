@@ -18,7 +18,7 @@ from fastapi.param_functions import Depends
 from fastapi_cognito import CognitoAuth, CognitoSettings, CognitoToken
 from jose import jwt
 from passlib.context import CryptContext
-from pydantic import Field, HttpUrl, BaseModel
+from pydantic import BaseModel, Field, HttpUrl
 from structlog import get_logger
 
 from server.settings import app_settings, auth_settings
