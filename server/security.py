@@ -18,6 +18,7 @@ from fastapi.param_functions import Depends
 from fastapi_cognito import CognitoAuth, CognitoSettings, CognitoToken
 from jose import jwt
 from passlib.context import CryptContext
+from pydantic import BaseModel, Field, HttpUrl
 from structlog import get_logger
 
 from server.settings import app_settings, auth_settings
@@ -27,7 +28,22 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 logger = get_logger(__name__)
 
 
-cognito_eu = CognitoAuth(settings=CognitoSettings.from_global_settings(auth_settings))
+class CustomCognitoToken(BaseModel):
+    origin_jti: Optional[str] = None
+    cognito_id: str = Field(alias="sub")
+    event_id: Optional[str] = None
+    token_use: str
+    scope: str
+    auth_time: int
+    iss: HttpUrl
+    exp: int
+    iat: int
+    jti: str
+    client_id: str
+    username: str | None = None
+
+
+cognito_eu = CognitoAuth(settings=CognitoSettings.from_global_settings(auth_settings), custom_model=CustomCognitoToken)
 
 
 def auth_required(token: CognitoToken = Depends(cognito_eu.auth_required)):
@@ -36,10 +52,10 @@ def auth_required(token: CognitoToken = Depends(cognito_eu.auth_required)):
         return token
 
     # M2M tokens: check required scope
-    if token.scope != "api":
-        raise HTTPException(status_code=401, detail="Not enough permissions")
+    if token.scope.endswith("/api"):
+        return token
 
-    return token
+    raise HTTPException(status_code=401, detail="Invalid OAuth2 scope")
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
