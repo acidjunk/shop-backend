@@ -15,7 +15,7 @@ import secrets
 import string
 from typing import Any, Dict, List, Optional
 
-from pydantic import validator
+from pydantic import ValidationInfo, field_validator
 from pydantic.networks import EmailStr, PostgresDsn
 from pydantic_settings import BaseSettings
 
@@ -91,7 +91,7 @@ class AppSettings(BaseSettings):
     # DB (probably only postgres for now; we use UUID postgres dialect for the ID's)
     DATABASE_URI: str = "postgresql://shop:shop@localhost/shop"
 
-    # @validator("DATABASE_URI", pre=True)
+    # @field_validator("DATABASE_URI", mode='before')
     # def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
     #     if isinstance(v, str):
     #         return v
@@ -127,19 +127,19 @@ class AppSettings(BaseSettings):
     FIRST_SUPERUSER_ROLE: str = "admin"
     FIRST_SUPERUSER_ROLE_DESCRIPTION: str = "God Mode!"
 
-    @validator("EMAILS_FROM_NAME")
-    def get_project_name(cls, v: Optional[str], values: Dict[str, Any]) -> str:
+    @field_validator("EMAILS_FROM_NAME")
+    def get_project_name(cls, v: Optional[str], info: ValidationInfo) -> str:
         if not v:
-            return values["PROJECT_NAME"]
+            return info.data["PROJECT_NAME"]
         return v
 
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
     # Todo: check path. The original had one extra folder "app"
     EMAIL_TEMPLATES_DIR: str = "server/email-templates/build"
 
-    @validator("EMAILS_ENABLED", pre=True)
-    def get_emails_enabled(cls, v: bool, values: Dict[str, Any]) -> bool:
-        return bool(values.get("SMTP_HOST") and values.get("SMTP_PORT") and values.get("EMAILS_FROM_EMAIL"))
+    @field_validator("EMAILS_ENABLED", mode="before")
+    def get_emails_enabled(cls, v: bool, info: ValidationInfo) -> bool:
+        return bool(info.data.get("SMTP_HOST") and info.data.get("SMTP_PORT") and info.data.get("EMAILS_FROM_EMAIL"))
 
     EMAIL_TEST_USER: EmailStr = "test@example.com"  # type: ignore
 

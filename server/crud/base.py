@@ -50,10 +50,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def get(self, id: UUID | str) -> Optional[ModelType]:
-        return db.session.query(self.model).get(id)
+        return db.session.get(self.model, id)
 
     def get_id(self, id: UUID | str) -> Optional[ModelType]:
-        return db.session.query(self.model).get(id)
+        return db.session.get(self.model, id)
 
     def get_id_by_shop_id(self, shop_id: UUID, id: UUID) -> Optional[ModelType]:
         return db.session.query(self.model).filter(self.model.shop_id == shop_id, self.model.id == id).first()
@@ -151,7 +151,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
 
     def create(self, *, obj_in: CreateSchemaType) -> ModelType:
-        obj_in_data = transform_json(obj_in.dict())
+        obj_in_data = transform_json(obj_in.model_dump())
         # Todo: remove translate from base? We should handle this in a more generic way, for now a UGLY hack:
         translation_data = None
         try:
@@ -176,7 +176,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def create_by_shop_id(self, *, shop_id: any, obj_in: CreateSchemaType) -> ModelType:
-        obj_in_data = transform_json(obj_in.dict())
+        obj_in_data = transform_json(obj_in.model_dump())
         # Todo: remove translate from base? We should handle this in a more generic way, for now a UGLY hack:
         translation_data = None
         try:
@@ -191,7 +191,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
             if translation_data:
                 for field in translation_data:
-                    if translation_data[field] is "":
+                    if translation_data[field] == "":
                         translation_data[field] = None
                 translation_name = db_obj.__class__.__name__.split("Table")[0]
                 translation_model = globals().get(translation_name + "TranslationTable", None)
@@ -209,7 +209,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def update(self, *, db_obj: ModelType, obj_in: UpdateSchemaType, commit: bool = True) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
-        update_data = obj_in.dict(exclude_unset=True)
+        update_data = obj_in.model_dump(exclude_unset=True)
 
         # # Handle int based foreign key types:
         # for k, v in update_data.items():
@@ -226,7 +226,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             )
             if translation:
                 for field in translation_data:
-                    if translation_data[field] is not "":
+                    if translation_data[field] != "":
                         setattr(translation, field, translation_data[field])
                     else:
                         setattr(translation, field, None)
@@ -246,7 +246,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def delete(self, *, id: str) -> None:
-        obj = db.session.query(self.model).get(id)
+        obj = db.session.get(self.model, id)
         if obj is None:
             raise NotFound
         db.session.delete(obj)
