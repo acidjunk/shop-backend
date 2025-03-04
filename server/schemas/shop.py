@@ -140,12 +140,14 @@ class ConfigurationContact(BoilerplateBaseModel):
     instagram: str | None = None
 
 
-class ConfigurationHomepageSections(BoilerplateBaseModel):
+class Toggles(BoilerplateBaseModel):
     show_new_products: bool = True
     show_featured_products: bool = True
     show_categories: bool = True
     show_shop_name: bool = True
     show_nav_categories: bool = False
+    language_alt1_enabled: bool = False
+    language_alt2_enabled: bool = False
 
 
 class ConfigurationV1(BoilerplateBaseModel):
@@ -156,21 +158,28 @@ class ConfigurationV1(BoilerplateBaseModel):
     alt2_banner: str | None = None
     languages: ConfigurationLanguages
     contact: ConfigurationContact
-    homepage_sections: ConfigurationHomepageSections
+    toggles: Toggles
 
 
-class ShopType(str, Enum):
-    BASIC = "Basic Webshop"
-    BASIC_PLUS = "Basic Webshop Plus"
-    CUSTOM = "Custom Webshop"
-    CUSTOM_PLUS = "Custom Webshop Plus"
+class ShopTypeName(str, Enum):
+    SMALL = "small"
+    BUSINESS = "business"
+
+
+class ShopType(BoilerplateBaseModel):
+    max_languages: float
+    max_products: float
+    stripe_access: bool
+    trial_mode: bool
+    trial_started: datetime | None = None
+    name: ShopTypeName
 
 
 class ShopConfig(BoilerplateBaseModel):
     config: ConfigurationV1
     config_version: int
     shop_type: ShopType
-    stripe_public_key: str
+    stripe_public_key: Optional[str]
 
 
 class ShopConfigUpdate(BoilerplateBaseModel):
