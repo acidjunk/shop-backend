@@ -43,6 +43,8 @@ class ShopEmptyBase(BoilerplateBaseModel):
 class ShopBase(BoilerplateBaseModel):
     name: str
     description: str
+    internal_url: str | None = None
+    external_url: str | None = None
 
 
 # Properties to receive via API on creation
