@@ -167,6 +167,8 @@ class ShopTable(BaseModel):
     vat_lower_3 = Column(Float, default=2.0)
     vat_special = Column(Float, default=12.0)
     vat_zero = Column(Float, default=0.0)
+    internal_url = Column(String(255), nullable=True, server_default="")
+    external_url = Column(String(255), nullable=True, server_default="")
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
     modified_at = Column(
         UtcTimestamp,
