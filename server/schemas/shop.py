@@ -45,6 +45,12 @@ class ShopBase(BoilerplateBaseModel):
     description: str
     internal_url: str | None = None
     external_url: str | None = None
+    vat_standard: float
+    vat_lower_1: float
+    vat_lower_2: float
+    vat_lower_3: float
+    vat_special: float
+    vat_zero: float
 
 
 # Properties to receive via API on creation
