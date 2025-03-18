@@ -89,6 +89,12 @@ def make_shop(
             description="Test Shop Description",
             config=config.model_dump(),
             shop_type="{}",
+            vat_standard=21,
+            vat_lower_1=15,
+            vat_lower_2=10,
+            vat_lower_3=5,
+            vat_special=2,
+            vat_zero=0,
             stripe_public_key="string",
         )
     else:
@@ -96,6 +102,12 @@ def make_shop(
             name="Test Shop",
             description="Test Shop Description",
             stripe_public_key="string",
+            vat_standard=21,
+            vat_lower_1=15,
+            vat_lower_2=10,
+            vat_lower_3=5,
+            vat_special=2,
+            vat_zero=0,
             config="{}",
             shop_type="{}",
         )

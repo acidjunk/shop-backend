@@ -56,6 +56,12 @@ def test_shop_create(test_client):
     body = {
         "name": "Test Shop",
         "description": "Test Shop Description",
+        "vat_standard": 21,
+        "vat_lower_1": 10,
+        "vat_lower_2": 5,
+        "vat_lower_3": 2,
+        "vat_special": 12,
+        "vat_zero": 0,
     }
     response = test_client.post("/shops", data=json_dumps(body))
     assert HTTPStatus.CREATED == response.status_code, f"No 201 status code: full response {response.json()}"
