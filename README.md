@@ -156,6 +156,86 @@ Set up the ENV var for FIRST_USER and run this command:
 PYTHONPATH=. python server/create_initial_user.py
 ```
 
+# Running on Windows
+
+## Server
+To create a virtual environment:
+```bash
+python -m venv venv    
+```
+
+To start venv (virtual environment)
+```bash
+venv\Scripts\activate  
+```
+The "venv" can change depending on your folder. **Sometimes** it can also be like:
+```bash
+.\.venv\Scripts\activate   
+```
+
+## Install Requirements
+
+```bash
+pip install -r requirements/all.txt
+```
+
+## DB Setup
+
+To make a superuser under the name "shop". Also recommended to make the **password** "shop" for simplicity:
+
+```bash
+createuser -sP shop
+```
+
+To make the database "shop" under the user "shop":
+
+```bash
+createdb shop -U shop
+```
+
+## DB Migration / Import DB dump if you can't do migration
+
+Migration DIDN'T work for me, but I believe this is the line to do migration:
+
+```bash
+alembic upgrade heads
+```
+
+So rather I imported the migration, asked for a dump from Rene and **import** it to the DB:
+```bash
+psql -U shop -d shop -f "{File path name for the import saved on your device}"
+```
+
+## Configuring the server (env file)
+You will need an env file first, name should be something like `env` or `config.env` (my example uses this). This how you load the env file:
+```bash
+Get-Content .\config.env | ForEach-Object {
+if ($_ -match '^\s*#') { return }  # Ignore comments
+if ($_ -match '^\s*$') { return }  # Ignore empty lines
+$name, $value = $_ -split '=', 2
+[System.Environment]::SetEnvironmentVariable($name.Trim(), $value.Trim(), [System.EnvironmentVariableTarget]::Process)
+}
+```
+To confirm that the env file is retrieved correctly, check if the variables are correct by doing this:
+```bash
+echo $env:DATABASE_URI #can try other variables
+```
+
+## Running Tests
+```bash
+pytest
+```
+
+## Start hot reloading Fastapi
+```bash
+uvicorn server.main:app --host 127.0.0.1 --port 8080 --reload  
+```
+
+Start non hot reloading Fastapi:
+```bash
+uvicorn server.main:app --host 127.0.0.1 --port 8080 
+```
+
 # License and copyright info
 
 Copyright (C) 2024 René Dohmen <acidjunk@gmail.com>
