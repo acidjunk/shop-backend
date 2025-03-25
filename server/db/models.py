@@ -413,3 +413,14 @@ class License(BaseModel):
         server_onupdate=text("CURRENT_TIMESTAMP"),
     )
     order = relationship("OrderTable", lazy=True)
+
+class earlyAccessTable(BaseModel):
+    __tablename__ = "early_access"
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
+    email = Column(String(255), unique=True)
+    created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
