@@ -414,7 +414,8 @@ class License(BaseModel):
     )
     order = relationship("OrderTable", lazy=True)
 
-class earlyAccessTable(BaseModel):
+
+class EarlyAccessTable(BaseModel):
     __tablename__ = "early_access"
     id = Column(
         UUIDType,
