@@ -16,7 +16,7 @@
 from fastapi import APIRouter, Depends
 
 from server.api import deps
-from server.api.endpoints import downloads, forms, health, images, licenses, login, shops, users
+from server.api.endpoints import downloads, early_access, forms, health, images, licenses, login, shops, users
 from server.api.endpoints.shop_endpoints import (
     accounts,
     categories,
@@ -120,6 +120,8 @@ api_router.include_router(
     tags=["stripe"],
     # dependencies=[Depends(deps.get_current_active_superuser)],
 )
+
+api_router.include_router(early_access.router, prefix="/early-access", tags=["early-access"])
 
 # api_router.include_router(
 #     shops_users.router,
