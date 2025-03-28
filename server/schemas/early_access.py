@@ -29,4 +29,3 @@ class EarlyAccessInDBBase(EarlyAccessBase):
 # Additional properties to return via API
 # class EarlyAccess(EarlyAccessInDBBase):
 #     created_at = datetime
-
