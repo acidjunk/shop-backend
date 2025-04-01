@@ -24,7 +24,6 @@ def upgrade():
 
     # Iterate over each (shop_id, category_id) pair
     for shop_id, category_id in shop_category_pairs:
-
         # Select products for this shop_id and category_id, sorted by id or another relevant field
         products = conn.execute(
             sa.text(

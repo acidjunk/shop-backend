@@ -122,10 +122,7 @@ api_router.include_router(
 )
 
 api_router.include_router(
-    early_access.router,
-    prefix="/early-access",
-    tags=["early-access"],
-    dependencies=[Depends(auth_required)]
+    early_access.router, prefix="/early-access", tags=["early-access"], dependencies=[Depends(auth_required)]
 )
 
 # api_router.include_router(
