@@ -185,6 +185,7 @@ def test_shop_create_config(test_client, shop):
             "main_banner": "string",
             "alt1_banner": "string",
             "alt2_banner": "string",
+            "google_analytics_id": "string",
             "logo": "string",
             "languages": {
                 "main": {
@@ -298,6 +299,7 @@ def test_shop_update_config(test_client, shop_with_config):
             "main_banner": "string",
             "alt1_banner": "string",
             "alt2_banner": "string",
+            "google_analytics_id": "string",
             "logo": "string",
             "languages": {
                 "main": {

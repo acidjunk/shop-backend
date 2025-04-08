@@ -165,6 +165,7 @@ class ConfigurationV1(BoilerplateBaseModel):
     alt1_banner: str | None = None
     alt2_banner: str | None = None
     languages: ConfigurationLanguages
+    google_analytics_id: str | None = None
     contact: ConfigurationContact
     toggles: Toggles
 
