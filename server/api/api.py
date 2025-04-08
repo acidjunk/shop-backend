@@ -121,7 +121,9 @@ api_router.include_router(
     # dependencies=[Depends(deps.get_current_active_superuser)],
 )
 
-api_router.include_router(early_access.router, prefix="/early-access", tags=["early-access"])
+api_router.include_router(
+    early_access.router, prefix="/early-access", tags=["early-access"], dependencies=[Depends(auth_required)]
+)
 
 # api_router.include_router(
 #     shops_users.router,
