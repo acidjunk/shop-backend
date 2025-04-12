@@ -425,3 +425,19 @@ class EarlyAccessTable(BaseModel):
     )
     email = Column(String(255), unique=True)
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
+
+
+class InfoRequestTable(BaseModel):
+    __tablename__ = "info_requests"
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
+    email = Column(String(255))
+    shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
+    product_id = Column("product_id", UUIDType, ForeignKey("products.id"), index=True)
+
+    shop = relationship("ShopTable", lazy=True)
+    product = relationship("ProductTable", lazy=True)

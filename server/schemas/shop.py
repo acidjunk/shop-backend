@@ -156,6 +156,7 @@ class Toggles(BoilerplateBaseModel):
     show_nav_categories: bool = False
     language_alt1_enabled: bool = False
     language_alt2_enabled: bool = False
+    product_call_to_action_enabled: bool = False
 
 
 class ConfigurationV1(BoilerplateBaseModel):
