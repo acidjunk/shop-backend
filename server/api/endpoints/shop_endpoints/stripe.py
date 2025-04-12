@@ -13,8 +13,8 @@ router = APIRouter()
 logger = structlog.get_logger(__name__)
 
 
-def get_stripe_customer(account_id: UUID):
-    account = (Account.query.filter(Account.id == account_id)).first()
+def get_stripe_customer(account_id: UUID, shop_id: UUID):
+    account = Account.query.filter(Account.id == account_id, Account.shop_id == shop_id).first()
     return account.details["stripe_customer_id"]
 
 
@@ -40,7 +40,7 @@ def create_payment_intent(shop_id: UUID, price: int, account_id: UUID):
     try:
         shop = shop_crud.get(shop_id)
         stripe.api_key = shop.stripe_secret_key
-        customer_id = get_stripe_customer(account_id)
+        customer_id = get_stripe_customer(account_id, shop_id)
 
         intent = stripe.PaymentIntent.create(
             amount=price,
@@ -51,6 +51,7 @@ def create_payment_intent(shop_id: UUID, price: int, account_id: UUID):
         )
         return {"clientSecret": intent["client_secret"]}
     except Exception as e:
+        print(e)
         return e
 
 
