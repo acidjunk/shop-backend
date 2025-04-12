@@ -51,7 +51,6 @@ def create_payment_intent(shop_id: UUID, price: int, account_id: UUID):
         )
         return {"clientSecret": intent["client_secret"]}
     except Exception as e:
-        print(e)
         return e
 
 
