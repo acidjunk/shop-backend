@@ -1,6 +1,4 @@
 import warnings
-from typing import Optional
-from uuid import UUID
 
 import structlog
 import typer
@@ -24,7 +22,6 @@ def get_orders_for_accounts(accounts: list[Account]):
 
 
 def cleanup_accounts_and_orders(dry_run: bool = False):
-    init_database(app_settings)
     logger.info("Cleaning up accounts with no details")
 
     with transactional(db, logger):
@@ -38,12 +35,16 @@ def cleanup_accounts_and_orders(dry_run: bool = False):
             return
 
         logger.info("Deleting accounts with no details and corresponding orders")
-        orders_query.delete()
-        get_accounts_with_missing_details().delete()
+        orders_deleted = orders_query.delete()
+        accounts_deleted = get_accounts_with_missing_details().delete()
 
-    logger.info("Clean up of accounts finished")
+    logger.info("Cleanup of accounts finished", accounts_deleted=accounts_deleted, orders_deleted=orders_deleted)
 
 
+app = typer.Typer()
+
+
+@app.command()
 def main(
     apply: bool = typer.Option(
         False, help="If set, will delete accounts and orders, otherwise only show what would be deleted."
@@ -55,4 +56,5 @@ def main(
 
 
 if __name__ == "__main__":
-    typer.run(main)
+    init_database(app_settings)
+    app()
