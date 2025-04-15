@@ -33,3 +33,4 @@ phonenumbers==8.13.45
 pydantic_extra_types==2.9.0
 httpx
 sentry-sdk~=2.28.0
+html2text==2024.2.26

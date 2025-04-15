@@ -1,0 +1,25 @@
+{% macro kind_regards() %}
+<p>Kind regards,<br />
+ShopVirge<br>
+</p>
+{% endmacro %}
+
+{% macro kind_regards_with_faq() %}
+<p>For a list of frequently asked questions or to contact ShopVirge, please visit <a href="https://www.shopvirge.com/faq">www.shopvirge.com/faq</a>.</p>
+
+<p>Kind regards,<br />
+ShopVirge<br>
+</p>
+{% endmacro %}
+
+{% macro subscription_product(subscription) %}
+{{ subscription.product.description }}
+{% endmacro %}
+
+{% macro subscription_description(subscription) %}
+{{ subscription.description }}
+{% endmacro %}
+
+{%- macro subscription_id(subscription) -%}
+{{ subscription.subscription_id|string()|truncate(8, False, "") }}
+{%- endmacro -%}
