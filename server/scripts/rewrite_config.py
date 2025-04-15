@@ -14,8 +14,11 @@ from server.settings import app_settings
 logger = structlog.get_logger(__name__)
 
 
-def get_new_config(config: ConfigurationV1):
-    print(config)
+def get_new_config(config: dict) -> ConfigurationV1 | None:
+    try:
+        return ConfigurationV1(**config)
+    except:
+        return None
 
 
 def rewrite_all_shop_config(dry_run: bool):
@@ -26,8 +29,18 @@ def rewrite_all_shop_config(dry_run: bool):
         logger.info("Dry run enabled, not rewriting all shop config")
     with transactional(db, logger):
         for shop in shops:
-            old_config = shop.config
-            new_config = get_new_config(old_config)
+            old_config_dict = shop.config
+
+            new_config = get_new_config(old_config_dict)
+            if not new_config:
+                logger.warning("Shop Config parse failed, skipping", shop=shop.name, id=shop.id)
+            elif new_config.model_dump() != old_config_dict:
+                from deepdiff import DeepDiff
+
+                diff = DeepDiff(old_config_dict, new_config.model_dump())
+                logger.info("Changes detected in Shop Config", shop=shop.name, id=shop.id, diff=diff)
+            else:
+                logger.info("No Changes detected in Shop Config, everything OK.", shop=shop.name, id=shop.id)
 
 
 app = typer.Typer()
