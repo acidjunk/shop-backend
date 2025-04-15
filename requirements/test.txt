@@ -7,4 +7,4 @@ pytest-cov
 pytest-xdist
 pytest_benchmark
 httpx
-
+typer==0.7.0
