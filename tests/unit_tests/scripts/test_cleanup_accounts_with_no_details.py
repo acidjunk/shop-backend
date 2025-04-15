@@ -11,7 +11,7 @@ def test_cleanup_of_accounts_and_orders(pending_order):
     assert Account.query.count() == 1
     assert Order.query.count() == 1
 
-    result = runner.invoke(app, ["--apply"])
+    result = runner.invoke(app, ["--no-dry-run"])
     assert result.exit_code == 0
 
     assert "Cleanup of accounts finished" in result.stdout
