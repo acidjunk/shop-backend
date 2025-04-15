@@ -247,7 +247,17 @@ def add_new_ip(id: UUID, new_ip: ShopIp, current_user: UserTable = Depends(auth_
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
 
-    updated_shop = ShopUpdate(name=shop.name, description=shop.description, allowed_ips=shop.allowed_ips)
+    updated_shop = ShopUpdate(
+        name=shop.name,
+        description=shop.description,
+        allowed_ips=shop.allowed_ips,
+        vat_standard=shop.vat_standard,
+        vat_lower_1=shop.vat_lower_1,
+        vat_lower_2=shop.vat_lower_2,
+        vat_lower_3=shop.vat_lower_3,
+        vat_special=shop.vat_special,
+        vat_zero=shop.vat_zero,
+    )
 
     if shop.allowed_ips and new_ip.ip not in shop.allowed_ips:
         updated_shop.allowed_ips.append(new_ip.ip)
@@ -267,7 +277,17 @@ def remove_ip(id: UUID, old_ip: ShopIp, current_user: UserTable = Depends(auth_r
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
 
-    updated_shop = ShopUpdate(name=shop.name, description=shop.description, allowed_ips=shop.allowed_ips)
+    updated_shop = ShopUpdate(
+        name=shop.name,
+        description=shop.description,
+        allowed_ips=shop.allowed_ips,
+        vat_standard=shop.vat_standard,
+        vat_lower_1=shop.vat_lower_1,
+        vat_lower_2=shop.vat_lower_2,
+        vat_lower_3=shop.vat_lower_3,
+        vat_special=shop.vat_special,
+        vat_zero=shop.vat_zero,
+    )
 
     if shop.allowed_ips and old_ip.ip in shop.allowed_ips:
         updated_shop.allowed_ips.remove(old_ip.ip)

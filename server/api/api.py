@@ -21,6 +21,7 @@ from server.api.endpoints.shop_endpoints import (
     accounts,
     categories,
     category_images,
+    info_request,
     orders,
     prices,
     products,
@@ -124,6 +125,8 @@ api_router.include_router(
 api_router.include_router(
     early_access.router, prefix="/early-access", tags=["early-access"], dependencies=[Depends(auth_required)]
 )
+
+api_router.include_router(info_request.router, prefix="/info-request", tags=["info-request"])
 
 # api_router.include_router(
 #     shops_users.router,
