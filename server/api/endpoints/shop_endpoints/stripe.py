@@ -59,7 +59,7 @@ def create_subscription_intent(shop_id: UUID, product_ids: list[UUID], account_i
     try:
         shop = shop_crud.get(shop_id)
         stripe.api_key = shop.stripe_secret_key
-        customer_id = get_stripe_customer(account_id)
+        customer_id = get_stripe_customer(account_id, shop_id)
         prices = get_stripe_prices(product_ids, yearly)
 
         subscription = stripe.Subscription.create(
