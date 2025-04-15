@@ -1,0 +1,157 @@
+{% set color_bodybg = "#e6e6e6" %}
+{% import 'macros/pricelist.html.j2' as snippets %}
+<!DOCTYPE html>
+<html lang='nl' xmlns='http://www.w3.org/1999/xhtml' xmlns:v='urn:schemas-microsoft-com:vml' xmlns:o='urn:schemas-microsoft-com:office:office'>
+<head>
+    <meta name='emailTemplateType' content='ShopVirge template'/>
+    <meta name='emailTemplateVersion' content='1.1'/>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
+    <meta content="2" name="mmTemplateVersion"/>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'/>
+    <meta content='width=device-width, initial-scale=1' name='viewport'/>
+    <meta name='x-apple-disable-message-reformatting'/>
+    <meta name="format-detection" content="telephone=no"/>
+    <title>{{title}}</title>
+
+    <!--[if gte mso 9]><xml>
+        <o:OfficeDocumentSettings>
+        <o:AllowPNG/>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+        </xml><![endif]-->
+
+    <style>
+
+        p + p {
+            margin-top: 30px;
+        }
+
+        .summary-block table + table {
+            margin-top: 30px;
+        }
+
+        .summary-block table td {
+            vertical-align: top;
+            padding-bottom: 10px;
+        }
+
+        .summary-block table th {
+            font-size: 18px;
+            padding-bottom: 10px;
+            text-align: left;
+        }
+
+        table {
+            max-width: 100%;
+            border-collapse: collapse;
+        }
+
+        .banner-image {
+            width: 100%;
+            height: auto;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        h1,h2,h3,h4,h5 {
+            margin: 0;
+        }
+
+        @media(max-width: 640px) {
+            p + p {
+                margin-top: 15px;
+            }
+
+
+            #main {
+                padding: 20px !important;
+            }
+
+            #header .logo-row {
+                padding-left: 30% !important;
+                text-align: center;
+            }
+
+            #header .logo-row img {
+                width: 60%;
+                height: auto;
+            }
+
+            .horizontal-bar td {
+                padding: 10px 20px !important;
+            }
+
+            .summary-wrap {
+                padding: 20px 20px 0 !important;
+                margin: 20px -20px 0 !important;
+            }
+
+            .summary-block table th strong {
+                position: relative;
+                left: -2px;
+            }
+
+            .summary-block table {
+                display: block;
+            }
+
+            .summary-block td:first-child {
+                font-weight: bold;
+            }
+
+            .summary-block td {
+                display: block;
+                width: 100% !important;
+                padding: 0 !important;
+            }
+
+            .summary-block tr + tr td {
+                padding-top: 10px !important;
+            }
+
+            #footer .footnote td {
+                padding: 10px 20px !important;
+            }
+
+        }
+
+    </style>
+
+</head>
+<body bgcolor='{{color_bodybg}}' style="background-color: {{color_bodybg}}; font-family: Calibri, sans-serif; font-size: 16px; line-height: 24px; margin: 0; padding: 0;">
+                            <div style="background-color: {{color_bodybg}}; font-family: Calibri, sans-serif; font-size: 16px; line-height: 24px; margin: 0; padding: 0;">
+
+    <table id="wrapper-table" width="100%" cellspacing='0' cellpadding='0' ><tbody><tr><td width="auto"></td><td width="800" bgcolor="#ffffff">
+
+
+        <div id="header" style="line-height: 0;">
+            <table width="100%" cellspacing='0' cellpadding='0'>
+                <tr><td class="logo-row" style="text-align:center; padding-left: 250px; line-height: 0;">
+                    {{ snippets.logo() }}
+                </td></tr>
+            </table>
+
+            {{ snippets.banner() }}
+
+            {{ snippets.bar(welcome_text) }}
+        </div>
+
+
+        <table><tr><td id="main" style="padding: 40px 50px;">
+            {% block content %}
+                Your template must define a 'content' block
+            {% endblock %}
+        </td></tr></table>
+
+
+        <div id="footer">
+            {{ snippets.bar("") }}
+            <table class="footnote"><tr><td style="font-style: italic; padding: 20px 50px;">Sent by an automated process.</td></tr></table>
+        </div>
+
+
+    </td><td width="auto"></td></tr></tbody></table>
+</div></body>
+</html>
