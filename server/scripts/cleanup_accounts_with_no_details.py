@@ -46,13 +46,13 @@ app = typer.Typer()
 
 @app.command()
 def main(
-    apply: bool = typer.Option(
-        False, help="If set, will delete accounts and orders, otherwise only show what would be deleted."
+    dry_run: bool = typer.Option(
+        True, help="Disable to actually mutate stuff in the DB, otherwise print only what will be done."
     )
 ):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=sa_exc.SAWarning)
-        cleanup_accounts_and_orders(dry_run=not apply)
+        cleanup_accounts_and_orders(dry_run=dry_run)
 
 
 if __name__ == "__main__":
