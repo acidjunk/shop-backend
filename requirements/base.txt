@@ -31,3 +31,5 @@ wheel
 stripe==10.7.0
 phonenumbers==8.13.45
 pydantic_extra_types==2.9.0
+sentry-sdk
+
