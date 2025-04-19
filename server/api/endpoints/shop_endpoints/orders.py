@@ -22,6 +22,8 @@ from server.db.models import Account, OrderTable, UserTable
 from server.schemas.account import AccountCreate
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.security import auth_required
+from server.utils.discord.discord import post_discord_order_complete
+from server.utils.discord.settings import co2_shop_settings
 
 logger = structlog.get_logger(__name__)
 
@@ -342,6 +344,13 @@ def patch(
         order_info=order.order_info,
         id=order.id,
     )
+
+    if updated_order.shop_id == "d3c745bc-285f-4810-9612-6fbb8a84b125":
+        account = account_crud.get(updated_order.account_id)
+        post_discord_order_complete(
+            f"New order from {account.name}", settings=co2_shop_settings, order=updated_order, email=account.name
+        )
+
     invalidateCompletedOrdersCache(updated_order.id)
     return updated_order
 
