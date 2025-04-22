@@ -18,7 +18,20 @@ from typing import Optional
 
 import sqlalchemy
 import structlog
-from sqlalchemy import JSON, Boolean, Column, DateTime, Enum, Float, ForeignKey, Integer, String, TypeDecorator, text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    TypeDecorator,
+    func,
+    text,
+)
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import Dialect
 from sqlalchemy.exc import DontWrapMixin
@@ -291,7 +304,7 @@ class OrderTable(BaseModel):
     order_info = Column(postgresql.JSONB())
     total = Column(Float())
     status = Column(String(), default="pending")
-    created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
+    created_at = Column(DateTime, server_default=func.now())
     completed_by = Column("completed_by", UUIDType, ForeignKey("users.id"), nullable=True)
     completed_at = Column(DateTime, nullable=True)
 
