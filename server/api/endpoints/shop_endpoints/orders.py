@@ -345,7 +345,7 @@ def patch(
         id=order.id,
     )
 
-    if updated_order.shop_id == "d3c745bc-285f-4810-9612-6fbb8a84b125":
+    if str(updated_order.shop_id) == "d3c745bc-285f-4810-9612-6fbb8a84b125":
         account = account_crud.get(updated_order.account_id)
         post_discord_order_complete(
             f"New order from {account.name}", settings=co2_shop_settings, order=updated_order, email=account.name

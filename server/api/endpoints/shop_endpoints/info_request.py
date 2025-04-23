@@ -24,7 +24,7 @@ def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
     try:
         logger.info("Saving early access", data=data)
         info_request = info_request_crud.create(obj_in=data)
-        if data.shop_id == "d3c745bc-285f-4810-9612-6fbb8a84b125":
+        if str(data.shop_id) == "d3c745bc-285f-4810-9612-6fbb8a84b125":
             product = product_crud.get_id_by_shop_id(data.shop_id, data.product_id)
             post_discord_info_request(
                 f"New info request from {data.email} about product: {product.translation.main_name}",
