@@ -1,7 +1,7 @@
-from server.schemas.base import BoilerplateBaseModel
+from pydantic_settings import BaseSettings
 
 
-class DiscordSettings(BoilerplateBaseModel):
+class DiscordSettings(BaseSettings):
     BOT_NAME: str = "CO2 Tree Shop Bot"
     WEBHOOK_URL: str = "CHANGEME"
     SHOP_ID: str = "d3c745bc-285f-4810-9612-6fbb8a84b125"
