@@ -37,3 +37,5 @@ run:
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/AWS_COGNITO_M2M_CLIENT_ID"
     - name: AWS_COGNITO_M2M_CLIENT_SECRET
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/AWS_COGNITO_M2M_CLIENT_SECRET"
+    - name: WEBHOOK_URL
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/CO2TREE_WEBHOOK_URL"
