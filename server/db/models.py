@@ -183,6 +183,7 @@ class ShopTable(BaseModel):
     internal_url = Column(String(255), nullable=True, server_default="")
     external_url = Column(String(255), nullable=True, server_default="")
     created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
+    discord_webhook = Column(String(255), nullable=True)
     modified_at = Column(
         UtcTimestamp,
         server_default=text("CURRENT_TIMESTAMP"),
