@@ -13,7 +13,6 @@ EXCLUDED_ENDPOINTS = [
     {"path": "/products/{id}/", "name": "get_id", "method": "GET"},
     {"path": "/shops/{shop_id}/prices/", "name": "get_products", "method": "GET"},
     {"path": "/shops/{shop_id}/prices/", "name": "get_cart_products", "method": "POST"},
-    {"path": "/orders/", "name": "create", "method": "POST"},
     {"path": "/shops/{shop_id}/stripe/", "name": "create_payment_intent", "method": "POST"},
     {"path": "/shops/{shop_id}/stripe/subscription", "name": "create_subscription_intent", "method": "POST"},
     {"path": "/info-request/", "name": "create_info_request", "method": "POST"},
@@ -53,7 +52,7 @@ def test_endpoint_auth(monkeypatch, fastapi_app_not_authenticated):
     not_401_responses = []
 
     for response in responses:
-        print(response.json())
+        # print(response.json())
         if response.status_code != 401:
             not_401_responses.append(response)
 

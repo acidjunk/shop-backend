@@ -65,6 +65,7 @@ api_router.include_router(
     orders.router,
     prefix="/orders",
     tags=["orders"],
+    dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
     categories.router,
@@ -126,7 +127,9 @@ api_router.include_router(
     early_access.router, prefix="/early-access", tags=["early-access"], dependencies=[Depends(auth_required)]
 )
 
-api_router.include_router(info_request.router, prefix="/info-request", tags=["info-request"])
+api_router.include_router(
+    info_request.router, prefix="/info-request", tags=["info-request"], dependencies=[Depends(auth_required)]
+)
 
 # api_router.include_router(
 #     shops_users.router,

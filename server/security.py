@@ -13,8 +13,9 @@
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Security
 from fastapi.param_functions import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi_cognito import CognitoAuth, CognitoSettings, CognitoToken
 from jose import jwt
 from passlib.context import CryptContext
@@ -44,9 +45,14 @@ class CustomCognitoToken(BaseModel):
 
 
 cognito_eu = CognitoAuth(settings=CognitoSettings.from_global_settings(auth_settings), custom_model=CustomCognitoToken)
+security = HTTPBearer()
 
 
-def auth_required(token: CognitoToken = Depends(cognito_eu.auth_required)):
+def auth_required(
+    token: CognitoToken = Depends(cognito_eu.auth_required),
+    # Next line is needed to show all endpoints with auth properly under /docs
+    _: HTTPAuthorizationCredentials = Security(security),
+):
     if token.client_id == app_settings.AWS_COGNITO_CLIENT_ID:
         # No need to check scopes for user tokens
         return token
