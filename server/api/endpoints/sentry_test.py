@@ -5,6 +5,8 @@ import os
 import httpx
 import time
 
+from sentry_sdk import capture_exception
+
 logger = structlog.get_logger(__name__)
 router = APIRouter()
 
@@ -29,6 +31,8 @@ def trigger_error(type: str):
         trigger_custom_error()
     elif type == "zero":
         1 / 0
+    elif type == "handled":
+        trigger_handled_error()
     else:
         raise ValueError("Unknown error type")
 
@@ -61,5 +65,13 @@ class CustomBackendError(Exception):
 
 def trigger_custom_error():
     raise CustomBackendError("This is a manually triggered custom error.")
+
+def trigger_handled_error():
+    try:
+        open("some_missing_file.txt", "r")
+    except Exception as e:
+        logger.warning("Handled FileNotFoundError triggered", exc_info=e)
+        capture_exception(e)
+
 
 
