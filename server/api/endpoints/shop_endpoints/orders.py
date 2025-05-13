@@ -349,9 +349,8 @@ def patch(
         shop = load(ShopTable, updated_order.shop_id)
         if shop.discord_webhook is not None:
             account = account_crud.get(updated_order.account_id)
-            settings = DiscordSettings(BOT_NAME=shop.name, WEBHOOK_URL=shop.discord_webhook)
             post_discord_order_complete(
-                f"New order from {account.name}", settings=settings, order=updated_order, email=account.name
+                f"New order from {account.name}", botname=shop.name, webhook=shop.discord_webhook, order=updated_order, email=account.name
             )
 
     except Exception as e:

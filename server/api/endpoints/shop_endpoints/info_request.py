@@ -31,10 +31,10 @@ def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
             shop = load(ShopTable, data.shop_id)
             if shop.discord_webhook is not None:
                 product = product_crud.get_id_by_shop_id(data.shop_id, data.product_id)
-                settings = DiscordSettings(BOT_NAME=shop.name, WEBHOOK_URL=shop.discord_webhook)
                 post_discord_info_request(
                     f"New info request from {data.email} about product: {product.translation.main_name}",
-                    settings=settings,
+                    botname=shop.name,
+                    webhook=shop.discord_webhook,
                     email=data.email,
                     product_name=product.translation.main_name,
                     product_id=data.product_id,
