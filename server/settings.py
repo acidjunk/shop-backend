@@ -89,7 +89,7 @@ class AppSettings(BaseSettings):
     SWAGGER_HOST: str = "localhost"
     GUI_URI: str = "http://localhost:3000"
     # DB (probably only postgres for now; we use UUID postgres dialect for the ID's)
-    DATABASE_URI: str = "postgresql://shop:shop@localhost/shopdb"
+    DATABASE_URI: str = "postgresql://shop:shop@localhost/shop"
 
     # @field_validator("DATABASE_URI", mode='before')
     # def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
