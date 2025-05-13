@@ -1,11 +1,16 @@
 from http import HTTPStatus
-from typing import Any
+from typing import Annotated, Any, ClassVar
+from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.param_functions import Body
-from pydantic import ValidationError
+from pydantic import ConfigDict, EmailStr, ValidationError
+from pydantic_forms.core import FormPage
+from pydantic_forms.core import FormPage as PydanticFormsFormPage
+from pydantic_forms.core import post_form
+from pydantic_forms.types import JSON, State
 from sqlalchemy.exc import IntegrityError
 
 from server.crud.crud_info_request import info_request_crud
@@ -19,7 +24,31 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
-@router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
+class FormPage(PydanticFormsFormPage):
+    meta__: ClassVar[JSON] = {"hasNext": True}
+
+
+class SubmitFormPage(FormPage):
+    meta__: ClassVar[JSON] = {"hasNext": False}
+
+
+@router.post("/form")
+async def form(shop_id: UUID, product_id: UUID, form_data: list[dict] = []):
+    def form_generator(state: State):
+        class EmailForm(FormPage):
+            model_config = ConfigDict(title="Form Title Page 1")
+
+            email: EmailStr
+
+        form_data_email = yield EmailForm
+
+        return form_data_email.model_dump()
+
+    post_form(form_generator, state={}, user_inputs=form_data)
+    create_info_request(InfoRequestCreate(email=form_data[0]["email"], product_id=product_id, shop_id=shop_id))
+
+
+# @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
     try:
         logger.info("Saving early access", data=data)
@@ -35,14 +64,14 @@ def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
             )
         return info_request
 
-    except ValidationError as ve:
-        # Log the validation error
-        logger.error("Validation error occurred", error=str(ve), data=data)
-        # Raise 422 for incorrect input format
-        raise HTTPException(
-            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-            detail="Incorrect input format or missing fields in the request.",
-        )
+    # except ValidationError as ve:
+    #     # Log the validation error
+    #     logger.error("Validation error occurred", error=str(ve), data=data)
+    #     # Raise 422 for incorrect input format
+    #     raise HTTPException(
+    #         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+    #         detail="Incorrect input format or missing fields in the request.",
+    #     )
 
     except IntegrityError as ie:
         # Log the duplicate entry error
@@ -53,14 +82,14 @@ def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
             detail="Duplicate entry. The record already exists.",
         )
 
-    except RequestValidationError as rve:
-        # Log the 400 Bad Request error
-        logger.error("Bad request error", error=str(rve), data=data)
-        # Raise 400 for bad requests (malformed or incomplete data)
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail="Malformed request or invalid data.",
-        )
+    # except RequestValidationError as rve:
+    #     # Log the 400 Bad Request error
+    #     logger.error("Bad request error", error=str(rve), data=data)
+    #     # Raise 400 for bad requests (malformed or incomplete data)
+    #     raise HTTPException(
+    #         status_code=HTTPStatus.BAD_REQUEST,
+    #         detail="Malformed request or invalid data.",
+    #     )
 
     except Exception as e:
         # Log the unexpected error

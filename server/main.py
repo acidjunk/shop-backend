@@ -20,6 +20,8 @@ from alembic import command
 from alembic.config import Config
 from fastapi import Request
 from fastapi.applications import FastAPI
+from pydantic_forms.exception_handlers.fastapi import form_error_handler
+from pydantic_forms.exceptions import FormException
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
@@ -92,7 +94,7 @@ app.add_middleware(
     expose_headers=app_settings.CORS_EXPOSE_HEADERS,
 )
 
-# app.add_exception_handler(FormException, form_error_handler)
+app.add_exception_handler(FormException, form_error_handler)
 app.add_exception_handler(ProblemDetailException, problem_detail_handler)
 
 
