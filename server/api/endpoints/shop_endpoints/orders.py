@@ -23,7 +23,6 @@ from server.schemas.account import AccountCreate
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.security import auth_required
 from server.utils.discord.discord import post_discord_order_complete
-from server.utils.discord.settings import DiscordSettings
 
 logger = structlog.get_logger(__name__)
 
@@ -350,7 +349,11 @@ def patch(
         if shop.discord_webhook is not None:
             account = account_crud.get(updated_order.account_id)
             post_discord_order_complete(
-                f"New order from {account.name}", botname=shop.name, webhook=shop.discord_webhook, order=updated_order, email=account.name
+                f"New order from {account.name}",
+                botname=shop.name,
+                webhook=shop.discord_webhook,
+                order=updated_order,
+                email=account.name,
             )
 
     except Exception as e:

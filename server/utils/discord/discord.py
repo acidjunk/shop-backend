@@ -3,10 +3,11 @@ from uuid import UUID
 import httpx
 
 from server.schemas.order import OrderUpdated
-from server.utils.discord.settings import DiscordSettings
 
 
-def post_discord_info_request(content: str, botname: str, webhook: str, email: str, product_name: str, product_id: UUID):
+def post_discord_info_request(
+    content: str, botname: str, webhook: str, email: str, product_name: str, product_id: UUID
+):
     # for all params, see https://discordapp.com/developers/docs/resources/webhook#execute-webhook
     data = {
         "content": content,

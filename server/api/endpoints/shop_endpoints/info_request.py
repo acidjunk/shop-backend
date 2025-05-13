@@ -14,7 +14,6 @@ from server.crud.crud_product import product_crud
 from server.db.models import ShopTable
 from server.schemas.info_request import InfoRequestCreate
 from server.utils.discord.discord import post_discord_info_request
-from server.utils.discord.settings import DiscordSettings
 
 logger = structlog.get_logger(__name__)
 
