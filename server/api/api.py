@@ -16,7 +16,18 @@
 from fastapi import APIRouter, Depends
 
 from server.api import deps
-from server.api.endpoints import downloads, early_access, forms, health, images, licenses, login, shops, users
+from server.api.endpoints import (
+    downloads,
+    early_access,
+    forms,
+    health,
+    images,
+    licenses,
+    login,
+    sentry_test,
+    shops,
+    users,
+)
 from server.api.endpoints.shop_endpoints import (
     accounts,
     categories,
@@ -127,6 +138,12 @@ api_router.include_router(
 )
 
 api_router.include_router(info_request.router, prefix="/info-request", tags=["info-request"])
+
+api_router.include_router(
+    sentry_test.router,
+    prefix="/sentry",
+    tags=["sentry"],
+)
 
 # api_router.include_router(
 #     shops_users.router,

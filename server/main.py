@@ -15,6 +15,7 @@
 import logging
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 import structlog
 from alembic import command
 from alembic.config import Config
@@ -22,6 +23,7 @@ from fastapi import Request
 from fastapi.applications import FastAPI
 from pydantic_forms.exception_handlers.fastapi import form_error_handler
 from pydantic_forms.exceptions import FormException
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
@@ -65,13 +67,15 @@ async def lifespan(app_: FastAPI):
     yield
 
 
+APP_VERSION = "0.2.1"
+
 app = FastAPI(
     title="ShopVirge API",
     description="Backend for ShopVirge Shops.",
     openapi_url="/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
-    version="0.2.1",
+    version=APP_VERSION,
     default_response_class=JSONResponse,
     # root_path="/backend",
     # servers=[
@@ -79,6 +83,14 @@ app = FastAPI(
     # ],
     lifespan=lifespan,
 )
+
+sentry_sdk.init(
+    dsn=app_settings.SENTRY_DSN,
+    traces_sample_rate=1.0,
+    environment=app_settings.ENVIRONMENT,
+    release=f"shopvirge@{APP_VERSION}",
+)
+
 init_database(app_settings)
 
 app.include_router(api_router)
@@ -96,6 +108,8 @@ app.add_middleware(
 
 app.add_exception_handler(FormException, form_error_handler)
 app.add_exception_handler(ProblemDetailException, problem_detail_handler)
+
+app.add_middleware(SentryAsgiMiddleware)
 
 
 @app.router.get("/", response_model=str, response_class=JSONResponse, include_in_schema=False)
