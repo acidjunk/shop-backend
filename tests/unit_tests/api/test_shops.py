@@ -186,6 +186,7 @@ def test_shop_create_config(test_client, shop):
             "alt1_banner": "string",
             "alt2_banner": "string",
             "google_analytics_id": "string",
+            "gradient_percentage": 0,
             "logo": "string",
             "languages": {
                 "main": {
@@ -272,6 +273,8 @@ def test_shop_create_config(test_client, shop):
                 "twitter": "https://example.com/",
                 "facebook": "https://example.com/",
                 "instagram": "https://example.com/",
+                "linkedin": "https://example.com/",
+                "tiktok": "https://example.com/",
             },
             "toggles": {
                 "show_new_products": True,
@@ -301,6 +304,7 @@ def test_shop_update_config(test_client, shop_with_config):
             "alt1_banner": "string",
             "alt2_banner": "string",
             "google_analytics_id": "string",
+            "gradient_percentage": 0,
             "logo": "string",
             "languages": {
                 "main": {
@@ -387,6 +391,8 @@ def test_shop_update_config(test_client, shop_with_config):
                 "twitter": "https://example.com/",
                 "facebook": "https://example.com/",
                 "instagram": "https://example.com/",
+                "linkedin": "https://example.com/",
+                "tiktok": "https://example.com/",
             },
             "toggles": {
                 "show_new_products": True,
