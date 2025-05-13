@@ -66,6 +66,7 @@ async def lifespan(app_: FastAPI):
     run_migrations()
     yield
 
+
 APP_VERSION = "0.2.1"
 
 app = FastAPI(
