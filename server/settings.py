@@ -48,6 +48,10 @@ class AppSettings(BaseSettings):
     AWS_COGNITO_M2M_CLIENT_SECRET: str = "AWS_COGNITO_M2M_CLIENT_SECRET"
     AWS_COGNITO_REGION: str = "eu-central-1"
 
+    # Sentry settings
+    SENTRY_DSN: Optional[str] = None
+    SENTRY_SAMPLE_RATE: float = 1.0  # change to 0.1 for production
+
     # OAUTH settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
     JWT_ALGORITHM: str = "HS256"
