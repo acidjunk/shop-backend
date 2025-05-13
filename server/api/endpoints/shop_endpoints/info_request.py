@@ -13,11 +13,12 @@ from pydantic_forms.core import post_form
 from pydantic_forms.types import JSON, State
 from sqlalchemy.exc import IntegrityError
 
+from server.api.helpers import load
 from server.crud.crud_info_request import info_request_crud
 from server.crud.crud_product import product_crud
+from server.db.models import ShopTable
 from server.schemas.info_request import InfoRequestCreate
 from server.utils.discord.discord import post_discord_info_request
-from server.utils.discord.settings import co2_shop_settings
 
 logger = structlog.get_logger(__name__)
 
@@ -53,15 +54,22 @@ def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
     try:
         logger.info("Saving early access", data=data)
         info_request = info_request_crud.create(obj_in=data)
-        if str(data.shop_id) == "d3c745bc-285f-4810-9612-6fbb8a84b125":
-            product = product_crud.get_id_by_shop_id(data.shop_id, data.product_id)
-            post_discord_info_request(
-                f"New info request from {data.email} about product: {product.translation.main_name}",
-                settings=co2_shop_settings,
-                email=data.email,
-                product_name=product.translation.main_name,
-                product_id=data.product_id,
-            )
+
+        try:
+            shop = load(ShopTable, data.shop_id)
+            if shop.discord_webhook is not None:
+                product = product_crud.get_id_by_shop_id(data.shop_id, data.product_id)
+                post_discord_info_request(
+                    f"New info request from {data.email} about product: {product.translation.main_name}",
+                    botname=shop.name,
+                    webhook=shop.discord_webhook,
+                    email=data.email,
+                    product_name=product.translation.main_name,
+                    product_id=data.product_id,
+                )
+        except Exception as e:
+            logger.error("Failed to post to Discord: ", error=str(e))
+
         return info_request
 
     # except ValidationError as ve:

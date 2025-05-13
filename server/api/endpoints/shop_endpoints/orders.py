@@ -14,17 +14,16 @@ from starlette.responses import Response
 from server.api import deps
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
-from server.api.helpers import _query_with_filters, invalidateCompletedOrdersCache, invalidatePendingOrdersCache
+from server.api.helpers import _query_with_filters, invalidateCompletedOrdersCache, invalidatePendingOrdersCache, load
 from server.api.utils import is_ip_allowed, validate_uuid4
 from server.crud.crud_account import account_crud
 from server.crud.crud_order import order_crud
 from server.crud.crud_shop import shop_crud
-from server.db.models import Account, OrderTable, UserTable
+from server.db.models import Account, OrderTable, ShopTable, UserTable
 from server.schemas.account import AccountCreate
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.security import auth_required
 from server.utils.discord.discord import post_discord_order_complete
-from server.utils.discord.settings import co2_shop_settings
 
 logger = structlog.get_logger(__name__)
 
@@ -346,11 +345,20 @@ def patch(
         id=order.id,
     )
 
-    if str(updated_order.shop_id) == "d3c745bc-285f-4810-9612-6fbb8a84b125":
-        account = account_crud.get(updated_order.account_id)
-        post_discord_order_complete(
-            f"New order from {account.name}", settings=co2_shop_settings, order=updated_order, email=account.name
-        )
+    try:
+        shop = load(ShopTable, updated_order.shop_id)
+        if shop.discord_webhook is not None:
+            account = account_crud.get(updated_order.account_id)
+            post_discord_order_complete(
+                f"New order from {account.name}",
+                botname=shop.name,
+                webhook=shop.discord_webhook,
+                order=updated_order,
+                email=account.name,
+            )
+
+    except Exception as e:
+        logger.error("Failed to post to Discord: ", error=str(e))
 
     invalidateCompletedOrdersCache(updated_order.id)
     return updated_order
