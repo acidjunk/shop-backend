@@ -146,6 +146,8 @@ class ConfigurationContact(BoilerplateBaseModel):
     twitter: str | None = None
     facebook: str | None = None
     instagram: str | None = None
+    linkedin: str | None = None
+    tiktok: str | None = None
 
 
 class Toggles(BoilerplateBaseModel):
@@ -165,6 +167,7 @@ class ConfigurationV1(BoilerplateBaseModel):
     main_banner: str
     alt1_banner: str | None = None
     alt2_banner: str | None = None
+    gradient_percentage: int = 75
     languages: ConfigurationLanguages
     google_analytics_id: str | None = None
     contact: ConfigurationContact
