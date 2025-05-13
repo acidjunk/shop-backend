@@ -35,12 +35,6 @@ from server.settings import app_settings
 
 # from server.version import GIT_COMMIT_HASH
 
-sentry_sdk.init(
-    dsn=app_settings.SENTRY_DSN,
-    traces_sample_rate=1.0,
-    environment=app_settings.ENVIRONMENT,
-    release="shop-backend@0.2.1"
-)
 
 structlog.configure(
     processors=[
@@ -72,19 +66,28 @@ async def lifespan(app_: FastAPI):
     yield
 
 
+APP_VERSION = "0.2.1"
+
 app = FastAPI(
     title="ShopVirge API",
     description="Backend for ShopVirge Shops.",
     openapi_url="/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
-    version="0.2.1",
+    version=APP_VERSION,
     default_response_class=JSONResponse,
     # root_path="/backend",
     # servers=[
     #     {"url": "/"},
     # ],
     lifespan=lifespan,
+)
+
+sentry_sdk.init(
+    dsn=app_settings.SENTRY_DSN,
+    traces_sample_rate=1.0,
+    environment=app_settings.ENVIRONMENT,
+    release=f"shopvirge@{APP_VERSION}",
 )
 init_database(app_settings)
 
@@ -105,6 +108,7 @@ app.add_middleware(
 app.add_exception_handler(ProblemDetailException, problem_detail_handler)
 
 app.add_middleware(SentryAsgiMiddleware)
+
 
 @app.router.get("/", response_model=str, response_class=JSONResponse, include_in_schema=False)
 def index() -> str:

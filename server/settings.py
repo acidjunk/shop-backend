@@ -50,7 +50,7 @@ class AppSettings(BaseSettings):
 
     # Sentry settings
     SENTRY_DSN: Optional[str] = None
-    SENTRY_SAMPLE_RATE: float = 1.0  #change to 0.1 for production
+    SENTRY_SAMPLE_RATE: float = 1.0  # change to 0.1 for production
 
     # OAUTH settings
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
