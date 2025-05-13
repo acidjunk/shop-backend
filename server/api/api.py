@@ -16,7 +16,18 @@
 from fastapi import APIRouter, Depends
 
 from server.api import deps
-from server.api.endpoints import downloads, early_access, forms, health, images, licenses, login, shops, users, sentry_test
+from server.api.endpoints import (
+    downloads,
+    early_access,
+    forms,
+    health,
+    images,
+    licenses,
+    login,
+    sentry_test,
+    shops,
+    users,
+)
 from server.api.endpoints.shop_endpoints import (
     accounts,
     categories,

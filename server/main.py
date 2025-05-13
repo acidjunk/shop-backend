@@ -23,10 +23,10 @@ from fastapi import Request
 from fastapi.applications import FastAPI
 from pydantic_forms.exception_handlers.fastapi import form_error_handler
 from pydantic_forms.exceptions import FormException
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
 from server.api.api import api_router
 from server.api.error_handling import ProblemDetailException

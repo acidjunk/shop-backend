@@ -1,10 +1,10 @@
-from http import HTTPStatus
-from fastapi import APIRouter
-import structlog
 import os
-import httpx
 import time
+from http import HTTPStatus
 
+import httpx
+import structlog
+from fastapi import APIRouter
 from sentry_sdk import capture_exception
 
 logger = structlog.get_logger(__name__)
