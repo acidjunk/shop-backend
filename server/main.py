@@ -15,13 +15,13 @@
 import logging
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 import structlog
 from alembic import command
 from alembic.config import Config
 from fastapi import Request
 from fastapi.applications import FastAPI
-from pydantic_forms.exception_handlers.fastapi import form_error_handler
-from pydantic_forms.exceptions import FormException
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
@@ -34,6 +34,13 @@ from server.exception_handlers.generic_exception_handlers import problem_detail_
 from server.settings import app_settings
 
 # from server.version import GIT_COMMIT_HASH
+
+sentry_sdk.init(
+    dsn=app_settings.SENTRY_DSN,
+    traces_sample_rate=1.0,
+    environment=app_settings.ENVIRONMENT,
+    release="shop-backend@0.2.1"
+)
 
 structlog.configure(
     processors=[
@@ -94,9 +101,10 @@ app.add_middleware(
     expose_headers=app_settings.CORS_EXPOSE_HEADERS,
 )
 
-app.add_exception_handler(FormException, form_error_handler)
+# app.add_exception_handler(FormException, form_error_handler)
 app.add_exception_handler(ProblemDetailException, problem_detail_handler)
 
+app.add_middleware(SentryAsgiMiddleware)
 
 @app.router.get("/", response_model=str, response_class=JSONResponse, include_in_schema=False)
 def index() -> str:
