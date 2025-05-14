@@ -67,7 +67,7 @@ async def lifespan(app_: FastAPI):
     yield
 
 
-APP_VERSION = "0.2.1"
+APP_VERSION = "0.2.2"
 
 app = FastAPI(
     title="ShopVirge API",
