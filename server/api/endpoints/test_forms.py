@@ -46,6 +46,12 @@ class ListChoices(Choice):
 TestString = Annotated[str, Field(min_length=2, max_length=10)]
 
 
+class Person(BaseModel):
+    name: str
+    age: Annotated[int, Ge(18), Le(99), MultipleOf(multiple_of=3)]
+    education: Education
+
+
 @router.post("/")
 async def form(form_data: list[dict] = []):
     def form_generator(state: State):
@@ -60,6 +66,14 @@ async def form(form_data: list[dict] = []):
             select: ListChoices
 
         form_data_email = yield TestForm
+
+        class SecondForm(FormPage):
+            # todo; check if it works without a title.
+            discover_date: datetime
+            names: list[str]
+            persons: list[Person]
+
+        form_second = yield SecondForm
 
         return form_data_email.model_dump()
 
