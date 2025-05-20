@@ -1,9 +1,10 @@
+from datetime import datetime
 from typing import Annotated, ClassVar
 
 import structlog
-from annotated_types import Predicate
+from annotated_types import Ge, Le, MultipleOf, Predicate
 from fastapi import APIRouter
-from pydantic import ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from pydantic_forms.core import FormPage
 from pydantic_forms.core import FormPage as PydanticFormsFormPage
 from pydantic_forms.core import post_form
@@ -46,6 +47,11 @@ class ListChoices(Choice):
 TestString = Annotated[str, Field(min_length=2, max_length=10)]
 
 
+class Education(BaseModel):
+    degree: str
+    years: int | None
+
+
 class Person(BaseModel):
     name: str
     age: Annotated[int, Ge(18), Le(99), MultipleOf(multiple_of=3)]
@@ -70,11 +76,11 @@ async def form(form_data: list[dict] = []):
         class SecondForm(FormPage):
             # todo; check if it works without a title.
             discover_date: datetime
-            names: list[str]
-            persons: list[Person]
+            people: list[Person]
+            singular_person: Person
 
         form_second = yield SecondForm
 
-        return form_data_email.model_dump()
+        return form_data_email.model_dump() | form_second.model_dump()
 
     post_form(form_generator, state={}, user_inputs=form_data)
