@@ -1,0 +1,140 @@
+<mxfile host="Electron" modified="2025-05-09T10:23:41.702Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.2.8 Chrome/112.0.5615.165 Electron/24.2.0 Safari/537.36" etag="FpgtgxdA1XscfC7JvlJ3" version="21.2.8" type="device">
+  <diagram name="Page-1" id="Nc4lEZVA_qrP2W-vn1WD">
+    <mxGraphModel dx="2580" dy="4068" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="JnNU4JoyASaepBQ7OCUn-9" target="JnNU4JoyASaepBQ7OCUn-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="510" y="700" />
+              <mxPoint x="510" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-7" value="Reads from and write to&amp;nbsp;&lt;br&gt;[SQL]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="JnNU4JoyASaepBQ7OCUn-6">
+          <mxGeometry x="0.1267" y="-2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-9" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;&lt;b&gt;Main Shop Backend&lt;br&gt;&lt;/b&gt;[Container: FastApi Python]&lt;br&gt;Provides web store functionality via JSON/HTTPS API.&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="440" width="320" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-10" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;&lt;b&gt;Shop Databse&lt;br&gt;&lt;/b&gt;[Container: Postgress]&lt;br&gt;&lt;br&gt;Sores data for the shop&amp;nbsp;&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+          <mxGeometry x="370" y="760" width="280" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-11" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;&lt;b&gt;WFO Databse&lt;br&gt;&lt;/b&gt;[Container: Postgress]&lt;br&gt;&lt;br&gt;Sores data for the WFO&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" vertex="1" parent="1">
+          <mxGeometry x="890" y="760" width="280" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-12" value="&lt;div&gt;Reads from and write to&amp;nbsp;&lt;/div&gt;&lt;div&gt;[SQL]&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="JnNU4JoyASaepBQ7OCUn-16" target="JnNU4JoyASaepBQ7OCUn-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="JnNU4JoyASaepBQ7OCUn-16" target="JnNU4JoyASaepBQ7OCUn-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-14" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Uses shop API&lt;br&gt;for Workflows&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="JnNU4JoyASaepBQ7OCUn-13">
+          <mxGeometry x="0.2055" y="-5" relative="1" as="geometry">
+            <mxPoint x="13" y="35" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-16" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;&lt;b&gt;WFO (Workflow Orchestrator) Backend&lt;br&gt;&lt;/b&gt;[Container: FastApi Python]&lt;br&gt;Provides Workflow functionality via JSON/HTTPS API.&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="870" y="440" width="320" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-20" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" edge="1" parent="1">
+          <mxGeometry x="-0.0278" y="90" width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1360" y="1080" as="sourcePoint" />
+            <mxPoint x="1360" y="360" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-21" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="360" as="sourcePoint" />
+            <mxPoint x="1360" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-23" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="1080" as="sourcePoint" />
+            <mxPoint x="240" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-24" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="1080" as="sourcePoint" />
+            <mxPoint x="1360" y="1080" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-25" value="&lt;b style=&quot;border-color: rgb(0, 0, 0); color: rgb(240, 240, 240); font-family: Helvetica; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(42, 37, 47); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;Shop Backend&lt;br style=&quot;border-color: rgb(0, 0, 0);&quot;&gt;&lt;/b&gt;&lt;span style=&quot;color: rgb(240, 240, 240); font-family: Helvetica; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(42, 37, 47); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;[Container: FastApi Python]&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="1000" width="250" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="JnNU4JoyASaepBQ7OCUn-27" target="JnNU4JoyASaepBQ7OCUn-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-27" value="&lt;font style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;WFO Frontend&lt;br&gt;[Container: Next]&lt;br&gt;Admin UI for triggering and monitoring workflows. Connects to WFO Backend.&lt;/font&gt;&lt;br&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="870" y="-198.17999999999995" width="320" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-28" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1360" y="161.82000000000005" as="sourcePoint" />
+            <mxPoint x="1360" y="-558.18" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="JnNU4JoyASaepBQ7OCUn-32" target="JnNU4JoyASaepBQ7OCUn-9">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="150" y="-410" />
+              <mxPoint x="150" y="540" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-30" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Makes API calls&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="JnNU4JoyASaepBQ7OCUn-29">
+          <mxGeometry x="0.0791" y="-1" relative="1" as="geometry">
+            <mxPoint x="-9" y="101" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-32" value="&lt;font style=&quot;&quot;&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;&lt;b style=&quot;&quot;&gt;Shop Instances&lt;/b&gt;&lt;br&gt;[Container: Next]&lt;br&gt;Public shop UI for browsing, subscribing, or purchasing. Connects to Shop Backend.&lt;/font&gt;&lt;br&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="-510" width="320" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-33" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="-560" as="sourcePoint" />
+            <mxPoint x="1360" y="-560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-34" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="160" as="sourcePoint" />
+            <mxPoint x="240" y="-560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="JnNU4JoyASaepBQ7OCUn-37" target="JnNU4JoyASaepBQ7OCUn-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-36" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Makes API calls&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="JnNU4JoyASaepBQ7OCUn-35">
+          <mxGeometry x="-0.1" y="-6" relative="1" as="geometry">
+            <mxPoint x="-74" y="42" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-37" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;&lt;b&gt;Shop Editor&lt;/b&gt;&lt;br&gt;[Container: Next]&lt;br&gt;Admin and shop owner UI for managing products, content, and settings. Connects to Shop Backend.&lt;br&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="-199.99999999999994" width="320" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-38" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="160" as="sourcePoint" />
+            <mxPoint x="1360" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-39" value="&lt;b style=&quot;border-color: rgb(0, 0, 0); color: rgb(240, 240, 240); font-family: Helvetica; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; font-size: 18px; text-align: center; background-color: rgb(42, 37, 47);&quot;&gt;Shop Frontend&lt;br style=&quot;border-color: rgb(0, 0, 0);&quot;&gt;&lt;/b&gt;&lt;span style=&quot;border-color: rgb(0, 0, 0); color: rgb(240, 240, 240); font-family: Helvetica; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; font-size: 18px; text-align: center; background-color: rgb(42, 37, 47); float: none; display: inline !important;&quot;&gt;[Container: Next]&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="90" width="250" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-40" value="&lt;span style=&quot;color: rgb(240, 240, 240); font-family: Helvetica; font-size: 18px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(24, 20, 29); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;Makes API calls&lt;/span&gt;" style="text;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="220" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="JnNU4JoyASaepBQ7OCUn-44" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Makes API calls&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="1309.9999999999995" y="410.0009090909085" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
