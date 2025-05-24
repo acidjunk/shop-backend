@@ -1,12 +1,11 @@
 from http import HTTPStatus
-from typing import Annotated, Any, ClassVar
+from typing import Any, ClassVar
 from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, HTTPException
-from fastapi.exceptions import RequestValidationError
 from fastapi.param_functions import Body
-from pydantic import ConfigDict, EmailStr, ValidationError
+from pydantic import ConfigDict, EmailStr
 from pydantic_forms.core import FormPage
 from pydantic_forms.core import FormPage as PydanticFormsFormPage
 from pydantic_forms.core import post_form

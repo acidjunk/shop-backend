@@ -26,6 +26,7 @@ from server.api.endpoints import (
     login,
     sentry_test,
     shops,
+    test_forms,
     users,
 )
 from server.api.endpoints.shop_endpoints import (
@@ -143,6 +144,11 @@ api_router.include_router(
     sentry_test.router,
     prefix="/sentry",
     tags=["sentry"],
+)
+api_router.include_router(
+    test_forms.router,
+    prefix="/test-forms",
+    tags=["test-forms"],
 )
 
 # api_router.include_router(
