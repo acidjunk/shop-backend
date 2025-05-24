@@ -5,6 +5,7 @@ import structlog
 from annotated_types import Ge, Le, MultipleOf, Predicate
 from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic_extra_types.phone_numbers import PhoneNumber
 from pydantic_forms.core import FormPage
 from pydantic_forms.core import FormPage as PydanticFormsFormPage
 from pydantic_forms.core import post_form
@@ -42,9 +43,11 @@ class ListChoices(Choice):
     _4 = ("4", "Option 4")
     _5 = ("5", "Option 5")
     _6 = ("6", "Option 6")
+    _7 = ("7", "Option 7")
+    _8 = ("8", "Option 8")
 
 
-TestString = Annotated[str, Field(min_length=2, max_length=10)]
+TestString = Annotated[str, Field(min_length=2, max_length=50)]
 
 
 class Education(BaseModel):
@@ -67,14 +70,15 @@ async def form(form_data: list[dict] = []):
             email: EmailStr
             number: int
             check: bool
-            # textList: unique_conlist(TestString, min_items=1, max_items=5)
-            # numberList: TestExampleNumberList
             select: ListChoices
+            radio: ListChoices
+            multi: ListChoices
+            phone: PhoneNumber
+            textarea: TestString
 
         form_data_email = yield TestForm
 
         class SecondForm(FormPage):
-            # todo; check if it works without a title.
             discover_date: datetime
             people: list[Person]
             singular_person: Person
