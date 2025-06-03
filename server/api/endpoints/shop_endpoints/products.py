@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from http import HTTPStatus
 from typing import Any, List, Optional
 from uuid import UUID
@@ -113,6 +114,8 @@ def update(*, product_id: UUID, shop_id: UUID, item_in: ProductUpdate) -> Any:
     logger.info("Updating product", data=product)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+
+    item_in.modified_at = datetime.now(timezone.utc)
 
     product = product_crud.update(
         db_obj=product,
