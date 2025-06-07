@@ -197,7 +197,7 @@ class AuthSetting(BaseSettings):
 
 
 class MailSettings(BaseSettings):
-    MAIL_ENABLED: bool = False
+    MAIL_ENABLED: bool = True
 
     MAIL_BCC: str = "support@pricelist.info"
     MAIL_FROM: str = "support@pricelist.info"

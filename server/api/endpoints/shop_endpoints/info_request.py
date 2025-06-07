@@ -73,7 +73,7 @@ def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
             logger.error("Failed to post to Discord: ", error=str(e))
 
         if mail_settings.SHOP_MAIL_ENABLED:
-            contact_persons = [MailAddress(email=data.email, name="Customer")]
+            contact_persons = [MailAddress(email=data.email, name="")]
             confirmation_mail = generate_confirmation_mail(
                 product, MailType.INFO, shop.name, contact_persons, None, None
             )

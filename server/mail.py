@@ -40,7 +40,7 @@ IMAGES_SHOP_VIRGE = [
 def get_template_for_product_summary(filename: str) -> jinja2.Template:
     env = template_environment(loader)
     return env.get_template(
-        os.path.join("product_types", filename),
+        f"product_types/{filename}",
         globals={
             "generate_product_summary": generate_product_summary,
         },
@@ -269,13 +269,13 @@ def generate_confirmation_mail(
     subject = _generate_subject(
         mail_type, product=product.translation.main_name, shop=shop_name, language=language, ticket_id=ticket_id
     )
-    # summary = generate_product_summary(product, extra_content)
+    summary = generate_product_summary(ProductBase.from_orm(product), extra_content)
 
     contact_names = ", ".join([contact["name"] for contact in contacts])
 
     match mail_type:
         case MailType.INFO:
-            body = _generate_mail_intro_for_product_info(contact_names, product, language, "", nowtz())
+            body = _generate_mail_intro_for_product_info(contact_names, product, language, summary, nowtz())
         case _:
             raise ValueError(f"Unsupported target: {mail_type}")
 
@@ -294,7 +294,7 @@ def generate_confirmation_mail(
 
 
 @singledispatch
-def generate_product_summary(product: ProductBase, extra_content: str | None = None) -> str:
+def generate_product_summary(model: ProductBase, extra_content: str | None = None) -> str:
     """Generate and return a HTML representation of a product summary.
 
     Specific implementations of this generic function will specify the model types they work on. For
@@ -314,63 +314,53 @@ def generate_product_summary(product: ProductBase, extra_content: str | None = N
         ValueError: in case error occurred whilst resource types couldn't be resolved in external systems.
 
     """
-    return single_dispatch_base(generate_product_summary, product, extra_content)
+    return single_dispatch_base(generate_product_summary, model, extra_content)
 
 
-# @generate_product_summary.register
-# def shop_product_summary(subscription: ShopProvisioning, extra_content: str | None = None) -> str:
-#     """Create and return an ConfirmationMail for :class:`~products.product_types.ntd.NtdProvisioning`.
-#
-#     Args:
-#         model: NtdProvisioning
-#         extra_content: Optional str to add extra text above the summary
-#         kwargs: Extra arguments, only to be signature compatible
-#
-#     Returns: HTML string
-#     """
-#     labels = {
-#         # section headers
-#         "title": "Samenvatting van de bij ons bekende Shop gegevens:",
-#         "shop": "Shop",
-#         "deployment": "Hosting",
-#         "contact": "Contact details",
-#         # data fields
-#         "internal_fqdn": "Intern adres",
-#         "external_fqdn": "Extern adres",
-#         "shop_description": "Beschrijving",
-#         "shop_name": "Ticket Status",
-#         "company_name": "Bedrijfsnaam",
-#         "billing_contact": "Facturatie contact persoon",
-#         "billing_email": "Facturatie email",
-#     }
-#     # Map domain model data to labels
-#     data = {
-#         "internal_fqdn": subscription.shop.aws.aws_internal_url,
-#         "external_fqdn": subscription.shop.aws.aws_external_url,
-#         "shop_description": subscription.shop.shop_description,
-#         "shop_name": subscription.shop.shop_name,
-#         "company_name": subscription.shop.customer.company_name,
-#         "billing_contact": subscription.shop.customer.billing_contact_name,
-#         "billing_email": subscription.shop.customer.billing_contact_email,
-#     }
-#
-#     # Group data in to sections
-#     section_fields = {
-#         "shop": ["shop_name", "shop_description"],
-#         "deployment": ["internal_fqdn", "external_fqdn"],
-#         "contact": ["company_name", "billing_contact", "billing_email"],
-#     }
-#     sections = ["shop", "deployment", "contact"]
-#
-#     template = get_template_for_product_summary("shop_summary.html.j2")
-#     return template.render(
-#         subscription=subscription.model_dump(),
-#         sections=sections,
-#         section_fields=section_fields,
-#         data=data,
-#         labels=labels,
-#         extra_content=extra_content,
-#     )
+@generate_product_summary.register
+def shop_product_summary(product: ProductBase, extra_content: str | None = None) -> str:
+    """Create and return an ConfirmationMail for :class:`~products.product_types.ntd.NtdProvisioning`.
+
+    Args:
+        model: NtdProvisioning
+        extra_content: Optional str to add extra text above the summary
+        kwargs: Extra arguments, only to be signature compatible
+
+    Returns: HTML string
+    """
+    labels = {
+        # section headers
+        "title": product.translation.main_name,
+        "product": "Product",
+        # data fields
+        "name": "Naam",
+        "short_description": "Korte Beschrijving",
+        "price": "Prijs",
+        "category": "Categorie",
+    }
+    # Map domain model data to labels
+    data = {
+        "name": product.translation.main_name,
+        "short_description": product.translation.main_description_short,
+        "price": product.price,
+        "category": product.category_id,
+    }
+
+    # Group data in to sections
+    section_fields = {
+        "product": ["name", "short_description", "price", "category"],
+    }
+    sections = ["product"]
+
+    template = get_template_for_product_summary("product_summary.html.j2")
+    return template.render(
+        subscription=product.model_dump(),
+        sections=sections,
+        section_fields=section_fields,
+        data=data,
+        labels=labels,
+        extra_content=extra_content,
+    )
 
 
 # @generate_product_summary.register
