@@ -1,0 +1,40 @@
+{% set summaryBgColor = "#D6F1E9" %}
+
+{% import 'macros.html.j2' as m %}
+
+<div class="summary-wrap" style="border-top: 1px solid {{summaryBgColor}}; padding: 50px 50px 0; margin: 50px -50px 0;">
+
+<strong>{{labels["title"]}}</strong>
+<p>You registered yourself on the early subscribers list.</p>
+
+{% if extra_content %}
+<p>{{extra_content}}</p>
+{% endif %}
+
+<div class="summary-block" style="background: {{summaryBgColor}}; padding: 30px; margin-top: 30px;">
+{% for section in sections %}
+  <table style="width: 100%;">
+    <thead>
+      <tr>
+        <th colspan="2">
+          <strong>{{labels[section]}}</strong>
+        </th>
+      </tr>
+    </thead>
+    <tbody>  
+      {% for field in section_fields[section] %}
+        <tr>
+          <td style="width: 40%">
+            {{labels[field]}}
+          </td>
+          <td style="padding-left: 5px">
+            {{data[field]}}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endfor %}
+</div>
+
+</div>

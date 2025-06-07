@@ -1,0 +1,21 @@
+{% set title = 'ShopVirge Product Info Aanvraag' %}
+{% set welcome_text = 'Iemand heeft een vraag over jouw product' %}
+
+{% import 'macros.html.j2' as m %}
+{% extends "default_layout.html.j2" %}
+
+{% block content %}
+<div>
+    <p>Beste {{contact_names}},</p>
+
+    <p>Iemand heeft een vraag over jouw product. Zie toegevoegde email adressen.</p>
+
+    <p>
+         Hieronder een samenvatting van het product.
+    </p>
+
+    {{ summary | safe }}
+
+    {{ m.kind_regards_with_faq_nl() }}
+</div>
+{% endblock %}

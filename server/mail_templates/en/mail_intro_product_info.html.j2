@@ -1,0 +1,21 @@
+{% set title = 'ShopVirge Product Info Request' %}
+{% set welcome_text = 'Someone has a question about your product' %}
+
+{% import 'macros.html.j2' as m %}
+{% extends "default_layout.html.j2" %}
+
+{% block content %}
+<div>
+    <p>Dear {{contact_names}},</p>
+
+    <p>Someone has a question about your product. See included email addresses.</p>
+
+    <p>
+         Below is a summary of the product.
+    </p>
+
+    {{ summary | safe }}
+
+    {{ m.kind_regards_with_faq() }}
+</div>
+{% endblock %}

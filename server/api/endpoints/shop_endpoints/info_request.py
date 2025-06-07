@@ -16,8 +16,11 @@ from server.api.helpers import load
 from server.crud.crud_info_request import info_request_crud
 from server.crud.crud_product import product_crud
 from server.db.models import ShopTable
+from server.mail import generate_confirmation_mail, send_mail
 from server.schemas.info_request import InfoRequestCreate
+from server.settings import mail_settings
 from server.utils.discord.discord import post_discord_info_request
+from server.utils.types import MailAddress, MailType
 
 logger = structlog.get_logger(__name__)
 
@@ -53,11 +56,11 @@ def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
     try:
         logger.info("Saving early access", data=data)
         info_request = info_request_crud.create(obj_in=data)
+        product = product_crud.get_id_by_shop_id(data.shop_id, data.product_id)
+        shop = load(ShopTable, data.shop_id)
 
         try:
-            shop = load(ShopTable, data.shop_id)
             if shop.discord_webhook is not None:
-                product = product_crud.get_id_by_shop_id(data.shop_id, data.product_id)
                 post_discord_info_request(
                     f"New info request from {data.email} about product: {product.translation.main_name}",
                     botname=shop.name,
@@ -68,6 +71,16 @@ def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
                 )
         except Exception as e:
             logger.error("Failed to post to Discord: ", error=str(e))
+
+        if mail_settings.SHOP_MAIL_ENABLED:
+            contact_persons = [MailAddress(email=data.email, name="")]
+            confirmation_mail = generate_confirmation_mail(
+                product, MailType.INFO, shop.name, contact_persons, None, None
+            )
+            logger.info("Sending info mail", email=data.email)
+            send_mail(confirmation_mail)
+        else:
+            logger.info("Sending the email is disabled for this specific step, not actually sending it.")
 
         return info_request
 
