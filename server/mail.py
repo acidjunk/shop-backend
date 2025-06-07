@@ -183,10 +183,9 @@ def _generate_mail_intro_for_product_info(
 ) -> str:
     env = template_environment(loader)
     template_file = "mail_intro_product_info.html.j2"
-    template = env.get_template(os.path.join(language.lower(), template_file))
-
+    template = env.get_template(f"{language.lower()}/{template_file}")
     return template.render(
-        subscription=product.model_dump(),
+        subscription=ProductBase.from_orm(product),
         contact_names=contact_names,
         info_link=INFO_LINK,
         summary=summary,

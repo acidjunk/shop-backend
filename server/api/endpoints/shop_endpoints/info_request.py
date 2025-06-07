@@ -19,8 +19,8 @@ from server.db.models import ShopTable
 from server.mail import generate_confirmation_mail, send_mail
 from server.schemas.info_request import InfoRequestCreate
 from server.settings import mail_settings
-from server.utils.types import MailAddress, MailType
 from server.utils.discord.discord import post_discord_info_request
+from server.utils.types import MailAddress, MailType
 
 logger = structlog.get_logger(__name__)
 
@@ -72,10 +72,11 @@ def create_info_request(data: InfoRequestCreate = Body(...)) -> Any:
         except Exception as e:
             logger.error("Failed to post to Discord: ", error=str(e))
 
-        contact_persons = [MailAddress(email=data.email, name="")]
-
-        confirmation_mail = generate_confirmation_mail(product, MailType.INFO, shop.name, contact_persons, None, None)
         if mail_settings.SHOP_MAIL_ENABLED:
+            contact_persons = [MailAddress(email=data.email, name="Customer")]
+            confirmation_mail = generate_confirmation_mail(
+                product, MailType.INFO, shop.name, contact_persons, None, None
+            )
             logger.info("Sending info mail", email=data.email)
             send_mail(confirmation_mail)
         else:
