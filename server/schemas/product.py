@@ -14,6 +14,8 @@ from datetime import datetime
 from typing import List, Optional, Union
 from uuid import UUID
 
+from pydantic import ConfigDict
+
 from server.schemas.base import BoilerplateBaseModel
 from server.schemas.price import DefaultPrice
 
@@ -23,6 +25,8 @@ class ProductEmptyBase(BoilerplateBaseModel):
 
 
 class ProductTranslationBase(BoilerplateBaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     main_name: str
     main_description: str
     main_description_short: str
@@ -35,6 +39,8 @@ class ProductTranslationBase(BoilerplateBaseModel):
 
 
 class ProductBase(BoilerplateBaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     shop_id: UUID
     category_id: UUID
     price: Optional[float] = None

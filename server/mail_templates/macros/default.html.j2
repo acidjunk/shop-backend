@@ -1,0 +1,19 @@
+{% set primaryColor = "#a6e2d0" %}
+
+{% macro bar(title) -%}
+    <table class="horizontal-bar" width='100%' border='0' cellspacing='0' cellpadding='0' role='presentation' style="background-color:{{primaryColor}}; color: #000; line-height: 1.4;">
+        <tr>
+            <td style="padding: 0 50px;" height="50">
+              {{title}}
+            </td>
+        </tr>
+    </table>
+{%- endmacro %}
+
+{% macro banner() %}
+  <img class="banner-image" width="1248" height="350" style="width: 100%; height: auto;" src='cid:bannerimg' alt="ShopVirge banner" border='0'/>
+{% endmacro %}
+
+{% macro logo() %}
+  <img  height='125' width='314' alt='ShopVirge' src='cid:headerimg' border='0' style="margin-top:-1px;"/>
+{% endmacro %}

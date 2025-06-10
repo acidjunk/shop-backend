@@ -15,6 +15,7 @@ import secrets
 import string
 from typing import Any, Dict, List, Optional
 
+import jinja2
 from pydantic import ValidationInfo, field_validator
 from pydantic.networks import EmailStr, PostgresDsn
 from pydantic_settings import BaseSettings
@@ -195,4 +196,37 @@ class AuthSetting(BaseSettings):
     }
 
 
+class MailSettings(BaseSettings):
+    MAIL_ENABLED: bool = True
+
+    MAIL_BCC: str = "support@pricelist.info"
+    MAIL_FROM: str = "support@pricelist.info"
+
+    # These shadow/override Orchestrator Core settings: added for readability
+    MAIL_SERVER: str = "localhost"
+    MAIL_PORT: int = 1025  # default to Mailhog, see Readme for setup instructions
+    MAIL_STARTTLS: bool = False
+    MAIL_INFO_NAME: str = "More info"
+    MAIL_INFO_LINK: str = "https://shop.pricelist.info"
+
+    SHOP_MAIL_ENABLED: bool = False
+
+
+def template_environment(loader: jinja2.BaseLoader) -> jinja2.Environment:
+    """Return a safe jinja2 environment to render a template.
+
+    Args:
+        loader: A loader.
+
+    Return:
+    --
+        Jinja2 Environment
+
+    """
+    return jinja2.Environment(
+        loader=loader, autoescape=True, lstrip_blocks=True, trim_blocks=True, undefined=jinja2.StrictUndefined
+    )
+
+
 auth_settings = AuthSetting()
+mail_settings = MailSettings()
