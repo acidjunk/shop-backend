@@ -73,9 +73,7 @@ api_router.include_router(
 
 # SHOP specific endpoints
 api_router.include_router(shops.router, prefix="/shops", tags=["shops"])
-api_router.include_router(
-    prices.router, prefix="/shops/{shop_id}/prices", tags=["shops"]
-)
+api_router.include_router(prices.router, prefix="/shops/{shop_id}/prices", tags=["shops"])
 api_router.include_router(
     orders.router,
     prefix="/orders",
@@ -144,9 +142,7 @@ api_router.include_router(
     dependencies=[Depends(auth_required)],
 )
 
-api_router.include_router(
-    info_request.router, prefix="/info-request", tags=["info-request"]
-)
+api_router.include_router(info_request.router, prefix="/info-request", tags=["info-request"])
 
 api_router.include_router(
     sentry_test.router,
