@@ -209,7 +209,7 @@ class MailSettings(BaseSettings):
     MAIL_INFO_NAME: str = "More info"
     MAIL_INFO_LINK: str = "https://shop.pricelist.info"
 
-    SHOP_MAIL_ENABLED: bool = True
+    SHOP_MAIL_ENABLED: bool = False
 
 
 def template_environment(loader: jinja2.BaseLoader) -> jinja2.Environment:
