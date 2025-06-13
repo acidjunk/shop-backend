@@ -19,6 +19,7 @@ from server.api import deps
 from server.api.endpoints import (
     downloads,
     early_access,
+    faq,
     forms,
     health,
     images,
@@ -150,6 +151,8 @@ api_router.include_router(
     prefix="/test-forms",
     tags=["test-forms"],
 )
+
+api_router.include_router(faq.router, prefix="/faq", tags=["faq"])
 
 # api_router.include_router(
 #     shops_users.router,
