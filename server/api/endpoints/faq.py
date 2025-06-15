@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from typing import Any
+from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, HTTPException
@@ -8,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 
 from server.crud.crud_faq import faq_crud
 from server.db.models import FaqTable
-from server.schemas.faq import FaqCreate, FaqCreated
+from server.schemas.faq import FaqCreate, FaqCreated, FaqUpdate, FaqUpdated
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
@@ -42,4 +43,44 @@ def create(data: FaqCreate = Body(...)) -> Any:
         raise HTTPException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             detail=f"Internal server error: {str(e)}",
+        )
+
+
+@router.put("/{faq_id}", response_model=FaqUpdated, status_code=HTTPStatus.CREATED)
+def update(*, faq_id: UUID, item_in: FaqUpdate) -> FaqUpdated:
+    try:
+        faq = faq_crud.get(faq_id)
+        if not faq:
+            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="FAQ entry not found")
+
+        duplicate = FaqTable.query.filter(FaqTable.question == item_in.question, FaqTable.id != faq_id).first()
+        if duplicate:
+            raise HTTPException(
+                status_code=HTTPStatus.CONFLICT,
+                detail="Another FAQ entry with the same question already exists.",
+            )
+
+        faq = faq_crud.update(db_obj=faq, obj_in=item_in)
+
+        updated_faq = FaqUpdated(
+            id=faq.id,
+            question=faq.question,
+            answer=faq.answer,
+            category=faq.category,
+        )
+
+        return updated_faq
+
+    except IntegrityError as ie:
+        logger.error("Integrity constraint violated", error=str(ie), data=item_in)
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail="Database constraint violated.",
+        )
+
+    except Exception as e:
+        logger.error("Unexpected error during FAQ update", error=str(e), data=item_in)
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            detail="Unexpected error occurred while updating FAQ.",
         )

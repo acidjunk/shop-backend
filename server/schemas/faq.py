@@ -24,6 +24,10 @@ class FaqCreated(FaqBase):
     modified_at: datetime
 
 
+class FaqUpdated(FaqBase):
+    id: UUID
+
+
 class FaqInDBBase(FaqBase):
     id: UUID
     created_at: datetime
