@@ -1,18 +1,43 @@
 from http import HTTPStatus
-from typing import Any
+from typing import Any, List
 from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, HTTPException
-from fastapi.param_functions import Body
+from fastapi.param_functions import Body, Depends
 from sqlalchemy.exc import IntegrityError
+from starlette.responses import Response
 
+from server.api.deps import common_parameters
 from server.crud.crud_faq import faq_crud
 from server.db.models import FaqTable
-from server.schemas.faq import FaqCreate, FaqCreated, FaqUpdate, FaqUpdated
+from server.schemas.faq import FaqCreate, FaqCreated, FaqSchema, FaqUpdate, FaqUpdated
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
+
+
+@router.get("/", response_model=List[FaqSchema])
+def get_multi(
+    response: Response,
+    common: dict = Depends(common_parameters),
+) -> List[FaqSchema]:
+    faqs, header_range = faq_crud.get_multi(
+        skip=common["skip"],
+        limit=common["limit"],
+        filter_parameters=common["filter"],
+        sort_parameters=common["sort"],
+    )
+    response.headers["Content-Range"] = header_range
+    return faqs
+
+
+@router.get("/{id}", response_model=FaqSchema)
+def get_by_id(id: UUID) -> FaqSchema:
+    faq = faq_crud.get(id)
+    if not faq:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=f"FAQ with id {id} not found")
+    return faq
 
 
 @router.post("/", response_model=FaqCreated, status_code=HTTPStatus.CREATED)
