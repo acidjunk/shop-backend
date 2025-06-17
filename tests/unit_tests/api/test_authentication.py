@@ -23,7 +23,6 @@ EXCLUDED_ENDPOINTS = [
     {"path": "/faq/", "name": "get_by_id", "method": "GET"},
     {"path": "/faq/", "name": "update", "method": "PUT"},
     {"path": "/faq/", "name": "create", "method": "POST"},
-
 ]
 
 
