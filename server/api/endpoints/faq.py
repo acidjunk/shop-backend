@@ -9,7 +9,9 @@ from starlette.responses import Response
 
 from server.api.deps import common_parameters
 from server.crud.crud_faq import faq_crud
+from server.db.models import UserTable
 from server.schemas.faq import FaqCreate, FaqCreated, FaqSchema, FaqUpdate, FaqUpdated
+from server.security import auth_required
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
@@ -39,7 +41,7 @@ def get_by_id(id: UUID) -> FaqSchema:
 
 
 @router.post("/", response_model=FaqCreated, status_code=HTTPStatus.CREATED)
-def create(data: FaqCreate = Body(...)) -> Any:
+def create(data: FaqCreate = Body(...), current_user: UserTable = Depends(auth_required)) -> Any:
 
     logger.info("Creating FAQ entry", data=data)
 
@@ -56,7 +58,7 @@ def create(data: FaqCreate = Body(...)) -> Any:
 
 
 @router.put("/{faq_id}", response_model=FaqUpdated, status_code=HTTPStatus.CREATED)
-def update(*, faq_id: UUID, item_in: FaqUpdate) -> FaqUpdated:
+def update(*, faq_id: UUID, item_in: FaqUpdate, current_user: UserTable = Depends(auth_required)) -> FaqUpdated:
 
     faq = faq_crud.get(faq_id)
     if not faq:
