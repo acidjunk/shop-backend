@@ -20,9 +20,7 @@ EXCLUDED_ENDPOINTS = [
     {"path": "/sentry/", "name": "trigger_error", "method": "GET"},
     {"path": "/test-forms/", "name": "form", "method": "POST"},
     {"path": "/faq/", "name": "get_multi", "method": "GET"},
-    {"path": "/faq/", "name": "get_by_id", "method": "GET"},
-    {"path": "/faq/", "name": "update", "method": "PUT"},
-    {"path": "/faq/", "name": "create", "method": "POST"},
+    {"path": "/faq/{id}", "name": "get_by_id", "method": "GET"},
 ]
 
 
