@@ -455,3 +455,23 @@ class InfoRequestTable(BaseModel):
 
     shop = relationship("ShopTable", lazy=True)
     product = relationship("ProductTable", lazy=True)
+
+
+class FaqTable(BaseModel):
+    __tablename__ = "faq"
+
+    id = Column(
+        UUIDType,
+        primary_key=True,
+        server_default=text("uuid_generate_v4()"),
+        index=True,
+    )
+    question = Column(String(255), nullable=False)
+    answer = Column(String(255), nullable=False)
+    category = Column(String(100), nullable=False)  # or use Enum if needed later
+    created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
+    modified_at = Column(
+        UtcTimestamp,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
+    )
