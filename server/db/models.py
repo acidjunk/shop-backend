@@ -456,6 +456,7 @@ class InfoRequestTable(BaseModel):
     shop = relationship("ShopTable", lazy=True)
     product = relationship("ProductTable", lazy=True)
 
+
 class FaqTable(BaseModel):
     __tablename__ = "faq"
 
