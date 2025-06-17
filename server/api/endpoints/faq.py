@@ -5,12 +5,10 @@ from uuid import UUID
 import structlog
 from fastapi import APIRouter, HTTPException
 from fastapi.param_functions import Body, Depends
-from sqlalchemy.exc import IntegrityError
 from starlette.responses import Response
 
 from server.api.deps import common_parameters
 from server.crud.crud_faq import faq_crud
-from server.db.models import FaqTable
 from server.schemas.faq import FaqCreate, FaqCreated, FaqSchema, FaqUpdate, FaqUpdated
 
 logger = structlog.get_logger(__name__)
