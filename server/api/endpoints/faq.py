@@ -82,3 +82,8 @@ def update(*, faq_id: UUID, item_in: FaqUpdate, current_user: UserTable = Depend
     )
 
     return updated_faq
+
+
+@router.delete("/{faq_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
+def delete(faq_id: UUID, current_user: UserTable = Depends(auth_required)) -> None:
+    return faq_crud.delete(id=faq_id)
