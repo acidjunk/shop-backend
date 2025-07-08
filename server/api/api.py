@@ -25,7 +25,6 @@ from server.api.endpoints import (
     images,
     licenses,
     login,
-    sentry_test,
     shops,
     test_forms,
     users,
@@ -141,11 +140,6 @@ api_router.include_router(
 
 api_router.include_router(info_request.router, prefix="/info-request", tags=["info-request"])
 
-api_router.include_router(
-    sentry_test.router,
-    prefix="/sentry",
-    tags=["sentry"],
-)
 api_router.include_router(
     test_forms.router,
     prefix="/test-forms",
