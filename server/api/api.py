@@ -97,12 +97,6 @@ api_router.include_router(
     dependencies=[Depends(auth_required)],
 )
 
-# api_router.include_router(
-#     product_images.router,
-#     prefix="/shops/{shop_id}/products-images",
-#     tags=["products-images"],
-#     dependencies=[Depends(deps.get_current_active_superuser)],
-# )
 api_router.include_router(
     products.router,
     prefix="/shops/{shop_id}/products",
@@ -147,10 +141,3 @@ api_router.include_router(
 )
 
 api_router.include_router(faq.router, prefix="/faq", tags=["faq"])
-
-# api_router.include_router(
-#     shops_users.router,
-#     prefix="/shops/{shop_id}/shops-users",
-#     tags=["shops-users"],
-#     dependencies=[Depends(deps.get_current_active_superuser)],
-# )
