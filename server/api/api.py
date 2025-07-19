@@ -32,7 +32,6 @@ from server.api.endpoints import (
 from server.api.endpoints.shop_endpoints import (
     accounts,
     categories,
-    category_images,
     info_request,
     orders,
     prices,
@@ -82,12 +81,6 @@ api_router.include_router(
     categories.router,
     prefix="/shops/{shop_id}/categories",
     tags=["categories"],
-    dependencies=[Depends(auth_required)],
-)
-api_router.include_router(
-    category_images.router,
-    prefix="/shops/{shop_id}/categories-images",
-    tags=["shops", "categories"],
     dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
