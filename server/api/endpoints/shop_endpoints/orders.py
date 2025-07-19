@@ -101,8 +101,8 @@ def get_multi(
         skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
     )
     for order in orders:
-        if (order.status == "complete" or order.status == "cancelled") and order.completed_by:
-            order.completed_by_name = order.user.first_name
+        # if (order.status == "complete" or order.status == "cancelled") and order.completed_by:
+        #     order.completed_by_name = order.user.first_name
         if order.account_id:
             order.account_name = order.account.name
         if order.shop_id:
@@ -156,8 +156,8 @@ def show_all_complete_orders_per_shop(
     )
 
     for order in orders:
-        if (order.status == "complete" or order.status == "cancelled") and order.completed_by:
-            order.completed_by_name = order.user.first_name
+        # if (order.status == "complete" or order.status == "cancelled") and order.completed_by:
+        #     order.completed_by_name = order.user.first_name
         if order.account_id:
             order.account_name = order.account.name
         if order.shop_id:
@@ -173,8 +173,8 @@ def get_by_id(id: UUID) -> OrderSchema:
     if not order:
         raise_status(HTTPStatus.NOT_FOUND, f"Order with id {id} not found")
 
-    if (order.status == "complete" or order.status == "cancelled") and order.completed_by:
-        order.completed_by_name = order.user.first_name
+    # if (order.status == "complete" or order.status == "cancelled") and order.completed_by:
+    #     order.completed_by_name = order.user.first_name
     if order.account_id:
         order.account_name = order.account.name
     if order.shop_id:
@@ -328,7 +328,7 @@ def patch(
     ):
         order.completed_at = func.now()
         # order.completed_by = current_user.id
-
+    print(order.__dict__)
     order = order_crud.update(
         db_obj=order,
         obj_in=item_in,
@@ -372,7 +372,7 @@ def update(*, order_id: UUID, item_in: OrderUpdate, current_user: UserTable = De
 
     if item_in.status and (item_in.status == "complete" or item_in.status == "cancelled") and not order.completed_at:
         order.completed_at = func.now()
-        order.completed_by = current_user.id
+        # order.completed_by = current_user.id
 
     order = order_crud.update(
         db_obj=order,

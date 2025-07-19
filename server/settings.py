@@ -127,11 +127,6 @@ class AppSettings(BaseSettings):
     EMAILS_FROM_NAME: Optional[str] = "Prijslijst Backend"
     EMAILS_CC: Optional[str] = "no-reply@prijslijst.info"
 
-    FIRST_SUPERUSER: str = "NAME"
-    FIRST_SUPERUSER_PASSWORD: str = "JePass"
-    FIRST_SUPERUSER_ROLE: str = "admin"
-    FIRST_SUPERUSER_ROLE_DESCRIPTION: str = "God Mode!"
-
     @field_validator("EMAILS_FROM_NAME")
     def get_project_name(cls, v: Optional[str], info: ValidationInfo) -> str:
         if not v:
@@ -161,11 +156,6 @@ class AppSettings(BaseSettings):
     S3_BUCKET_DOWNLOADS_NAME: str = "CHANGE_THIS_FOR_UPLOAD"
     S3_BUCKET_DOWNLOADS_ACCESS_KEY_ID: str = "CHANGEME"
     S3_BUCKET_DOWNLOADS_SECRET_ACCESS_KEY: str = "CHANGEME"
-
-    # Temporary S3 where images go before they are moved to the production bucket
-    S3_BUCKET_TEMPORARY_NAME: str = "CHANGEME"
-    S3_TEMPORARY_ACCESS_KEY_ID: str = "CHANGEME"
-    S3_TEMPORARY_ACCESS_KEY: str = "CHANGEME"
 
     S3_BUCKET_UPLOAD_ACCESS_KEY_ID: str = "CHANGEME"
     S3_BUCKET_UPLOAD_SECRET_ACCESS_KEY: str = "CHANGEME"

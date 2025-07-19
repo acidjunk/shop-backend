@@ -33,9 +33,7 @@ from server.crud.crud_order import order_crud
 from server.crud.crud_shop import shop_crud
 from server.db import db
 from server.db.database import BaseModel
-from server.db.models import ShopUserTable
 from server.schemas import ShopUpdate
-from server.schemas.shop_user import ShopUserSchema
 from server.settings import app_settings
 
 logger = get_logger(__name__)
@@ -68,13 +66,6 @@ s3_client_downloads = boto3.client(
     "s3",
     aws_access_key_id=app_settings.S3_BUCKET_DOWNLOADS_ACCESS_KEY_ID,
     aws_secret_access_key=app_settings.S3_BUCKET_DOWNLOADS_SECRET_ACCESS_KEY,
-    region_name="eu-central-1",
-)
-
-s3_temporary = boto3.resource(
-    "s3",
-    aws_access_key_id=app_settings.S3_TEMPORARY_ACCESS_KEY_ID,
-    aws_secret_access_key=app_settings.S3_TEMPORARY_ACCESS_KEY,
     region_name="eu-central-1",
 )
 
@@ -263,22 +254,6 @@ def upload_file(blob, file_name):
         logger.info("Made public", response=response)
 
 
-def name_file(column_name, record_name, image_name=""):
-    _, _, image_number = column_name.rpartition("_")[0:3]
-    current_name = image_name
-    extension = "png"  # todo: make it dynamic e.g. get it from mime-type, extra arg for this function?
-    if not current_name:
-        name = "".join([c if c.isalnum() else "-" for c in record_name])
-        name = f"{name}-{image_number}-1".lower()
-    else:
-        name, _ = current_name.split(".")
-        name, _, counter = name.rpartition("-")[0:3]
-        name = f"{name}-{int(counter) + 1}".lower()
-    name = f"{name}.{extension}"
-    logger.info("Named file", col_name=column_name, name_in=image_name, name_out=name)
-    return name
-
-
 def sendMessageToWebSocketServer(payload):
     try:
         sendMessageLambda.invoke(
@@ -373,55 +348,3 @@ def create_download_url(object_name, expiration):
         raise HTTPException(status_code=500, detail=f"Error: {e}")
 
     return response
-
-
-def move_between_buckets():
-    temp_bucket_name = app_settings.S3_BUCKET_TEMPORARY_NAME
-    prod_bucket_name = app_settings.S3_BUCKET_IMAGES_NAME
-    prefix = "upload/"
-
-    try:
-        list_objects_response = s3_client.list_objects_v2(Bucket=temp_bucket_name, Prefix=prefix, Delimiter="/")
-        folder_content_info = list_objects_response.get("Contents")
-
-        if list_objects_response.get("KeyCount") < 1:
-            return {"message": "No files to move"}
-
-        for file in folder_content_info:
-            copy_source = {"Bucket": temp_bucket_name, "Key": file.get("Key")}
-            new_key = file.get("Key").replace(prefix, "")
-            s3.meta.client.copy(copy_source, prod_bucket_name, new_key)
-            s3_temporary.Object(temp_bucket_name, file.get("Key")).delete()
-
-        return {"message": "Moved files from temporary bucket to production bucket"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {e}")
-
-
-def delete_from_temporary_bucket():
-    temp_bucket_name = app_settings.S3_BUCKET_TEMPORARY_NAME
-    prefix = "upload/"
-
-    try:
-        list_objects_response = s3_client.list_objects_v2(Bucket=temp_bucket_name, Prefix=prefix, Delimiter="/")
-        folder_content_info = list_objects_response.get("Contents")
-
-        if list_objects_response.get("KeyCount") < 1:
-            return {"message": "No files to delete"}
-
-        for file in folder_content_info:
-            s3_temporary.Object(temp_bucket_name, file.get("Key")).delete()
-
-        return {"message": "Deleted files from temporary bucket"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {e}")
-
-
-def get_shops_by_user_id(*, user_id: UUID) -> List[Optional[ShopUserSchema]]:
-    query = ShopUserTable.query.filter_by(user_id=user_id).all()
-    return query
-
-
-def get_users_by_shop_id(*, shop_id: UUID) -> List[Optional[ShopUserSchema]]:
-    query = ShopUserTable.query.filter_by(shop_id=shop_id).all()
-    return query

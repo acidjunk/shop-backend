@@ -16,24 +16,10 @@
 from fastapi import APIRouter, Depends
 
 from server.api import deps
-from server.api.endpoints import (
-    downloads,
-    early_access,
-    faq,
-    forms,
-    health,
-    images,
-    licenses,
-    login,
-    sentry_test,
-    shops,
-    test_forms,
-    users,
-)
+from server.api.endpoints import downloads, early_access, faq, forms, health, images, licenses, shops, test_forms
 from server.api.endpoints.shop_endpoints import (
     accounts,
     categories,
-    category_images,
     info_request,
     orders,
     prices,
@@ -47,9 +33,7 @@ from server.security import auth_required
 
 api_router = APIRouter()
 
-api_router.include_router(login.router, tags=["login"])
 api_router.include_router(health.router, prefix="/health", tags=["system"])
-api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(
     forms.router,
     prefix="/forms",
@@ -63,6 +47,7 @@ api_router.include_router(
     licenses.router,
     prefix="/licenses",
     tags=["licenses"],
+    dependencies=[Depends(auth_required)],
 )
 
 api_router.include_router(
@@ -86,24 +71,12 @@ api_router.include_router(
     dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
-    category_images.router,
-    prefix="/shops/{shop_id}/categories-images",
-    tags=["shops", "categories"],
-    dependencies=[Depends(auth_required)],
-)
-api_router.include_router(
     shop_image_router,
     prefix="/shops/{shop_id}/images",
     tags=["shops", "images"],
     dependencies=[Depends(auth_required)],
 )
 
-# api_router.include_router(
-#     product_images.router,
-#     prefix="/shops/{shop_id}/products-images",
-#     tags=["products-images"],
-#     dependencies=[Depends(deps.get_current_active_superuser)],
-# )
 api_router.include_router(
     products.router,
     prefix="/shops/{shop_id}/products",
@@ -142,21 +115,9 @@ api_router.include_router(
 api_router.include_router(info_request.router, prefix="/info-request", tags=["info-request"])
 
 api_router.include_router(
-    sentry_test.router,
-    prefix="/sentry",
-    tags=["sentry"],
-)
-api_router.include_router(
     test_forms.router,
     prefix="/test-forms",
     tags=["test-forms"],
 )
 
 api_router.include_router(faq.router, prefix="/faq", tags=["faq"])
-
-# api_router.include_router(
-#     shops_users.router,
-#     prefix="/shops/{shop_id}/shops-users",
-#     tags=["shops-users"],
-#     dependencies=[Depends(deps.get_current_active_superuser)],
-# )
