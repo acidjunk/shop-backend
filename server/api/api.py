@@ -16,19 +16,7 @@
 from fastapi import APIRouter, Depends
 
 from server.api import deps
-from server.api.endpoints import (
-    downloads,
-    early_access,
-    faq,
-    forms,
-    health,
-    images,
-    licenses,
-    login,
-    shops,
-    test_forms,
-    users,
-)
+from server.api.endpoints import downloads, early_access, faq, forms, health, images, licenses, shops, test_forms
 from server.api.endpoints.shop_endpoints import (
     accounts,
     categories,
@@ -45,9 +33,7 @@ from server.security import auth_required
 
 api_router = APIRouter()
 
-api_router.include_router(login.router, tags=["login"])
 api_router.include_router(health.router, prefix="/health", tags=["system"])
-api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(
     forms.router,
     prefix="/forms",
@@ -61,6 +47,7 @@ api_router.include_router(
     licenses.router,
     prefix="/licenses",
     tags=["licenses"],
+    dependencies=[Depends(auth_required)],
 )
 
 api_router.include_router(

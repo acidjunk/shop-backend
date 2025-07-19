@@ -17,7 +17,6 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import JSONResponse
 
 from server.api.api import api_router
-from server.api.deps import get_current_active_superuser
 from server.api.error_handling import ProblemDetailException
 from server.db import db, init_database
 from server.db.database import (
@@ -28,7 +27,6 @@ from server.db.database import (
     DBSessionMiddleware,
     SearchQuery,
 )
-from server.db.models import ProductTable, UserTable
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
 from server.security import auth_required
 from server.settings import app_settings

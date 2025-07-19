@@ -1,10 +1,7 @@
 import re
 import uuid
 
-from fastapi import HTTPException
 from fastapi.testclient import TestClient
-
-from server.api.deps import get_current_active_superuser
 
 EXCLUDED_ENDPOINTS = [
     {"path": "/health/", "name": "get_health", "method": "GET"},

@@ -63,23 +63,3 @@ def send_download_link_email(email_to: str, link: str, shop_name: str) -> None:
             "link": link,
         },
     )
-
-
-def send_new_account_email(email_to: str, username: str, password: str) -> None:
-    project_name = app_settings.PROJECT_NAME
-    subject = f"{project_name} - New account for user {username}"
-    with open(Path(app_settings.EMAIL_TEMPLATES_DIR) / "new_account.html") as f:
-        template_str = f.read()
-    link = app_settings.SERVER_HOST
-    send_email(
-        email_to=email_to,
-        subject_template=subject,
-        html_template=template_str,
-        environment={
-            "project_name": app_settings.PROJECT_NAME,
-            "username": username,
-            "password": password,
-            "email": email_to,
-            "link": link,
-        },
-    )

@@ -84,7 +84,6 @@ class OrderInDBBase(OrderBase):
     order_info: List[OrderItem]  # OrderItem
     created_at: datetime
     completed_at: Optional[datetime] = None
-    completed_by: Optional[UUID]
 
     class Config:
         from_attributes = True
@@ -94,4 +93,3 @@ class OrderInDBBase(OrderBase):
 class OrderSchema(OrderInDBBase):
     account_name: Optional[str]
     shop_name: Optional[str]
-    completed_by_name: Optional[str] = None

@@ -33,9 +33,7 @@ from server.crud.crud_order import order_crud
 from server.crud.crud_shop import shop_crud
 from server.db import db
 from server.db.database import BaseModel
-from server.db.models import ShopUserTable
 from server.schemas import ShopUpdate
-from server.schemas.shop_user import ShopUserSchema
 from server.settings import app_settings
 
 logger = get_logger(__name__)
@@ -68,13 +66,6 @@ s3_client_downloads = boto3.client(
     "s3",
     aws_access_key_id=app_settings.S3_BUCKET_DOWNLOADS_ACCESS_KEY_ID,
     aws_secret_access_key=app_settings.S3_BUCKET_DOWNLOADS_SECRET_ACCESS_KEY,
-    region_name="eu-central-1",
-)
-
-s3_temporary = boto3.resource(
-    "s3",
-    aws_access_key_id=app_settings.S3_TEMPORARY_ACCESS_KEY_ID,
-    aws_secret_access_key=app_settings.S3_TEMPORARY_ACCESS_KEY,
     region_name="eu-central-1",
 )
 
@@ -357,13 +348,3 @@ def create_download_url(object_name, expiration):
         raise HTTPException(status_code=500, detail=f"Error: {e}")
 
     return response
-
-
-def get_shops_by_user_id(*, user_id: UUID) -> List[Optional[ShopUserSchema]]:
-    query = ShopUserTable.query.filter_by(user_id=user_id).all()
-    return query
-
-
-def get_users_by_shop_id(*, shop_id: UUID) -> List[Optional[ShopUserSchema]]:
-    query = ShopUserTable.query.filter_by(shop_id=shop_id).all()
-    return query
