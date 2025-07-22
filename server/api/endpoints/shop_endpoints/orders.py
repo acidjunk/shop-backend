@@ -8,7 +8,6 @@ import stripe
 import structlog
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.param_functions import Body, Depends
-from sqlalchemy import func
 from starlette.responses import Response
 
 from server.api import deps
@@ -277,7 +276,7 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
     data.customer_order_id = order_crud.get_newest_order_id(shop_id=shop_id)
 
     if data.status in ["complete", "cancelled"] and not data.completed_at:
-        data.completed_at = func.now()
+        data.completed_at = datetime.now()
 
     if data.status not in ["pending", "complete", "cancelled"]:
         data.status = "pending"
@@ -285,7 +284,7 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
     if str(data.account_id) == "0999fbcd-a72b-4cc2-abbe-41ccd466cdaf":
         # Test table -> flag it complete
         data.status = "complete"
-        data.completed_at = func.now()
+        data.completed_at = datetime.now()
 
     order = order_crud.create(obj_in=data)
 
@@ -326,7 +325,7 @@ def patch(
         and (item_in.status == "complete" or item_in.status == "cancelled")
         and not order.completed_at
     ):
-        order.completed_at = func.now()
+        order.completed_at = datetime.now()
         # order.completed_by = current_user.id
 
     order = order_crud.update(
@@ -371,7 +370,7 @@ def update(*, order_id: UUID, item_in: OrderUpdate, current_user: UserTable = De
         raise HTTPException(status_code=404, detail="Order not found")
 
     if item_in.status and (item_in.status == "complete" or item_in.status == "cancelled") and not order.completed_at:
-        order.completed_at = func.now()
+        order.completed_at = datetime.now()
         order.completed_by = current_user.id
 
     order = order_crud.update(
