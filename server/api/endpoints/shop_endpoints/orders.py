@@ -17,10 +17,13 @@ from server.api.helpers import _query_with_filters, invalidateCompletedOrdersCac
 from server.api.utils import is_ip_allowed, validate_uuid4
 from server.crud.crud_account import account_crud
 from server.crud.crud_order import order_crud
+from server.crud.crud_product import product_crud
 from server.crud.crud_shop import shop_crud
 from server.db.models import Account, OrderTable, ShopTable, UserTable
+from server.schemas import ProductUpdate
 from server.schemas.account import AccountCreate
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
+from server.schemas.product import ProductTranslationBase
 from server.security import auth_required
 from server.utils.discord.discord import post_discord_order_complete
 
@@ -269,9 +272,13 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
         raise_status(HTTPStatus.BAD_REQUEST, "MAX_5_GRAMS_ALLOWED")
 
     # Availability check
-    # unavailable_product_name = get_first_unavailable_product_name(data.order_info, data.shop_id)
-    # if unavailable_product_name:
-    #     raise_status(HTTPStatus.BAD_REQUEST, f"{unavailable_product_name}, OUT_OF_STOCK")
+    if shop.config["toggles"]["enable_stock_on_products"]:
+        for order_product in data.order_info:
+            product = product_crud.get_id_by_shop_id(shop_id, order_product.product_id)
+            if not product:
+                raise_status(HTTPStatus.NOT_FOUND, f"Product '{order_product.product_name}' not found")
+            if product.stock < order_product.quantity:
+                raise_status(HTTPStatus.BAD_REQUEST, f"Not enough stock for product '{order_product.product_name}'")
 
     data.customer_order_id = order_crud.get_newest_order_id(shop_id=shop_id)
 
@@ -319,6 +326,11 @@ def patch(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
+    shop_id = order.shop_id
+    shop = shop_crud.get(shop_id)
+    if not shop:
+        raise HTTPException(status_code=404, detail=f"Shop with ID {shop_id} not found")
+
     if (
         "complete" not in order.status
         and item_in.status
@@ -343,6 +355,31 @@ def patch(
         order_info=order.order_info,
         id=order.id,
     )
+
+    if shop.config["toggles"]["enable_stock_on_products"]:
+        for order_product in order.order_info:
+            product = product_crud.get_id_by_shop_id(shop_id, order_product["product_id"])
+            # new_product = ProductUpdate(
+            #     stock=product.stock - order_product["quantity"]
+            # )
+            new_product = ProductUpdate(
+                shop_id=product.shop_id,
+                category_id=product.category_id,
+                max_one=product.max_one,
+                shippable=product.shippable,
+                featured=product.featured,
+                new_product=product.new_product,
+                tax_category=product.tax_category,
+                stock=product.stock - order_product["quantity"],
+                translation=product.translation,
+                image_1=product.image_1,
+                image_2=product.image_2,
+                image_3=product.image_3,
+                image_4=product.image_4,
+                image_5=product.image_5,
+                image_6=product.image_6,
+            )
+            product_crud.update(db_obj=product, obj_in=new_product)
 
     try:
         shop = load(ShopTable, updated_order.shop_id)
@@ -395,3 +432,23 @@ def update(*, order_id: UUID, item_in: OrderUpdate, current_user: UserTable = De
 @router.delete("/{order_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(order_id: UUID, current_user: UserTable = Depends(auth_required)) -> None:
     return order_crud.delete(id=order_id)
+
+
+@router.get("/stock/{order_id}", response_model=bool)
+def get_order_products_in_stock(order_id: UUID) -> bool:
+    order = order_crud.get(order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    shop_id = order.shop_id
+    shop = shop_crud.get(shop_id)
+    if not shop:
+        raise HTTPException(status_code=404, detail=f"Shop with ID {shop_id} not found")
+
+    if shop.config["toggles"]["enable_stock_on_products"]:
+        for order_product in order.order_info:
+            product = product_crud.get_id_by_shop_id(shop_id, order_product["product_id"])
+            if not product or product.stock < order_product["quantity"]:
+                return False
+
+    return True

@@ -159,6 +159,7 @@ class Toggles(BoilerplateBaseModel):
     language_alt1_enabled: bool = False
     language_alt2_enabled: bool = False
     product_call_to_action_enabled: bool = False
+    enable_stock_on_products: bool = False
 
 
 class ConfigurationV1(BoilerplateBaseModel):
