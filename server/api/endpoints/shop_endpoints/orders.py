@@ -356,12 +356,9 @@ def patch(
         id=order.id,
     )
 
-    if shop.config["toggles"]["enable_stock_on_products"]:
+    if shop.config["toggles"]["enable_stock_on_products"] and item_in.status == "complete":
         for order_product in order.order_info:
             product = product_crud.get_id_by_shop_id(shop_id, order_product["product_id"])
-            # new_product = ProductUpdate(
-            #     stock=product.stock - order_product["quantity"]
-            # )
             new_product = ProductUpdate(
                 shop_id=product.shop_id,
                 category_id=product.category_id,
