@@ -299,15 +299,15 @@ def tag(shop):
 
 
 @pytest.fixture()
-def product(shop):
-    category = make_category(shop_id=shop)
-    return make_product(shop_id=shop, category_id=category)
+def product(shop_with_config):
+    category = make_category(shop_id=shop_with_config)
+    return make_product(shop_id=shop_with_config, category_id=category)
 
 
 @pytest.fixture()
-def product_translated(shop):
-    category = make_category_translated(shop_id=shop)
-    return make_translated_product(shop_id=shop, category_id=category)
+def product_translated(shop_with_config):
+    category = make_category_translated(shop_id=shop_with_config)
+    return make_translated_product(shop_id=shop_with_config, category_id=category)
 
 
 @pytest.fixture()

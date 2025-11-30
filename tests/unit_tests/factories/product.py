@@ -16,7 +16,7 @@ def make_product(
     main_description="Test Product Description",
     price=1.0,
 ):
-    product = ProductTable(shop_id=shop_id, category_id=category_id, price=price)
+    product = ProductTable(shop_id=shop_id, category_id=category_id, price=price, stock=1)
     db.session.add(product)
     db.session.commit()
 
@@ -48,7 +48,7 @@ def make_translated_product(
     alt2_description_short="Test Produkt Kurzbeschreibung",
     price=1.0,
 ):
-    product = ProductTable(shop_id=shop_id, category_id=category_id, price=price)
+    product = ProductTable(shop_id=shop_id, category_id=category_id, price=price, stock=1)
     db.session.add(product)
     db.session.commit()
 

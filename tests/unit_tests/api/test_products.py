@@ -11,8 +11,8 @@ def test_products_get_multi(shop_with_products, test_client):
     assert 2 == len(products)
 
 
-def test_products_get_by_id(shop, product, test_client):
-    response = test_client.get(f"/shops/{shop}/products/{product}")
+def test_products_get_by_id(shop_with_config, product, test_client):
+    response = test_client.get(f"/shops/{shop_with_config}/products/{product}")
     assert response.status_code == 200
     product = response.json()
     assert product["translation"]["main_name"] == "Product for Testing"
@@ -49,9 +49,9 @@ def test_products_create(shop, category, test_client):
     assert product.translation.alt1_name == None
 
 
-def test_products_update(shop, product, category, test_client):
+def test_products_update(shop_with_config, product, category, test_client):
     body = {
-        "shop_id": shop,
+        "shop_id": shop_with_config,
         "category_id": category,
         "price": 1.0,
         "tax_category": "vat_zero",
@@ -72,13 +72,13 @@ def test_products_update(shop, product, category, test_client):
         "image_6": "",
     }
 
-    response = test_client.put(f"/shops/{shop}/products/{product}", data=json_dumps(body))
+    response = test_client.put(f"/shops/{shop_with_config}/products/{product}", data=json_dumps(body))
     assert response.status_code == 201
     product = ProductTable.query.filter_by(id=product).first()
     assert product.translation.main_name == "Update Product Test"
     assert product.translation.alt1_name == None
 
 
-def test_products_delete(shop, product, test_client):
-    response = test_client.delete(f"/shops/{shop}/products/{product}")
+def test_products_delete(shop_with_config, product, test_client):
+    response = test_client.delete(f"/shops/{shop_with_config}/products/{product}")
     assert response.status_code == 204
