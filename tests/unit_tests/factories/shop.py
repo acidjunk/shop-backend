@@ -54,6 +54,7 @@ def make_shop(
             show_nav_categories=False,
             language_alt1_enabled=False,
             language_alt2_enabled=False,
+            enable_stock_on_products=True
         )
 
         config_languages = ConfigurationLanguages(main=language_fields, alt1=language_fields, alt2=language_fields)
@@ -71,7 +72,7 @@ def make_shop(
             instagram="https://example.com/",
         )
 
-        top_config = ConfigurationV1(
+        config = ConfigurationV1(
             languages=config_languages,
             short_shop_name="string",
             main_banner="string",
@@ -82,11 +83,9 @@ def make_shop(
             toggles=toggles,
         )
 
-        config = ShopConfigUpdate(config=top_config, config_version=0)
-
         shop = ShopTable(
-            name="Test Shop",
-            description="Test Shop Description",
+            name="Test Shop with config",
+            description="Test Shop Description with config",
             config=config.model_dump(),
             shop_type="{}",
             vat_standard=21,

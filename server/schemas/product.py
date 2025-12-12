@@ -58,6 +58,7 @@ class ProductBase(BoilerplateBaseModel):
     discounted_from: Optional[datetime] = None
     discounted_to: Optional[datetime] = None
     order_number: Optional[int] = None
+    stock: Optional[int] = 1
     image_1: Union[Optional[dict], Optional[str]]
     image_2: Union[Optional[dict], Optional[str]]
     image_3: Union[Optional[dict], Optional[str]]
