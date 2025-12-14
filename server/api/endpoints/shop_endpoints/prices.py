@@ -181,7 +181,7 @@ def get_products(
 
     products = [to_response_model(product, lang, shop) for product in products]
 
-    if shop.config["toggles"]["enable_stock_on_products"]:
+    if shop.config["toggles"].get("enable_stock_on_products", False):
         products = [p for p in products if p.stock and p.stock > 0]
 
     return products
