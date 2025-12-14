@@ -47,7 +47,10 @@ app = typer.Typer()
 @app.command()
 def main(
     dry_run: bool = typer.Option(
-        True, help="Disable to actually mutate stuff in the DB, otherwise print only what will be done."
+        True,
+        "--dry-run/--no-dry-run",
+        flag_value=False,
+        help="Disable to actually mutate stuff in the DB, otherwise print only what will be done.",
     )
 ):
     with warnings.catch_warnings():
