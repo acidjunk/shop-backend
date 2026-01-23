@@ -41,6 +41,9 @@ from server.api.endpoints.shop_endpoints import (
     products_to_tags,
     stripe,
     tags,
+    attributes,
+    attribute_options,
+    product_attribute_values,
 )
 from server.api.endpoints.shop_endpoints.images import router as shop_image_router
 from server.security import auth_required
@@ -121,6 +124,24 @@ api_router.include_router(
     prefix="/shops/{shop_id}/tags",
     tags=["shops", "products"],
     dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    attributes.router,
+    prefix="/shops/{shop_id}/attributes",
+    tags=["shops", "attributes"],
+    #dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    attribute_options.router,
+    prefix="/shops/{shop_id}/attributes/{attribute_id}/options",
+    tags=["shops", "attributes"],
+    #dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    product_attribute_values.router,
+    prefix="/shops/{shop_id}/product-attribute-values",
+    tags=["shops", "products", "attributes"],
+    #dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
     accounts.router,

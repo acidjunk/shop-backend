@@ -476,3 +476,93 @@ class FaqTable(BaseModel):
         server_default=text("CURRENT_TIMESTAMP"),
         server_onupdate=text("CURRENT_TIMESTAMP"),
     )
+
+
+
+class AttributeTable(BaseModel):
+    __tablename__ = "attributes"
+
+    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
+
+    # A machine-friendly key (unique within a shop), e.g. "shoe_size", "clothing_size", "length"
+    name = Column(String(60), index=True)
+
+    # Optional hint about the attribute’s nature. You can omit it now or keep low-cardinality values like
+    #   - "enum"  → has discrete options (see AttributeOptionTable)
+    #   - "range" → values stored as range (e.g., "33-50")
+    #   - "text"  → free-form string
+    value_kind = Column(Enum("enum", "text", "range", name="attribute_value_kind"), nullable=True)
+
+    # Short display unit or sizing system for this attribute.
+    # Examples:
+    #   - Physical: "cm", "mm", "in", "kg", "g", "L", "ml"
+    #   - Sizes:   "EU", "US", "UK" (indicates the system for shoe/clothing sizes)
+    #   - Other:   "W" (watt), "V" (volt)
+    # Leave empty for free-text or when no unit/system is needed.
+    unit = Column(String(20), nullable=True)
+
+    shop = relationship("ShopTable", lazy=True)
+    translation = relationship("AttributeTranslationTable", back_populates="attribute", uselist=False)
+
+    # One-to-many: all discrete choices (like XS/S/M/L/XL) that belong to this attribute when it acts as an enum.
+    # For non-enum attributes, this list can be empty. Deleting an attribute deletes its options.
+    options = relationship("AttributeOptionTable", cascade="save-update, merge, delete")
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint("shop_id", "name", name="uq_attribute_shop_name"),
+    )
+
+
+class AttributeTranslationTable(BaseModel):
+    __tablename__ = "attribute_translations"
+
+    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    attribute_id = Column("attribute_id", UUIDType, ForeignKey("attributes.id"))
+    main_name = Column(String(TAG_LENGTH), index=True, nullable=False)
+    alt1_name = Column(String(TAG_LENGTH), index=True, nullable=True)
+    alt2_name = Column(String(TAG_LENGTH), index=True, nullable=True)
+
+    attribute = relationship("AttributeTable", back_populates="translation")
+
+
+class AttributeOptionTable(BaseModel):
+    __tablename__ = "attribute_options"
+
+    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    attribute_id = Column("attribute_id", UUIDType, ForeignKey("attributes.id"), index=True)
+    # Compact, language-agnostic key for the option. Example values: "XS", "S", "M", "L", "XL"
+    value_key = Column(String(60), index=True)
+
+    attribute = relationship("AttributeTable", lazy=True)
+
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint("attribute_id", "value_key", name="uq_attribute_option_key"),
+    )
+
+
+class ProductAttributeValueTable(BaseModel):
+    __tablename__ = "product_attribute_values"
+
+    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    product_id = Column("product_id", UUIDType, ForeignKey("products.id"), index=True)
+    attribute_id = Column("attribute_id", UUIDType, ForeignKey("attributes.id"), index=True)
+
+    # For enumerations (points to AttributeOptionTable). Can be NULL for free-form values.
+    option_id = Column("option_id", UUIDType, ForeignKey("attribute_options.id"), nullable=True, index=True)
+
+    # Catch-all string for values (text, numbers-as-text, dates-as-text, ranges-as-text like "33-50", etc.)
+    value_text = Column(String(255), nullable=True)
+
+    product = relationship("ProductTable", lazy=True)
+    attribute = relationship("AttributeTable", lazy=True)
+    option = relationship("AttributeOptionTable", lazy=True)
+
+    # Prevent exact duplicates while allowing multiple options per product+attribute,
+    # and multiple distinct free-form values when needed.
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint(
+            "product_id", "attribute_id", "option_id", "value_text",
+            name="uq_pav_product_attribute_option_value",
+        ),
+    )
