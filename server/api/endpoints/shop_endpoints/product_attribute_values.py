@@ -62,7 +62,8 @@ def get_product_attribute_value(shop_id: UUID, id: UUID) -> ProductAttributeValu
         raise_status(HTTPStatus.NOT_FOUND, f"ProductAttributeValue with id {id} not found for this shop")
     return pav
 
-
+#TODO this should probably also work without needing to send both the attribute and option id,
+# ig option should be enough to figure out the attribute id
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create_product_attribute_value(shop_id: UUID, data: ProductAttributeValueCreate = Body(...)) -> None:
     """
@@ -101,37 +102,6 @@ def create_product_attribute_value(shop_id: UUID, data: ProductAttributeValueCre
     return pav
 
 
-@router.put("/{id}", response_model=ProductAttributeValueSchema)
-def update_product_attribute_value(shop_id: UUID, id: UUID, data: ProductAttributeValueUpdate = Body(...)) -> ProductAttributeValueSchema:
-    pav = product_attribute_value_crud.get(id)
-    if not pav:
-        raise_status(HTTPStatus.NOT_FOUND, f"ProductAttributeValue with id {id} not found")
-    if not pav.product or pav.product.shop_id != shop_id:
-        raise_status(HTTPStatus.NOT_FOUND, f"ProductAttributeValue with id {id} not found for this shop")
-
-    # Validate referenced entities if they are being updated
-    # Product
-    if data.product_id and data.product_id != pav.product_id:
-        product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=data.product_id)
-        if not product:
-            raise_status(HTTPStatus.NOT_FOUND, f"Product {data.product_id} not found for this shop")
-    # Attribute
-    if data.attribute_id and data.attribute_id != pav.attribute_id:
-        attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=data.attribute_id)
-        if not attribute:
-            raise_status(HTTPStatus.NOT_FOUND, f"Attribute {data.attribute_id} not found for this shop")
-    # Option
-    if data.option_id is not None:
-        option = attribute_option_crud.get(id=data.option_id)
-        # If option provided, it must match the (possibly updated) attribute_id
-        target_attribute_id = data.attribute_id if data.attribute_id else pav.attribute_id
-        if not option or option.attribute_id != target_attribute_id:
-            raise_status(HTTPStatus.BAD_REQUEST, "Provided option_id does not belong to the given attribute")
-
-    updated = product_attribute_value_crud.update(db_obj=pav, obj_in=data)
-    return updated
-
-
 @router.delete("/{id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete_product_attribute_value(shop_id: UUID, id: UUID) -> None:
     pav = product_attribute_value_crud.get(id)
@@ -144,7 +114,7 @@ def delete_product_attribute_value(shop_id: UUID, id: UUID) -> None:
     return None
 
 
-#TODO fix me
+#TODO fix me remove me?
 @router.get("/", response_model=List[ProductWithAttributes])
 def get_products_with_attributes(shop_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[ProductWithAttributes]:
     """Return products in the shop with all attached attributes and values (options/value_text)."""
