@@ -29,7 +29,7 @@ router = APIRouter()
 def list_options(
     shop_id: UUID, attribute_id: UUID, response: Response, common: dict = Depends(common_parameters)
 ) -> List[AttributeOptionSchema]:
-    """List options for an attribute within a shop."""
+    """List options for an attribute within a shop. This effectively does the same as one of the attribute endpoints"""
     # Ensure attribute belongs to shop
     attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id)
     if not attribute:
@@ -79,25 +79,6 @@ def create_option(shop_id: UUID, attribute_id: UUID, data: AttributeOptionCreate
     # TODO it now throws a 500 if it's not unique (DB unique constraint)
     option = attribute_option_crud.create(obj_in=payload)
     return option
-
-
-@router.put("/{option_id}", response_model=AttributeOptionSchema)
-def update_option(
-    shop_id: UUID, attribute_id: UUID, option_id: UUID, data: AttributeOptionUpdate = Body(...)
-) -> AttributeOptionSchema:
-    # Ensure attribute belongs to shop
-    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id)
-    if not attribute:
-        raise_status(HTTPStatus.NOT_FOUND, f"Attribute with id {attribute_id} not found for this shop")
-
-    option = attribute_option_crud.get(id=option_id)
-    if not option or option.attribute_id != attribute_id:
-        raise_status(HTTPStatus.NOT_FOUND, f"Option with id {option_id} not found for this attribute")
-
-    # Force attribute_id from path to avoid reassignment through body
-    payload = AttributeOptionBase(attribute_id=attribute_id, value_key=data.value_key)
-    updated = attribute_option_crud.update(db_obj=option, obj_in=payload)
-    return updated
 
 
 @router.delete("/{option_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
