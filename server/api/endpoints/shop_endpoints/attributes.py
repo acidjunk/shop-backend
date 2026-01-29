@@ -27,6 +27,7 @@ logger = structlog.get_logger(__name__)
 
 router = APIRouter()
 
+#TODO add /attributes/{id}/with-options
 
 @router.get("/with-options", response_model=List[AttributeWithOptionsSchema])
 def get_with_options(shop_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[AttributeWithOptionsSchema]:
@@ -92,67 +93,6 @@ def get_by_name(name: str, shop_id: UUID) -> AttributeSchema:
         raise_status(HTTPStatus.NOT_FOUND, f"Attribute with name {name} not found")
     return attribute
 
-
-@router.get("/{attribute_id}/products", response_model=List[ProductWithDefaultPrice])
-def get_products_by_attribute(shop_id: UUID, attribute_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[ProductWithDefaultPrice]:
-    """Return all products in the shop that have any value for the given attribute."""
-    # Ensure attribute belongs to shop
-    attribute = attribute_crud.get_id_by_shop_id(shop_id, attribute_id)
-    if not attribute:
-        raise_status(HTTPStatus.NOT_FOUND, f"Attribute with id {attribute_id} not found for this shop")
-
-    base_query = (
-        db.session.query(ProductTable)
-        .join(ProductAttributeValueTable, ProductAttributeValueTable.product_id == ProductTable.id)
-        .filter(ProductTable.shop_id == shop_id)
-        .filter(ProductAttributeValueTable.attribute_id == attribute_id)
-        .distinct()
-    )
-
-    items, header_range = product_crud.get_multi(
-        skip=common["skip"],
-        limit=common["limit"],
-        filter_parameters=common["filter"],
-        sort_parameters=common["sort"],
-        query_parameter=base_query,
-    )
-    response.headers["Content-Range"] = header_range
-    return items
-
-
-@router.get("/{attribute_id}/options/{option_id}/products", response_model=List[ProductWithDefaultPrice])
-def get_products_by_attribute_option(shop_id: UUID, attribute_id: UUID, option_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[ProductWithDefaultPrice]:
-    """Return all products in the shop that have the given attribute option assigned."""
-    # Ensure attribute belongs to shop
-    attribute = attribute_crud.get_id_by_shop_id(shop_id, attribute_id)
-    if not attribute:
-        raise_status(HTTPStatus.NOT_FOUND, f"Attribute with id {attribute_id} not found for this shop")
-
-    # Ensure option belongs to attribute
-    option = db.session.get(AttributeOptionTable, option_id)
-    if not option or option.attribute_id != attribute_id:
-        raise_status(HTTPStatus.NOT_FOUND, f"Option with id {option_id} not found for this attribute")
-
-    base_query = (
-        db.session.query(ProductTable)
-        .join(ProductAttributeValueTable, ProductAttributeValueTable.product_id == ProductTable.id)
-        .filter(ProductTable.shop_id == shop_id)
-        .filter(ProductAttributeValueTable.attribute_id == attribute_id)
-        .filter(ProductAttributeValueTable.option_id == option_id)
-        .distinct()
-    )
-
-    items, header_range = attribute_crud.get_multi(
-        skip=common["skip"],
-        limit=common["limit"],
-        filter_parameters=common["filter"],
-        sort_parameters=common["sort"],
-        query_parameter=base_query,
-    )
-    response.headers["Content-Range"] = header_range
-    return items
-
-
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create(shop_id: UUID, data: AttributeCreate = Body(...)) -> None:
     """
@@ -170,27 +110,10 @@ def create(shop_id: UUID, data: AttributeCreate = Body(...)) -> None:
     )
 
     attr = attribute_crud.create_by_shop_id(shop_id=shop_id, obj_in=new_attribute)
+    #TODO throws error 500 on duplicate entry
     return attr
-
-
-@router.put("/{attribute_id}", response_model=None, status_code=HTTPStatus.CREATED)
-def update(*, attribute_id: UUID, shop_id: UUID, item_in: AttributeUpdate) -> Any:
-    attribute = attribute_crud.get_id_by_shop_id(shop_id, attribute_id)
-    logger.info("Updating attribute", data=attribute)
-    if not attribute:
-        raise HTTPException(status_code=404, detail="Attribute not found")
-
-    attribute = attribute_crud.update(
-        db_obj=attribute,
-        obj_in=item_in,
-    )
-    return attribute
 
 
 @router.delete("/{attribute_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(attribute_id: UUID, shop_id: UUID) -> None:
-    try:
-        attribute_crud.delete_by_shop_id(shop_id=shop_id, id=attribute_id)
-    except Exception as e:
-        raise HTTPException(HTTPStatus.BAD_REQUEST, detail=f"{e.__cause__}")
-    return
+    return attribute_crud.delete_by_shop_id(shop_id=shop_id, id=attribute_id)
