@@ -341,7 +341,6 @@ class ProductTable(BaseModel):
     new_product = Column(Boolean(), default=False)
     order_number = Column(Integer, default=0)
     stock = Column(Integer, default=1)
-    attributes = Column(postgresql.JSONB())
     image_1 = Column(String(255), index=True)
     image_2 = Column(String(255), index=True)
     image_3 = Column(String(255), index=True)
@@ -362,6 +361,22 @@ class ProductTable(BaseModel):
         "TagTable",
         secondary="products_to_tags",
         backref=backref("products", lazy="dynamic"),
+    )
+
+    # All concrete attribute values for this product
+    attribute_values = relationship(
+        "ProductAttributeValueTable",
+        lazy="selectin",
+    )
+
+    # View-only relationship to attribute definitions used by this product
+    attributes_rel = relationship(
+        "AttributeTable",
+        secondary="product_attribute_values",
+        primaryjoin="ProductTable.id == ProductAttributeValueTable.product_id",
+        secondaryjoin="AttributeTable.id == ProductAttributeValueTable.attribute_id",
+        viewonly=True,
+        lazy="selectin",
     )
 
     def __repr__(self):

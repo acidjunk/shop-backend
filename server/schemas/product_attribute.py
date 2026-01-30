@@ -10,40 +10,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 
 from server.schemas.base import BoilerplateBaseModel
-from server.schemas.product import ProductWithDefaultPrice
-from server.schemas.product_attribute import ProductAttributeItem
 
 
-class ProductAttributeValueBase(BoilerplateBaseModel):
-    product_id: UUID
+class ProductAttributeItem(BoilerplateBaseModel):
+    """Lightweight representation of a product's attribute value used in responses.
+
+    - attribute_id: the AttributeTable id
+    - attribute_name: translated main_name for display (optional, may be omitted in some endpoints)
+    - option_id: the AttributeOptionTable id when the value is an enum option
+    - option_value_key: the option key (e.g., "XS", "M") when applicable
+    - value_text: free-form string value when not using an option
+    """
     attribute_id: UUID
+    attribute_name: Optional[str] = None
     option_id: Optional[UUID] = None
+    option_value_key: Optional[str] = None
     value_text: Optional[str] = None
-
-
-class ProductAttributeValueCreate(ProductAttributeValueBase):
-    pass
-
-
-class ProductAttributeValueUpdate(ProductAttributeValueBase):
-    pass
-
-
-class ProductAttributeValueInDBBase(ProductAttributeValueBase):
-    id: UUID
-
-    class Config:
-        from_attributes = True
-
-
-class ProductAttributeValueSchema(ProductAttributeValueInDBBase):
-    pass
-
-
-class ProductWithAttributes(BoilerplateBaseModel):
-    product: ProductWithDefaultPrice
-    attributes: List[ProductAttributeItem] = []

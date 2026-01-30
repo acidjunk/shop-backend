@@ -20,8 +20,8 @@ from server.schemas.product_attribute_value import (
     ProductAttributeValueSchema,
     ProductAttributeValueUpdate,
     ProductWithAttributes,
-    ProductAttributeItem,
 )
+from server.schemas.product_attribute import ProductAttributeItem
 from server.schemas.product import ProductWithDefaultPrice
 
 logger = structlog.get_logger(__name__)
@@ -29,7 +29,7 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 #TODO fix me
-#@router.get("/", response_model=List[ProductAttributeValueSchema])
+@router.get("/", response_model=List[ProductAttributeValueSchema])
 def list_product_attribute_values(
     shop_id: UUID, response: Response, common: dict = Depends(common_parameters)
 ) -> List[ProductAttributeValueSchema]:
@@ -114,66 +114,3 @@ def delete_product_attribute_value(shop_id: UUID, id: UUID) -> None:
     return None
 
 
-#TODO fix me remove me?
-@router.get("/", response_model=List[ProductWithAttributes])
-def get_products_with_attributes(shop_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[ProductWithAttributes]:
-    """Return products in the shop with all attached attributes and values (options/value_text)."""
-    # Get base list of products in shop (paginated) using existing product_crud
-    products, header_range = product_crud.get_multi_by_shop_id(
-        shop_id=shop_id,
-        skip=common["skip"],
-        limit=common["limit"],
-        filter_parameters=common["filter"],
-        sort_parameters=common["sort"],
-    )
-    response.headers["Content-Range"] = header_range
-
-    if not products:
-        return []
-
-    product_ids = [p.id for p in products]
-
-    # Fetch all attribute values for these products in one query, and join attribute + translation + option
-    rows = (
-        db.session.query(
-            ProductAttributeValueTable.product_id,
-            ProductAttributeValueTable.attribute_id,
-            AttributeTranslationTable.main_name.label("attribute_name"),
-            ProductAttributeValueTable.option_id,
-            AttributeOptionTable.value_key.label("option_value_key"),
-            ProductAttributeValueTable.value_text,
-        )
-        .join(ProductTable, ProductTable.id == ProductAttributeValueTable.product_id)
-        .join(AttributeTable, AttributeTable.id == ProductAttributeValueTable.attribute_id)
-        .join(AttributeTranslationTable, AttributeTranslationTable.attribute_id == AttributeTable.id)
-        .outerjoin(AttributeOptionTable, AttributeOptionTable.id == ProductAttributeValueTable.option_id)
-        .filter(ProductTable.shop_id == shop_id)
-        .filter(ProductAttributeValueTable.product_id.in_(product_ids))
-        .all()
-    )
-
-    grouped: dict[UUID, List[ProductAttributeItem]] = {}
-    for r in rows:
-        grouped.setdefault(r.product_id, []).append(
-            ProductAttributeItem(
-                attribute_id=r.attribute_id,
-                attribute_name=r.attribute_name,
-                option_id=r.option_id,
-                option_value_key=r.option_value_key,
-                value_text=r.value_text,
-            )
-        )
-
-    # Build response list in the same order as products
-    out: List[ProductWithAttributes] = []
-    for p in products:
-        # cast product to ProductWithDefaultPrice schema by reusing it directly (from_attributes enabled)
-        prod_schema = ProductWithDefaultPrice.model_validate(p)
-        out.append(
-            ProductWithAttributes(
-                product=prod_schema,
-                attributes=grouped.get(p.id, []),
-            )
-        )
-
-    return out

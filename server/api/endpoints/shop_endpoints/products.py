@@ -22,6 +22,7 @@ from server.schemas.product import (
     ProductWithDefaultPrice,
     ProductWithDetailsAndPrices,
 )
+from server.schemas.product_attribute_value import ProductWithAttributes
 
 logger = structlog.get_logger(__name__)
 
@@ -35,11 +36,11 @@ def get_shop(shop_id: UUID):
     return shop
 
 
-@router.get("/", response_model=List[ProductWithDefaultPrice])
+@router.get("/", response_model=List[ProductWithAttributes])
 def get_multi(
-    shop_id: UUID, response: Response, common: dict = Depends(common_parameters)
-) -> List[ProductWithDefaultPrice]:
-    # shop = get_shop(shop_id)
+    shop_id: UUID, response: Response, common: dict = Depends(common_parameters), include: Optional[str] = None
+) -> List[ProductWithAttributes]:
+    # Base: fetch paginated products for this shop
     products, header_range = product_crud.get_multi_by_shop_id(
         shop_id=shop_id,
         skip=common["skip"],
@@ -49,13 +50,93 @@ def get_multi(
     )
     response.headers["Content-Range"] = header_range
 
+    if not products:
+        return []
+
+    # Calculate images_amount as before
     for product in products:
         product.images_amount = 0
         for i in [1, 2, 3, 4, 5, 6]:
             if getattr(product, f"image_{i}"):
                 product.images_amount += 1
 
-    return products
+    # Optionally include attributes when requested via include=attributes
+    include_attrs = False
+    if include:
+        include_parts = {part.strip().lower() for part in include.split(",") if part.strip()}
+        include_attrs = "attributes" in include_parts
+
+    # Build response preserving original order
+    from server.schemas.product_attribute_value import ProductWithAttributes
+    out: List[ProductWithAttributes] = []
+    from server.schemas.product import ProductWithDefaultPrice
+
+    if not include_attrs:
+        # Fast path: no attributes requested, avoid extra joins
+        for p in products:
+            prod_schema = ProductWithDefaultPrice.model_validate(p)
+            out.append(
+                ProductWithAttributes(
+                    product=prod_schema,
+                    attributes=[],
+                )
+            )
+        return out
+
+    # Collect product IDs and fetch all related attribute values in one go
+    from server.db import db
+    from server.db.models import (
+        ProductAttributeValueTable,
+        ProductTable as _ProductTable,
+        AttributeTable as _AttributeTable,
+        AttributeTranslationTable as _AttributeTranslationTable,
+        AttributeOptionTable as _AttributeOptionTable,
+    )
+    from server.schemas.product_attribute import ProductAttributeItem
+    from server.schemas.product_attribute_value import ProductWithAttributes
+
+    product_ids = [p.id for p in products]
+
+    rows = (
+        db.session.query(
+            ProductAttributeValueTable.product_id,
+            ProductAttributeValueTable.attribute_id,
+            _AttributeTranslationTable.main_name.label("attribute_name"),
+            ProductAttributeValueTable.option_id,
+            _AttributeOptionTable.value_key.label("option_value_key"),
+            ProductAttributeValueTable.value_text,
+        )
+        .join(_ProductTable, _ProductTable.id == ProductAttributeValueTable.product_id)
+        .join(_AttributeTable, _AttributeTable.id == ProductAttributeValueTable.attribute_id)
+        .join(_AttributeTranslationTable, _AttributeTranslationTable.attribute_id == _AttributeTable.id)
+        .outerjoin(_AttributeOptionTable, _AttributeOptionTable.id == ProductAttributeValueTable.option_id)
+        .filter(_ProductTable.shop_id == shop_id)
+        .filter(ProductAttributeValueTable.product_id.in_(product_ids))
+        .all()
+    )
+
+    grouped: dict[UUID, list[ProductAttributeItem]] = {}
+    for r in rows:
+        grouped.setdefault(r.product_id, []).append(
+            ProductAttributeItem(
+                attribute_id=r.attribute_id,
+                attribute_name=r.attribute_name,
+                option_id=r.option_id,
+                option_value_key=r.option_value_key,
+                value_text=r.value_text,
+            )
+        )
+
+    for p in products:
+        prod_schema = ProductWithDefaultPrice.model_validate(p)
+        out.append(
+            ProductWithAttributes(
+                product=prod_schema,
+                attributes=grouped.get(p.id, []),
+            )
+        )
+
+    return out
 
 
 @router.get("/{product_id}", response_model=ProductWithDetailsAndPrices)
