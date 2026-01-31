@@ -78,7 +78,7 @@ def get_multi(shop_id: UUID, response: Response, common: dict = Depends(common_p
     return items
 
 
-@router.get("/{attribute_id}", response_model=AttributeSchema)
+@router.get("/id/{attribute_id}", response_model=AttributeSchema)
 def get_by_id(attribute_id: UUID, shop_id: UUID) -> AttributeSchema:
     attribute = attribute_crud.get_id_by_shop_id(shop_id, attribute_id)
     if not attribute:
@@ -103,7 +103,6 @@ def create(shop_id: UUID, data: AttributeCreate = Body(...)) -> None:
 
     new_attribute: AttributeBase = AttributeBase(
         translation=AttributeTranslationBase(main_name=data.name),
-        value_kind=data.value_kind,
         name=data.name,
         shop_id=shop_id,
         unit=data.unit,

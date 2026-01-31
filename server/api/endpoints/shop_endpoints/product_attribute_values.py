@@ -28,7 +28,6 @@ logger = structlog.get_logger(__name__)
 
 router = APIRouter()
 
-#TODO fix me
 @router.get("/", response_model=List[ProductAttributeValueSchema])
 def list_product_attribute_values(
     shop_id: UUID, response: Response, common: dict = Depends(common_parameters)
@@ -110,7 +109,6 @@ def delete_product_attribute_value(shop_id: UUID, id: UUID) -> None:
     if not pav.product or pav.product.shop_id != shop_id:
         raise_status(HTTPStatus.NOT_FOUND, f"ProductAttributeValue with id {id} not found for this shop")
     product_attribute_value_crud.delete(id=str(id))
-    #TODO returns 204 is this oke?
     return None
 
 

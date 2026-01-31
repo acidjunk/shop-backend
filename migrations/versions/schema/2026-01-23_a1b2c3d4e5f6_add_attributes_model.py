@@ -18,13 +18,9 @@ branch_labels = None
 depends_on = None
 
 
-attribute_value_kind = postgresql.ENUM("enum", "text", "range", name="attribute_value_kind", create_type=False)
-
 
 def upgrade() -> None:
 
-    # Create Enum type explicitly if missing and prevent auto-creation during table create
-    attribute_value_kind.create(op.get_bind(), checkfirst=True)
 
     # attributes
     op.create_table(
@@ -32,7 +28,6 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=False), server_default=sa.text("uuid_generate_v4()"), primary_key=True, index=True),
         sa.Column("shop_id", postgresql.UUID(as_uuid=False), sa.ForeignKey("shops.id"), index=True),
         sa.Column("name", sa.String(length=60), index=True, nullable=False),
-        sa.Column("value_kind", attribute_value_kind, nullable=True),
         sa.Column("unit", sa.String(length=20), nullable=True),
     )
     op.create_unique_constraint("uq_attribute_shop_name", "attributes", ["shop_id", "name"])
@@ -66,20 +61,16 @@ def upgrade() -> None:
         sa.Column("product_id", postgresql.UUID(as_uuid=False), sa.ForeignKey("products.id"), index=True),
         sa.Column("attribute_id", postgresql.UUID(as_uuid=False), sa.ForeignKey("attributes.id"), index=True),
         sa.Column("option_id", postgresql.UUID(as_uuid=False), sa.ForeignKey("attribute_options.id"), nullable=True, index=True),
-        sa.Column("value_text", sa.String(length=255), nullable=True),
     )
     op.create_unique_constraint(
         "uq_pav_product_attribute_option_value",
         "product_attribute_values",
-        ["product_id", "attribute_id", "option_id", "value_text"],
+        ["product_id", "attribute_id", "option_id"],
     )
 
     # Helpful partial indexes for filtering
     op.execute(
         "CREATE INDEX IF NOT EXISTS pav_attr_option_idx ON product_attribute_values(attribute_id, option_id) WHERE option_id IS NOT NULL;"
-    )
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS pav_attr_value_idx ON product_attribute_values(attribute_id, value_text) WHERE value_text IS NOT NULL;"
     )
 
 
@@ -103,5 +94,3 @@ def downgrade() -> None:
     op.drop_constraint("uq_attribute_shop_name", "attributes", type_="unique")
     op.drop_table("attributes")
 
-    # Drop enum type
-    attribute_value_kind.drop(op.get_bind(), checkfirst=True)

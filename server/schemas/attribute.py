@@ -28,15 +28,12 @@ class AttributeTranslationBase(BoilerplateBaseModel):
 class AttributeBase(BoilerplateBaseModel):
     shop_id: UUID
     name: str
-    # Optional hints/metadata. These map directly to DB columns but are not required now.
-    value_kind: Optional[str] = None
     unit: Optional[str] = None
     translation: AttributeTranslationBase
 
 
 class AttributeCreate(BoilerplateBaseModel):
     name: str
-    value_kind: str
     unit: Optional[str] = None
 
 

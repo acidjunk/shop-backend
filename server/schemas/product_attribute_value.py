@@ -21,8 +21,7 @@ from server.schemas.product_attribute import ProductAttributeItem
 class ProductAttributeValueBase(BoilerplateBaseModel):
     product_id: UUID
     attribute_id: UUID
-    option_id: Optional[UUID] = None
-    value_text: Optional[str] = None
+    option_id: Optional[UUID] = None #TODO make this not optional
 
 
 class ProductAttributeValueCreate(ProductAttributeValueBase):
