@@ -24,17 +24,13 @@ class CRUDProductAttributeValue(
     CRUDBase[ProductAttributeValueTable, ProductAttributeValueCreate, ProductAttributeValueUpdate]
 ):
     def get_existing(
-        self, *, product_id, attribute_id, option_id: Optional[str], value_text: Optional[str]
+        self, *, product_id, attribute_id, option_id: Optional[str]
     ) -> Optional[ProductAttributeValueTable]:
         query = ProductAttributeValueTable.query.filter_by(product_id=product_id, attribute_id=attribute_id)
         if option_id is not None:
             query = query.filter_by(option_id=option_id)
         else:
             query = query.filter(ProductAttributeValueTable.option_id.is_(None))
-        if value_text is not None:
-            query = query.filter_by(value_text=value_text)
-        else:
-            query = query.filter(ProductAttributeValueTable.value_text.is_(None))
         return query.first()
 
 

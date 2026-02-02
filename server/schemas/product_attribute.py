@@ -23,11 +23,9 @@ class ProductAttributeItem(BoilerplateBaseModel):
     - attribute_name: translated main_name for display (optional, may be omitted in some endpoints)
     - option_id: the AttributeOptionTable id when the value is an enum option
     - option_value_key: the option key (e.g., "XS", "M") when applicable
-    - value_text: free-form string value when not using an option
     """
 
     attribute_id: UUID
     attribute_name: Optional[str] = None
     option_id: Optional[UUID] = None
     option_value_key: Optional[str] = None
-    value_text: Optional[str] = None

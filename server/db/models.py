@@ -562,9 +562,6 @@ class ProductAttributeValueTable(BaseModel):
     # For enumerations (points to AttributeOptionTable). Can be NULL for free-form values.
     option_id = Column("option_id", UUIDType, ForeignKey("attribute_options.id"), nullable=True, index=True)
 
-    # Catch-all string for values (text, numbers-as-text, dates-as-text, ranges-as-text like "33-50", etc.)
-    value_text = Column(String(255), nullable=True)
-
     product = relationship("ProductTable", lazy=True)
     attribute = relationship("AttributeTable", lazy=True)
     option = relationship("AttributeOptionTable", lazy=True)
@@ -576,7 +573,6 @@ class ProductAttributeValueTable(BaseModel):
             "product_id",
             "attribute_id",
             "option_id",
-            "value_text",
             name="uq_pav_product_attribute_option_value",
         ),
     )

@@ -107,7 +107,6 @@ def get_multi_with_attributes(
                     attribute_name=attribute_name,
                     option_id=getattr(option, "id", None),
                     option_value_key=getattr(option, "value_key", None),
-                    value_text=getattr(pav, "value_text", None),
                 )
             )
         # If filtering by option_id, skip products without matching attributes
@@ -170,7 +169,6 @@ def get_by_id_with_attributes(
                 attribute_name=attribute_name,
                 option_id=getattr(option, "id", None),
                 option_value_key=getattr(option, "value_key", None),
-                value_text=getattr(pav, "value_text", None),
             )
         )
 

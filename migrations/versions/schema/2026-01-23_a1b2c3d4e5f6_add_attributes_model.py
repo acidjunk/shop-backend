@@ -97,17 +97,8 @@ def upgrade() -> None:
         ["product_id", "attribute_id", "option_id"],
     )
 
-    # Helpful partial indexes for filtering
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS pav_attr_option_idx ON product_attribute_values(attribute_id, option_id) WHERE option_id IS NOT NULL;"
-    )
-
 
 def downgrade() -> None:
-    # Drop partial indexes
-    op.execute("DROP INDEX IF EXISTS pav_attr_value_idx;")
-    op.execute("DROP INDEX IF EXISTS pav_attr_option_idx;")
-
     # Drop tables in reverse order
     op.drop_constraint("uq_pav_product_attribute_option_value", "product_attribute_values", type_="unique")
     op.drop_table("product_attribute_values")
