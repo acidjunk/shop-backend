@@ -129,19 +129,19 @@ api_router.include_router(
     attributes.router,
     prefix="/shops/{shop_id}/attributes",
     tags=["shops", "attributes"],
-    #dependencies=[Depends(auth_required)],
+    dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
     attribute_options.router,
     prefix="/shops/{shop_id}/attributes/{attribute_id}/options",
     tags=["shops", "attributes"],
-    #dependencies=[Depends(auth_required)],
+    dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
     product_attribute_values.router,
     prefix="/shops/{shop_id}/product-attribute-values",
     tags=["shops", "products", "attributes"],
-    #dependencies=[Depends(auth_required)],
+    dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
     accounts.router,
