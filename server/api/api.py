@@ -32,18 +32,18 @@ from server.api.endpoints import (
 )
 from server.api.endpoints.shop_endpoints import (
     accounts,
+    attribute_options,
+    attributes,
     categories,
     category_images,
     info_request,
     orders,
     prices,
+    product_attribute_values,
     products,
     products_to_tags,
     stripe,
     tags,
-    attributes,
-    attribute_options,
-    product_attribute_values,
 )
 from server.api.endpoints.shop_endpoints.images import router as shop_image_router
 from server.security import auth_required

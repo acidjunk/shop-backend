@@ -20,7 +20,9 @@ from server.schemas.attribute import AttributeCreate, AttributeUpdate
 
 class CRUDAttribute(CRUDBase[AttributeTable, AttributeCreate, AttributeUpdate]):
     def get_by_name(self, *, name: str, shop_id: UUID) -> Optional[AttributeTable]:
-        return AttributeTable.query.filter(AttributeTable.shop_id == shop_id).filter(AttributeTable.name == name).first()
+        return (
+            AttributeTable.query.filter(AttributeTable.shop_id == shop_id).filter(AttributeTable.name == name).first()
+        )
 
 
 attribute_crud = CRUDAttribute(AttributeTable)

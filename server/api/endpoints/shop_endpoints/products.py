@@ -39,7 +39,7 @@ def get_shop(shop_id: UUID):
 
 @router.get("/", response_model=List[ProductWithDefaultPrice])
 def get_multi(
-        shop_id: UUID, response: Response, common: dict = Depends(common_parameters)
+    shop_id: UUID, response: Response, common: dict = Depends(common_parameters)
 ) -> List[ProductWithDefaultPrice]:
     products, header_range = product_crud.get_multi_by_shop_id(
         shop_id=shop_id,
@@ -61,10 +61,10 @@ def get_multi(
 
 @router.get("/with_attributes", response_model=List[ProductWithAttributes])
 def get_multi_with_attributes(
-        shop_id: UUID,
-        response: Response,
-        common: dict = Depends(common_parameters),
-        option_id: Optional[UUID] = None,
+    shop_id: UUID,
+    response: Response,
+    common: dict = Depends(common_parameters),
+    option_id: Optional[UUID] = None,
 ) -> List[ProductWithAttributes]:
     # Base: fetch paginated products for this shop
     products, header_range = product_crud.get_multi_by_shop_id(
@@ -141,8 +141,9 @@ def get_multi_with_attributes(
 
 
 @router.get("/{product_id}/with_attributes", response_model=ProductWithAttributes)
-def get_by_id_with_attributes(product_id: UUID, shop_id: UUID,
-                              option_id: Optional[UUID] = None) -> ProductWithAttributes:
+def get_by_id_with_attributes(
+    product_id: UUID, shop_id: UUID, option_id: Optional[UUID] = None
+) -> ProductWithAttributes:
     product = product_crud.get_id_by_shop_id(shop_id, product_id)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product with id {product_id} not found")

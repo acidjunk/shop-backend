@@ -10,7 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Optional, List
+from typing import List, Optional
 from uuid import UUID
 
 from server.schemas.base import BoilerplateBaseModel
@@ -21,7 +21,7 @@ from server.schemas.product_attribute import ProductAttributeItem
 class ProductAttributeValueBase(BoilerplateBaseModel):
     product_id: UUID
     attribute_id: UUID
-    option_id: Optional[UUID] = None #TODO make this not optional
+    option_id: Optional[UUID] = None  # TODO make this not optional
 
 
 class ProductAttributeValueCreate(ProductAttributeValueBase):

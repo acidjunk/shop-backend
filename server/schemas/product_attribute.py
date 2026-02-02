@@ -25,6 +25,7 @@ class ProductAttributeItem(BoilerplateBaseModel):
     - option_value_key: the option key (e.g., "XS", "M") when applicable
     - value_text: free-form string value when not using an option
     """
+
     attribute_id: UUID
     attribute_name: Optional[str] = None
     option_id: Optional[UUID] = None

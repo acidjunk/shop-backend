@@ -9,10 +9,10 @@ from starlette.responses import Response
 
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
-from server.db import db
-from server.db.models import AttributeOptionTable, AttributeTable, ProductAttributeValueTable, ProductTable
 from server.crud.crud_attribute import attribute_crud
 from server.crud.crud_product import product_crud
+from server.db import db
+from server.db.models import AttributeOptionTable, AttributeTable, ProductAttributeValueTable, ProductTable
 from server.schemas.attribute import (
     AttributeBase,
     AttributeCreate,
@@ -27,10 +27,13 @@ logger = structlog.get_logger(__name__)
 
 router = APIRouter()
 
-#TODO add /attributes/{id}/with-options
+# TODO add /attributes/{id}/with-options
+
 
 @router.get("/with-options", response_model=List[AttributeWithOptionsSchema])
-def get_with_options(shop_id: UUID, response: Response, common: dict = Depends(common_parameters)) -> List[AttributeWithOptionsSchema]:
+def get_with_options(
+    shop_id: UUID, response: Response, common: dict = Depends(common_parameters)
+) -> List[AttributeWithOptionsSchema]:
     """List attributes for a shop including their options."""
     # Base: all attributes for this shop (paginated)
     items, header_range = attribute_crud.get_multi_by_shop_id(
@@ -47,11 +50,7 @@ def get_with_options(shop_id: UUID, response: Response, common: dict = Depends(c
 
     attr_ids = [a.id for a in items]
     # Fetch all options for these attributes in one query
-    options = (
-        db.session.query(AttributeOptionTable)
-        .filter(AttributeOptionTable.attribute_id.in_(attr_ids))
-        .all()
-    )
+    options = db.session.query(AttributeOptionTable).filter(AttributeOptionTable.attribute_id.in_(attr_ids)).all()
     options_by_attr: dict[UUID, list[AttributeOptionTable]] = {}
     for opt in options:
         options_by_attr.setdefault(opt.attribute_id, []).append(opt)
@@ -93,6 +92,7 @@ def get_by_name(name: str, shop_id: UUID) -> AttributeSchema:
         raise_status(HTTPStatus.NOT_FOUND, f"Attribute with name {name} not found")
     return attribute
 
+
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create(shop_id: UUID, data: AttributeCreate = Body(...)) -> None:
     """
@@ -109,7 +109,7 @@ def create(shop_id: UUID, data: AttributeCreate = Body(...)) -> None:
     )
 
     attr = attribute_crud.create_by_shop_id(shop_id=shop_id, obj_in=new_attribute)
-    #TODO throws error 500 on duplicate entry
+    # TODO throws error 500 on duplicate entry
     return attr
 
 

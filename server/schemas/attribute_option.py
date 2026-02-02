@@ -23,6 +23,7 @@ class AttributeOptionBase(BoilerplateBaseModel):
 class AttributeOptionCreate(BoilerplateBaseModel):
     value_key: str
 
+
 class AttributeOptionUpdate(AttributeOptionBase):
     pass
 

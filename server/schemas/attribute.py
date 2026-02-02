@@ -13,9 +13,9 @@
 from typing import Optional
 from uuid import UUID
 
+from server.schemas.attribute_option import AttributeOptionSchema
 from server.schemas.base import BoilerplateBaseModel
 from server.schemas.product import ProductBase
-from server.schemas.attribute_option import AttributeOptionSchema
 
 
 class AttributeTranslationBase(BoilerplateBaseModel):

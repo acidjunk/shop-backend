@@ -14,19 +14,26 @@ from server.crud.crud_attribute_option import attribute_option_crud
 from server.crud.crud_product import product_crud
 from server.crud.crud_product_attribute_value import product_attribute_value_crud
 from server.db import db
-from server.db.models import ProductAttributeValueTable, ProductTable, AttributeTable, AttributeTranslationTable, AttributeOptionTable
+from server.db.models import (
+    AttributeOptionTable,
+    AttributeTable,
+    AttributeTranslationTable,
+    ProductAttributeValueTable,
+    ProductTable,
+)
+from server.schemas.product import ProductWithDefaultPrice
+from server.schemas.product_attribute import ProductAttributeItem
 from server.schemas.product_attribute_value import (
     ProductAttributeValueCreate,
     ProductAttributeValueSchema,
     ProductAttributeValueUpdate,
     ProductWithAttributes,
 )
-from server.schemas.product_attribute import ProductAttributeItem
-from server.schemas.product import ProductWithDefaultPrice
 
 logger = structlog.get_logger(__name__)
 
 router = APIRouter()
+
 
 @router.get("/", response_model=List[ProductAttributeValueSchema])
 def list_product_attribute_values(
@@ -61,7 +68,8 @@ def get_product_attribute_value(shop_id: UUID, id: UUID) -> ProductAttributeValu
         raise_status(HTTPStatus.NOT_FOUND, f"ProductAttributeValue with id {id} not found for this shop")
     return pav
 
-#TODO this should probably also work without needing to send both the attribute and option id,
+
+# TODO this should probably also work without needing to send both the attribute and option id,
 # ig option should be enough to figure out the attribute id
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create_product_attribute_value(shop_id: UUID, data: ProductAttributeValueCreate = Body(...)) -> None:
@@ -95,7 +103,7 @@ def create_product_attribute_value(shop_id: UUID, data: ProductAttributeValueCre
         option_id=str(data.option_id) if data.option_id else None,
     )
 
-    #TODO add unique constrain so product cant have same option attribute and product id
+    # TODO add unique constrain so product cant have same option attribute and product id
     # Create
     pav = product_attribute_value_crud.create(obj_in=data)
     return pav
@@ -110,5 +118,3 @@ def delete_product_attribute_value(shop_id: UUID, id: UUID) -> None:
         raise_status(HTTPStatus.NOT_FOUND, f"ProductAttributeValue with id {id} not found for this shop")
     product_attribute_value_crud.delete(id=str(id))
     return None
-
-

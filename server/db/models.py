@@ -493,7 +493,6 @@ class FaqTable(BaseModel):
     )
 
 
-
 class AttributeTable(BaseModel):
     __tablename__ = "attributes"
 
@@ -503,11 +502,12 @@ class AttributeTable(BaseModel):
     # A machine-friendly key (unique within a shop), e.g. "shoe_size", "clothing_size", "length"
     name = Column(String(60), index=True)
 
+    # I removed this for now since it adds complexity, everthing can be strings for now
     # Optional hint about the attribute’s nature. You can omit it now or keep low-cardinality values like
     #   - "enum"  → has discrete options (see AttributeOptionTable)
     #   - "range" → values stored as range (e.g., "33-50")
     #   - "text"  → free-form string
-    value_kind = Column(Enum("enum", "text", "range", name="attribute_value_kind"), nullable=True)
+    # value_kind = Column(String(20), nullable=True)
 
     # Short display unit or sizing system for this attribute.
     # Examples:
@@ -524,9 +524,7 @@ class AttributeTable(BaseModel):
     # For non-enum attributes, this list can be empty. Deleting an attribute deletes its options.
     options = relationship("AttributeOptionTable", cascade="save-update, merge, delete")
 
-    __table_args__ = (
-        sqlalchemy.UniqueConstraint("shop_id", "name", name="uq_attribute_shop_name"),
-    )
+    __table_args__ = (sqlalchemy.UniqueConstraint("shop_id", "name", name="uq_attribute_shop_name"),)
 
 
 class AttributeTranslationTable(BaseModel):
@@ -551,9 +549,7 @@ class AttributeOptionTable(BaseModel):
 
     attribute = relationship("AttributeTable", lazy=True)
 
-    __table_args__ = (
-        sqlalchemy.UniqueConstraint("attribute_id", "value_key", name="uq_attribute_option_key"),
-    )
+    __table_args__ = (sqlalchemy.UniqueConstraint("attribute_id", "value_key", name="uq_attribute_option_key"),)
 
 
 class ProductAttributeValueTable(BaseModel):
@@ -577,7 +573,10 @@ class ProductAttributeValueTable(BaseModel):
     # and multiple distinct free-form values when needed.
     __table_args__ = (
         sqlalchemy.UniqueConstraint(
-            "product_id", "attribute_id", "option_id", "value_text",
+            "product_id",
+            "attribute_id",
+            "option_id",
+            "value_text",
             name="uq_pav_product_attribute_option_value",
         ),
     )
