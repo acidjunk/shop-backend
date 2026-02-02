@@ -26,6 +26,7 @@ EXCLUDED_ENDPOINTS = [
     {"path": "/shops/{shop_id}/attributes/{attribute_id}/options/", "name": "list_options", "method": "GET"},
 ]
 
+
 def get_endpoints(fastapi_app):
     url_list = []
     for route in fastapi_app.routes:
