@@ -25,7 +25,12 @@ from server.db import db
 from server.db.database import BaseModel
 
 # Below translation model imports are necessary for the create_by_shop_id, update, and delete_by_shop_id functions
-from server.db.models import CategoryTranslationTable, ProductTranslationTable, TagTranslationTable
+from server.db.models import (
+    AttributeTranslationTable,
+    CategoryTranslationTable,
+    ProductTranslationTable,
+    TagTranslationTable,
+)
 
 logger = structlog.getLogger()
 

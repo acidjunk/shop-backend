@@ -32,11 +32,14 @@ from server.api.endpoints import (
 )
 from server.api.endpoints.shop_endpoints import (
     accounts,
+    attribute_options,
+    attributes,
     categories,
     category_images,
     info_request,
     orders,
     prices,
+    product_attribute_values,
     products,
     products_to_tags,
     stripe,
@@ -120,6 +123,24 @@ api_router.include_router(
     tags.router,
     prefix="/shops/{shop_id}/tags",
     tags=["shops", "products"],
+    dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    attributes.router,
+    prefix="/shops/{shop_id}/attributes",
+    tags=["shops", "attributes"],
+    dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    attribute_options.router,
+    prefix="/shops/{shop_id}/attributes/{attribute_id}/options",
+    tags=["shops", "attributes"],
+    dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    product_attribute_values.router,
+    prefix="/shops/{shop_id}/product-attribute-values",
+    tags=["shops", "products", "attributes"],
     dependencies=[Depends(auth_required)],
 )
 api_router.include_router(

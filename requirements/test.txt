@@ -8,3 +8,4 @@ pytest-xdist
 pytest_benchmark
 httpx
 typer==0.7.0
+click==8.1.8

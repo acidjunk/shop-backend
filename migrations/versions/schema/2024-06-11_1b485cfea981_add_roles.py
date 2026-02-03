@@ -23,20 +23,16 @@ def upgrade() -> None:
     shop_id = uuid4()
     conn = op.get_bind()
     conn.execute(
-        sa.text(
-            """
+        sa.text("""
             INSERT INTO roles (id, name, description) VALUES (:id, 'admin', 'Admin role')
-            """
-        ),
+            """),
         {"id": admin_role_id},
     )
 
     conn.execute(
-        sa.text(
-            """
+        sa.text("""
             INSERT INTO shops (id, name, description, vat_standard, vat_lower_1, vat_lower_2, vat_lower_3, vat_special, vat_zero) VALUES (:id, 'shop', 'Default shop', 21.0, 15.0, 10.0, 5.0, 2.0, 0.0)
-            """
-        ),
+            """),
         {"id": shop_id},
     )
 

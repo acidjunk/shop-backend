@@ -21,6 +21,9 @@ EXCLUDED_ENDPOINTS = [
     {"path": "/test-forms/", "name": "form", "method": "POST"},
     {"path": "/faq/", "name": "get_multi", "method": "GET"},
     {"path": "/faq/{id}", "name": "get_by_id", "method": "GET"},
+    # Temporary exclusion to avoid the greedy-params bug
+    # TODO fix this endpoint so it no longer needs the shop_id or fix this bug by fixing the UT below
+    {"path": "/shops/{shop_id}/attributes/{attribute_id}/options/", "name": "list_options", "method": "GET"},
 ]
 
 

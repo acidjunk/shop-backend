@@ -54,7 +54,7 @@ def make_shop(
             show_nav_categories=False,
             language_alt1_enabled=False,
             language_alt2_enabled=False,
-            enable_stock_on_products=True
+            enable_stock_on_products=True,
         )
 
         config_languages = ConfigurationLanguages(main=language_fields, alt1=language_fields, alt2=language_fields)
