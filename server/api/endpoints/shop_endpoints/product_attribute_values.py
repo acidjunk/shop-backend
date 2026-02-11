@@ -126,9 +126,9 @@ def put_selected_product_attribute_values(
 ) -> None:
     """
     Set the selected options for a given product+attribute pair.
-    Treats `selectedIds` as the full desired state:
-     - Creates missing ProductAttributeValue rows for option_ids present in selectedIds but not currently stored.
-     - Deletes existing ProductAttributeValue rows whose option_id is absent from selectedIds.
+    Treats `option_ids` as the full desired state:
+     - Creates missing ProductAttributeValue rows for option_ids present in option_ids but not currently stored.
+     - Deletes existing ProductAttributeValue rows whose option_id is absent from option_ids.
     Validations:
      - Product belongs to the shop
      - Attribute belongs to the shop
