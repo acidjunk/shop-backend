@@ -25,9 +25,10 @@ from server.schemas.product import ProductWithDefaultPrice
 from server.schemas.product_attribute import ProductAttributeItem
 from server.schemas.product_attribute_value import (
     ProductAttributeValueCreate,
+    ProductAttributeValueReplace,
     ProductAttributeValueSchema,
     ProductAttributeValueUpdate,
-    ProductWithAttributes, ProductAttributeValueReplace,
+    ProductWithAttributes,
 )
 
 logger = structlog.get_logger(__name__)
@@ -37,7 +38,7 @@ router = APIRouter()
 
 @router.get("/", response_model=List[ProductAttributeValueSchema])
 def list_product_attribute_values(
-        shop_id: UUID, response: Response, common: dict = Depends(common_parameters)
+    shop_id: UUID, response: Response, common: dict = Depends(common_parameters)
 ) -> List[ProductAttributeValueSchema]:
     """List product attribute values for a shop (scoped by product.shop_id)."""
     # Build a base query scoped to the shop via product table
@@ -73,8 +74,7 @@ def get_product_attribute_value(shop_id: UUID, id: UUID) -> ProductAttributeValu
 # ig option should be enough to figure out the attribute id
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create_product_attribute_values(
-        shop_id: UUID,
-        data: Union[ProductAttributeValueCreate, list[ProductAttributeValueCreate]] = Body(...)
+    shop_id: UUID, data: Union[ProductAttributeValueCreate, list[ProductAttributeValueCreate]] = Body(...)
 ) -> None:
     """
     Create a new product attribute value for a product within a shop.
@@ -156,7 +156,9 @@ def put_selected_product_attribute_values(
             .all()
         )
         if len(options) != len(selected_set):
-            raise_status(HTTPStatus.BAD_REQUEST, "One or more option IDs do not belong to the given attribute or do not exist")
+            raise_status(
+                HTTPStatus.BAD_REQUEST, "One or more option IDs do not belong to the given attribute or do not exist"
+            )
 
     # Fetch existing PAVs for this product+attribute
     existing = (
@@ -171,9 +173,9 @@ def put_selected_product_attribute_values(
     existing_by_id = {row.id: row for row in existing}
     existing_option_ids = set(row.option_id for row in existing if row.option_id is not None)
 
-    logger.info("no",ex=existing)
-    logger.info("yes",ex2=existing_by_id)
-    logger.info("yes2",ex2=selected_set)
+    logger.info("no", ex=existing)
+    logger.info("yes", ex2=existing_by_id)
+    logger.info("yes2", ex2=selected_set)
     to_add = selected_set - existing_option_ids
     to_remove_ids = [row.id for row in existing if row.option_id not in selected_set]
 
@@ -184,7 +186,12 @@ def put_selected_product_attribute_values(
             attribute_id=data.attribute_id,
             option_id=option_id,
         )
-        logger.info("Saving product attribute value", product_id=str(data.product_id), attribute_id=str(data.attribute_id), option_id=str(option_id))
+        logger.info(
+            "Saving product attribute value",
+            product_id=str(data.product_id),
+            attribute_id=str(data.attribute_id),
+            option_id=str(option_id),
+        )
         product_attribute_value_crud.create(obj_in=pav_in)
 
     # Delete absent
