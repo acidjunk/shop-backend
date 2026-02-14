@@ -170,12 +170,8 @@ def put_selected_product_attribute_values(
         .all()
     )
 
-    existing_by_id = {row.id: row for row in existing}
     existing_option_ids = set(row.option_id for row in existing if row.option_id is not None)
 
-    logger.info("no", ex=existing)
-    logger.info("yes", ex2=existing_by_id)
-    logger.info("yes2", ex2=selected_set)
     to_add = selected_set - existing_option_ids
     to_remove_ids = [row.id for row in existing if row.option_id not in selected_set]
 
