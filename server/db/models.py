@@ -120,6 +120,23 @@ class RoleTable(BaseModel):
         return hash(self.name)
 
 
+class APIKeyTable(BaseModel):
+    __tablename__ = "api_keys"
+    id = Column(
+        UUIDType,
+        server_default=text("uuid_generate_v4()"),
+        primary_key=True,
+        index=True,
+    )
+    user_id = Column(UUIDType, nullable=False, index=True)
+    # keys are stored encrypted for security reasons
+    encrypted_key = Column(String, nullable=False)
+    # the fingerprint is a one-way hash (sha256), to quickly look up an API key
+    fingerprint = Column(String, nullable=False, unique=True, index=True)
+    created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
+    revoked_at = Column(UtcTimestamp, nullable=True)
+
+
 class UserTable(BaseModel):
     __tablename__ = "users"
     id = Column(

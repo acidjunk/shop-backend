@@ -57,7 +57,7 @@ logger = structlog.get_logger(__name__)
 
 def run_migrations():
     alembic_cfg = Config("alembic.ini")
-    command.upgrade(alembic_cfg, "head")
+    command.upgrade(alembic_cfg, "heads")
 
 
 @asynccontextmanager
