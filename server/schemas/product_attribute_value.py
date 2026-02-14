@@ -28,6 +28,12 @@ class ProductAttributeValueCreate(ProductAttributeValueBase):
     pass
 
 
+class ProductAttributeValueReplace(BoilerplateBaseModel):
+    product_id: UUID
+    attribute_id: UUID
+    option_ids: List[UUID]
+
+
 class ProductAttributeValueUpdate(ProductAttributeValueBase):
     pass
 
