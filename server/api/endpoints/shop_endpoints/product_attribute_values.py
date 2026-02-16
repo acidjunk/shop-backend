@@ -72,21 +72,48 @@ def get_product_attribute_value(shop_id: UUID, id: UUID) -> ProductAttributeValu
 
 # TODO this should probably also work without needing to send both the attribute and option id,
 # ig option should be enough to figure out the attribute id
-@router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
+@router.post("/", response_model=None, status_code=HTTPStatus.CREATED, deprecated=True)
 def create_product_attribute_values(
     shop_id: UUID, data: Union[ProductAttributeValueCreate, list[ProductAttributeValueCreate]] = Body(...)
 ) -> None:
     """
-    Create a new product attribute value for a product within a shop.
+    DEPRECATED: Create a new product attribute value for a product within a shop.
+    Notes:
+    - This endpoint is deprecated; prefer using the selected options endpoint when possible.
+    - attribute_id may be omitted; if omitted, it will be inferred from option_id.
+
     Validations:
     - Product exists and belongs to the shop
-    - Attribute exists and belongs to the shop
-    - If option_id is provided, it belongs to the given attribute
+    - Resolved Attribute exists and belongs to the shop
+    - If option_id is provided, it must belong to the resolved attribute
     """
-    items = data if isinstance(data, list) else [data]
+    # Validate product belongs to shop
+    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=data.product_id)
+    if not product:
+        raise_status(HTTPStatus.NOT_FOUND, f"Product {data.product_id} not found for this shop")
 
-    for item in items:
-        _create_single_product_attribute_value(shop_id=shop_id, data=item)
+    # Validate attribute belongs to shop
+    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=data.attribute_id)
+    if not attribute:
+        raise_status(HTTPStatus.NOT_FOUND, f"Attribute {data.attribute_id} not found for this shop")
+
+    # Validate option (if provided) belongs to attribute
+    if data.option_id is not None:
+        option = attribute_option_crud.get(id=data.option_id)
+        if not option or option.attribute_id != data.attribute_id:
+            raise_status(HTTPStatus.BAD_REQUEST, "Provided option_id does not belong to the given attribute")
+
+    logger.info(
+        "Saving product attribute value",
+        product_id=str(data.product_id),
+        attribute_id=str(data.attribute_id),
+        option_id=str(data.option_id) if data.option_id else None,
+    )
+
+    # TODO add unique constrain so product cant have same option attribute and product id
+    # Create
+    pav = product_attribute_value_crud.create(obj_in=data)
+    return pav
 
 
 def _create_single_product_attribute_value(shop_id: UUID, data: ProductAttributeValueCreate):
