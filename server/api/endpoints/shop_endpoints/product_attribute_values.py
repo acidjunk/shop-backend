@@ -74,12 +74,9 @@ def create_product_attribute_values(
     DEPRECATED: Create a new product attribute value for a product within a shop.
     Notes:
     - This endpoint is deprecated; prefer using the selected options endpoint when possible.
-    - attribute_id may be omitted; if omitted, it will be inferred from option_id.
 
     Validations:
     - Product exists and belongs to the shop
-    - Resolved Attribute exists and belongs to the shop
-    - If option_id is provided, it must belong to the resolved attribute
     """
     # Validate product belongs to shop
     product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=data.product_id)
