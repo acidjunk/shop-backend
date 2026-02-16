@@ -288,9 +288,10 @@ def shop_with_tags():
     make_tag(shop_id=shop_id)
     return shop_id
 
+
 @pytest.fixture()
 def shop_with_products_and_attributes(shop_with_products):
-    shop = make_shop(with_config=False,random_shop_name=True)
+    shop = make_shop(with_config=False, random_shop_name=True)
     main_shop_id = shop_with_products
 
     # Fetch one product id in this shop by creating a category and a product if needed
@@ -332,6 +333,7 @@ def other_shop_product(shop_with_products_and_attributes):
     ids = shop_with_products_and_attributes
     other_cat = make_category(shop_id=ids["other_shop_id"])
     return make_product(shop_id=ids["other_shop_id"], category_id=other_cat)
+
 
 @pytest.fixture()
 def category(shop):

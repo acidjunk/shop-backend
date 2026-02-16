@@ -19,10 +19,7 @@ from server.schemas.shop import (
 logger = structlog.getLogger(__name__)
 
 
-def make_shop(
-    with_config=False,
-    random_shop_name=False
-):
+def make_shop(with_config=False, random_shop_name=False):
     name = ""
     if random_shop_name:
         name = f" - {str(uuid4())}"

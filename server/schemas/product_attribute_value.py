@@ -31,6 +31,7 @@ class ProductAttributeValueCreate(ProductAttributeValueBase):
 class ProductAttributeValueReplace(BoilerplateBaseModel):
     option_ids: List[UUID]
 
+
 class ProductAttributeValueUpdate(ProductAttributeValueBase):
     pass
 

@@ -1,5 +1,5 @@
 from server.db import db
-from server.db.models import AttributeTable, AttributeOptionTable, ProductAttributeValueTable
+from server.db.models import AttributeOptionTable, AttributeTable, ProductAttributeValueTable
 
 
 def make_attribute(shop_id, name="size", unit=None):
