@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 
 import structlog
 
@@ -20,7 +21,11 @@ logger = structlog.getLogger(__name__)
 
 def make_shop(
     with_config=False,
+    random_shop_name=False
 ):
+    name = ""
+    if random_shop_name:
+        name = f" - {str(uuid4())}"
     if with_config:
         menu_items = ConfigurationLanguageFieldMenuItems(
             about="string",
@@ -84,8 +89,8 @@ def make_shop(
         )
 
         shop = ShopTable(
-            name="Test Shop with config",
-            description="Test Shop Description with config",
+            name=f"Test Shop with config{name}",
+            description=f"Test Shop Description with config{name}",
             config=config.model_dump(),
             shop_type="{}",
             vat_standard=21,
@@ -98,8 +103,8 @@ def make_shop(
         )
     else:
         shop = ShopTable(
-            name="Test Shop",
-            description="Test Shop Description",
+            name=f"Test Shop{name}",
+            description=f"Test Shop Description{name}",
             stripe_public_key="string",
             vat_standard=21,
             vat_lower_1=15,
