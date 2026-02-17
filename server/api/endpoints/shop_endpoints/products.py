@@ -19,11 +19,11 @@ from server.schemas.product import (
     ProductOrder,
     ProductSchema,
     ProductUpdate,
+    ProductWithAttributes,
     ProductWithDefaultPrice,
     ProductWithDetailsAndPrices,
 )
 from server.schemas.product_attribute import ProductAttributeItem
-from server.schemas.product_attribute_value import ProductWithAttributes
 
 logger = structlog.get_logger(__name__)
 
