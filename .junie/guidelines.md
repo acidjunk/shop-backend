@@ -128,4 +128,5 @@ The `shop_virge_backend` is a FastAPI-based REST API designed to serve and manag
     - **New Unit Tests (UTs):** List all new or significantly modified unit tests. Briefly explain what each test covers.
     - **Other Improvements:** You may briefly mention other enhancements (e.g., better logging, performance tweaks, improved error handling). **Keep this section very concise.**
     - **Scope:** Base the description on all changes within the current branch. The first time you create a description for a PR, you must check all changes from the start of the branch (the fork point or the initial commit of the feature). To optimize subsequent resource usage, you should identify a base commit hash and compare it with the current state.
+    - **Committed Work Only:** When generating a PR description, always use committed work (comparing base to `HEAD`) and ignore any uncommitted or unstaged changes in the working tree.
     - **Metadata:** Include the base commit hash used for comparison in the PR description file for reference.
