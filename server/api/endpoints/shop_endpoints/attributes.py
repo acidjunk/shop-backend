@@ -115,4 +115,4 @@ def create(shop_id: UUID, data: AttributeCreate = Body(...)) -> None:
 
 @router.delete("/{attribute_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(attribute_id: UUID, shop_id: UUID) -> None:
-    return attribute_crud.delete_by_shop_id(shop_id=shop_id, id=attribute_id)
+    return attribute_crud.delete_deep_by_shop_id(shop_id=shop_id, id=attribute_id)
