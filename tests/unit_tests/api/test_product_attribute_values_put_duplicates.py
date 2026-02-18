@@ -1,11 +1,9 @@
-from server.utils.json import json_dumps
 from server.db import db
 from server.db.models import ProductAttributeValueTable
+from server.utils.json import json_dumps
 
 
-def test_put_product_attribute_values_with_duplicate_option_ids(
-    test_client, shop_with_products_and_attributes
-):
+def test_put_product_attribute_values_with_duplicate_option_ids(test_client, shop_with_products_and_attributes):
     """
     Test that sending duplicate option_ids in the PUT endpoint is handled gracefully.
     The endpoint should deduplicate them using a set and only create one record per unique option.
