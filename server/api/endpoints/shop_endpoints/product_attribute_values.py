@@ -122,7 +122,15 @@ def create_product_attribute_values(shop_id: UUID, data: ProductAttributeValueBa
         option_id=str(data.option_id) if data.option_id else None,
     )
 
-    # TODO add unique constrain so product cant have same option attribute and product id
+    # Prevent duplicates for the same product + attribute + option
+    existing = product_attribute_value_crud.get_existing(
+        product_id=data.product_id,
+        attribute_id=data.attribute_id,
+        option_id=data.option_id,
+    )
+    if existing:
+        raise_status(HTTPStatus.CONFLICT, "Product attribute value already exists for this product/attribute/option")
+
     # Create
     product_attribute_value_crud.create(
         obj_in=data,
@@ -233,6 +241,15 @@ def _create_single_pav_for_product(
         option_id=str(option_id) if option_id else None,
     )
 
+    # Prevent duplicates for the same product + attribute + option
+    existing = product_attribute_value_crud.get_existing(
+        product_id=product_id,
+        attribute_id=resolved_attribute_id,
+        option_id=option_id,
+    )
+    if existing:
+        raise_status(HTTPStatus.CONFLICT, "Product attribute value already exists for this product/attribute/option")
+
     pav_in = ProductAttributeValueBase(
         product_id=product_id,
         attribute_id=resolved_attribute_id,
@@ -274,7 +291,7 @@ def put_selected_product_attribute_values_by_product(
     if len(options) != len(selected_set):
         raise_status(HTTPStatus.BAD_REQUEST, "One or more option IDs do not exist")
 
-    # Group selected options by their attribute_id
+    # Group selected options by their attribute_id. This also ended up making sure that the UUID/options_ids are `DISTINCT`
     attr_to_option_ids: dict[UUID, set[UUID]] = {}
     for opt in options:
         attr_to_option_ids.setdefault(opt.attribute_id, set()).add(opt.id)
