@@ -5,7 +5,8 @@ from server.db.models import (
     AttributeTranslationTable,
     ProductAttributeValueTable,
 )
-from tests.unit_tests.factories.attribute import make_pav, make_attribute, make_option
+from tests.unit_tests.factories.attribute import make_attribute, make_option, make_pav
+
 
 def test_delete_attribute_deep(test_client, shop_with_products_and_attributes):
     ids = shop_with_products_and_attributes
@@ -19,8 +20,8 @@ def test_delete_attribute_deep(test_client, shop_with_products_and_attributes):
     make_pav(product_id, attr_id, opt_a_id)
     make_pav(product_id, attr_id, opt_b_id)
 
-    # Ensure translation exists (make_attribute currently doesn't create it in factory, 
-    # but the API `create` does. Let's manually add it for this test if needed, 
+    # Ensure translation exists (make_attribute currently doesn't create it in factory,
+    # but the API `create` does. Let's manually add it for this test if needed,
     # or check if it's there.)
     trans = AttributeTranslationTable(attribute_id=attr_id, main_name="Size")
     db.session.add(trans)
