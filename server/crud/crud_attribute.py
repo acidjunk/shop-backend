@@ -34,7 +34,7 @@ class CRUDAttribute(CRUDBase[AttributeTable, AttributeCreate, AttributeUpdate]):
         3) AttributeTranslation row for the attribute
         4) The Attribute itself
         """
-        return # disabled for now, just be sure
+        return  # disabled for now, just be sure
         # Fetch attribute first to validate shop ownership
         obj = (
             db.session.query(AttributeTable).filter(AttributeTable.shop_id == shop_id, AttributeTable.id == id).first()
