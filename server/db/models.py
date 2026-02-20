@@ -518,25 +518,11 @@ class AttributeTable(BaseModel):
     unit = Column(String(20), nullable=True)
 
     shop = relationship("ShopTable", lazy=True)
-    translation = relationship(
-        "AttributeTranslationTable",
-        back_populates="attribute",
-        cascade="save-update, merge, delete",
-    )
+    translation = relationship("AttributeTranslationTable", back_populates="attribute", uselist=False)
 
     # One-to-many: all discrete choices (like XS/S/M/L/XL) that belong to this attribute when it acts as an enum.
     # For non-enum attributes, this list can be empty. Deleting an attribute deletes its options.
-    options = relationship(
-        "AttributeOptionTable",
-        back_populates="attribute",
-        cascade="save-update, merge, delete",
-    )
-
-    # All concrete product values that reference this attribute
-    attribute_values = relationship(
-        "ProductAttributeValueTable",
-        back_populates="attribute",
-    )
+    options = relationship("AttributeOptionTable", cascade="save-update, merge, delete")
 
     __table_args__ = (sqlalchemy.UniqueConstraint("shop_id", "name", name="uq_attribute_shop_name"),)
 
@@ -561,13 +547,7 @@ class AttributeOptionTable(BaseModel):
     # Compact, language-agnostic key for the option. Example values: "XS", "S", "M", "L", "XL"
     value_key = Column(String(60), index=True)
 
-    attribute = relationship("AttributeTable", back_populates="options", lazy=True)
-    # All product attribute values that use this option
-    values = relationship(
-        "ProductAttributeValueTable",
-        back_populates="option",
-        passive_deletes=True,
-    )
+    attribute = relationship("AttributeTable", lazy=True)
 
     __table_args__ = (sqlalchemy.UniqueConstraint("attribute_id", "value_key", name="uq_attribute_option_key"),)
 
@@ -583,8 +563,8 @@ class ProductAttributeValueTable(BaseModel):
     option_id = Column("option_id", UUIDType, ForeignKey("attribute_options.id"), nullable=True, index=True)
 
     product = relationship("ProductTable", lazy=True)
-    attribute = relationship("AttributeTable", back_populates="attribute_values", lazy=True)
-    option = relationship("AttributeOptionTable", back_populates="values", lazy=True)
+    attribute = relationship("AttributeTable", lazy=True)
+    option = relationship("AttributeOptionTable", lazy=True)
 
     # Prevent exact duplicates while allowing multiple options per product+attribute,
     # and multiple distinct free-form values when needed.

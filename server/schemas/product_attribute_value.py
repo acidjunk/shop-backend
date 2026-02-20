@@ -14,37 +14,25 @@ from typing import List, Optional
 from uuid import UUID
 
 from server.schemas.base import BoilerplateBaseModel
+from server.schemas.product import ProductWithDefaultPrice
+from server.schemas.product_attribute import ProductAttributeItem
 
 
 class ProductAttributeValueBase(BoilerplateBaseModel):
-    """Base schema for product attribute values."""
-
     product_id: UUID
     attribute_id: UUID
     option_id: Optional[UUID] = None  # TODO make this not optional
 
 
 class ProductAttributeValueCreate(ProductAttributeValueBase):
-    """Schema for creating a product attribute value."""
-
     pass
 
 
-class ProductAttributeOptionSelectionReplace(BoilerplateBaseModel):
-    """Payload for creating or replacing selected attribute options for a product."""
-
-    option_ids: List[UUID]
-
-
-class ProductAttributeOptionSelectionAdd(BoilerplateBaseModel):
-    """Payload for creating or replacing selected attribute options for a product."""
-
-    option_ids: List[UUID]
+class ProductAttributeValueUpdate(ProductAttributeValueBase):
+    pass
 
 
 class ProductAttributeValueInDBBase(ProductAttributeValueBase):
-    """Base schema for product attribute values as stored in the database."""
-
     id: UUID
 
     class Config:
@@ -52,6 +40,9 @@ class ProductAttributeValueInDBBase(ProductAttributeValueBase):
 
 
 class ProductAttributeValueSchema(ProductAttributeValueInDBBase):
-    """Schema for representing a product attribute value."""
-
     pass
+
+
+class ProductWithAttributes(BoilerplateBaseModel):
+    product: ProductWithDefaultPrice
+    attributes: List[ProductAttributeItem] = []

@@ -16,13 +16,12 @@ from server.crud.base import CRUDBase
 from server.db.models import ProductAttributeValueTable
 from server.schemas.product_attribute_value import (
     ProductAttributeValueCreate,
+    ProductAttributeValueUpdate,
 )
 
 
-# This CRUD is effectively not using a per-row update payload schema in your current flow.
-# If any relations need to be updated, you should just delete the row and create a new one.
 class CRUDProductAttributeValue(
-    CRUDBase[ProductAttributeValueTable, ProductAttributeValueCreate, ProductAttributeValueCreate]
+    CRUDBase[ProductAttributeValueTable, ProductAttributeValueCreate, ProductAttributeValueUpdate]
 ):
     def get_existing(
         self, *, product_id, attribute_id, option_id: Optional[str]
