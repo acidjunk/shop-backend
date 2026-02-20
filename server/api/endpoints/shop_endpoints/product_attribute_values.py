@@ -149,7 +149,7 @@ def get_attribute_options_by_ids(option_ids: list[UUID], shop_id: UUID) -> list[
         .all()
     )
     if len(options) != len(option_ids):
-        raise_status(HTTPStatus.NOT_FOUND, "One or more option IDs do not exist (or are not in this shop)")
+        raise_status(HTTPStatus.BAD_REQUEST, "One or more option IDs do not exist (or are not in this shop)")
     return options
 
 

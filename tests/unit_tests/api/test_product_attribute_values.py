@@ -150,12 +150,12 @@ def test_put_selected_product_attribute_values_grouping_and_validations(test_cli
     )
     assert resp_invalid.status_code == 400
 
-    # 404 when inferred attribute is from another shop
+    # 400 when inferred attribute is from another shop
     resp_wrong_attr_shop = test_client.put(
         f"/shops/{ids['shop_id']}/product-attribute-values/{ids['product_id']}",
         data=json_dumps({"option_ids": [str(ids["other_opt_id"])]}),
     )
-    assert resp_wrong_attr_shop.status_code == 404
+    assert resp_wrong_attr_shop.status_code == 400
 
 
 def test_delete_product_attribute_value(test_client, shop_with_products_and_attributes):
