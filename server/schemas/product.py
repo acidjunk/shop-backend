@@ -108,13 +108,6 @@ class ProductWithDetailsAndPrices(ProductWithDetails):
     prices: List[dict] = []
 
 
-class ProductWithAttributes(BoilerplateBaseModel):
-    """Schema for a product along with its associated attributes."""
-
-    product: ProductWithDefaultPrice
-    attributes: List[ProductAttributeItem] = []
-
-
 class ProductImageDelete(ProductEmptyBase):
     image: str
 

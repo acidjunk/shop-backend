@@ -13,9 +13,8 @@
 from typing import Optional
 from uuid import UUID
 
-from server.crud.base import CRUDBase, NotFound
-from server.db import db
-from server.db.models import AttributeOptionTable, AttributeTable, AttributeTranslationTable, ProductAttributeValueTable
+from server.crud.base import CRUDBase
+from server.db.models import AttributeTable
 from server.schemas.attribute import AttributeCreate, AttributeUpdate
 
 
@@ -24,65 +23,6 @@ class CRUDAttribute(CRUDBase[AttributeTable, AttributeCreate, AttributeUpdate]):
         return (
             AttributeTable.query.filter(AttributeTable.shop_id == shop_id).filter(AttributeTable.name == name).first()
         )
-
-    def delete_deep_by_shop_id(self, *, shop_id: UUID, id: UUID) -> None:
-        """
-        Delete an attribute and all dependent records for a shop.
-        Removes in safe order to satisfy FK constraints:
-        1) ProductAttributeValue rows referencing the attribute
-        2) AttributeOption rows for the attribute
-        3) AttributeTranslation row for the attribute
-        4) The Attribute itself
-        """
-        return  # disabled for now, just be sure
-        # Fetch attribute first to validate shop ownership
-        obj = (
-            db.session.query(AttributeTable).filter(AttributeTable.shop_id == shop_id, AttributeTable.id == id).first()
-        )
-        if obj is None:
-            raise NotFound
-        try:
-            # 1) Delete product attribute values referencing this attribute
-            db.session.query(ProductAttributeValueTable).filter(
-                ProductAttributeValueTable.attribute_id == obj.id
-            ).delete(synchronize_session=False)
-
-            # 2) Delete attribute options belonging to this attribute
-            db.session.query(AttributeOptionTable).filter(AttributeOptionTable.attribute_id == obj.id).delete(
-                synchronize_session=False
-            )
-
-            # 3) Delete translation if present
-            db.session.query(AttributeTranslationTable).filter(AttributeTranslationTable.attribute_id == obj.id).delete(
-                synchronize_session=False
-            )
-
-            # 4) Delete attribute itself
-            db.session.delete(obj)
-
-            db.session.commit()
-        except:
-            db.session.rollback()
-            raise
-
-    def delete_by_shop_id(self, *, shop_id: UUID, id: UUID) -> None:
-        """
-        Delete an attribute for a shop.
-        Does NOT delete related records automatically (no deep delete here anymore).
-        Deletion will fail at DB level if relationships (PAVs) are still active (FK constraint).
-        """
-        # Fetch attribute first to validate shop ownership
-        obj = (
-            db.session.query(AttributeTable).filter(AttributeTable.shop_id == shop_id, AttributeTable.id == id).first()
-        )
-        if obj is None:
-            raise NotFound
-        try:
-            db.session.delete(obj)
-            db.session.commit()
-        except:
-            db.session.rollback()
-            raise
 
 
 attribute_crud = CRUDAttribute(AttributeTable)
