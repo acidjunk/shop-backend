@@ -4,7 +4,7 @@ All routes are scoped by shop_id to ensure resources belong to the specified sho
 """
 
 from http import HTTPStatus
-from typing import List, Union
+from typing import List, Set, Union, Any
 from uuid import UUID
 
 import structlog
@@ -21,6 +21,7 @@ from server.crud.crud_product_attribute_value import product_attribute_value_cru
 from server.db import db
 from server.db.models import (
     AttributeOptionTable,
+    AttributeTable,
     ProductAttributeValueTable,
     ProductTable,
 )
@@ -154,109 +155,73 @@ def create_product_attribute_values_for_product(
     This deprecates the old POST / endpoint that required product_id in the body.
 
     Notes:
-    - attribute_id may be omitted; if omitted, it will be inferred from option_id.
+    - attribute_id is omitted; it will be inferred from option_id, as the option is already tied to an attribute_id.
 
-    Validations per item:
-    - Product (from path) exists and belongs to the shop
-    - Resolved Attribute exists and belongs to the shop
-    - If option_id is provided, it must belong to the resolved attribute
+    - This endpoint first validates that all option_ids belong to attributes that belong to the shop.
+    - And that these options actually exist.
+    - If everything is passed, it will create the product attribute values.
+    - Duplicates are ignored, and the endpoint returns 201 Created for each successful creation. That means no 409 is raised when a duplicate is encountered; it just won't be created.
     """
     # Validate product belongs to shop via path param
     product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
 
-    # Validate each option_id up-front (before transactional block)
-    for option_id in data.option_ids:
-        if option_id is None:
-            raise_status(
-                HTTPStatus.BAD_REQUEST,
-                "attribute_id is missing and cannot be inferred without option_id",
-            )
-
-        option = attribute_option_crud.get(id=option_id)
-        if not option:
-            raise_status(HTTPStatus.BAD_REQUEST, f"Option {option_id} does not exist")
-        resolved_attribute_id = option.attribute_id
-
-        # Validate attribute belongs to shop
-        attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=resolved_attribute_id)
-        if not attribute:
-            raise_status(HTTPStatus.NOT_FOUND, f"Attribute {resolved_attribute_id} not found for this shop")
-
-        # Validate option (if provided) belongs to resolved attribute
-        if not option or option.attribute_id != resolved_attribute_id:
-            raise_status(HTTPStatus.BAD_REQUEST, "Provided option_id does not belong to the resolved attribute")
-
-    for option_id in data.option_ids:
-        _create_single_pav_for_product(
-            shop_id=shop_id, product_id=product_id, option_id=option_id, skip_validation=True
+    options = (
+        db.session.query(AttributeOptionTable)
+        .join(AttributeTable, AttributeTable.id == AttributeOptionTable.attribute_id)
+        .filter(
+            AttributeOptionTable.id.in_(list(data.option_ids)),
+            AttributeTable.shop_id == shop_id,
         )
+        .all()
+    )
+    if len(options) != len(data.option_ids):
+        raise_status(HTTPStatus.BAD_REQUEST, "One or more option IDs do not exist (or are not in this shop)")
+
+    # Batch fetch existing PAVs for this product and these options
+    existing_pavs = (
+        db.session.query(ProductAttributeValueTable)
+        .filter(
+            ProductAttributeValueTable.product_id == product_id,
+            ProductAttributeValueTable.option_id.in_([opt.id for opt in options]),
+        )
+        .all()
+    )
+
+    new_pavs = _create_product_attribute_values(product_id, options, {pav.option_id for pav in existing_pavs})
+
+    if new_pavs:
+        db.session.add_all(new_pavs)
+        db.session.commit()
 
     return None
 
 
-def _create_single_pav_for_product(
-    shop_id: UUID, product_id: UUID, option_id: UUID, skip_validation: bool = False
-) -> ProductAttributeValueTable:
-    """Create a single ProductAttributeValue for a product given an option id.
-
-    Validates that the product and the inferred attribute belong to the shop,
-    and that the option exists and belongs to that attribute.
+def _create_product_attribute_values(
+    product_id: UUID, options: List[AttributeOptionTable], existing_option_ids: Set[UUID]
+) -> list[Any]:
     """
-    if not skip_validation:
-        # Validate product belongs to shop via path param
-        product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id)
-        if not product:
-            raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
-
-        if option_id is None:
-            raise_status(
-                HTTPStatus.BAD_REQUEST,
-                "attribute_id is missing and cannot be inferred without option_id",
+    Creates product attribute values by identifying new options that are not in the existing set
+    of option IDs and preparing a list of product attribute value entries for these options.
+    """
+    new_pavs = []
+    for option in options:
+        if option.id not in existing_option_ids:
+            logger.info(
+                "Saving product attribute value (batch)",
+                product_id=str(product_id),
+                attribute_id=str(option.attribute_id),
+                option_id=str(option.id),
             )
-
-        option = attribute_option_crud.get(id=option_id)
-        if not option:
-            raise_status(HTTPStatus.BAD_REQUEST, f"Option {option_id} does not exist")
-        resolved_attribute_id = option.attribute_id
-
-        # Validate attribute belongs to shop
-        attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=resolved_attribute_id)
-        if not attribute:
-            raise_status(HTTPStatus.NOT_FOUND, f"Attribute {resolved_attribute_id} not found for this shop")
-
-        # Validate option (if provided) belongs to resolved attribute
-        if not option or option.attribute_id != resolved_attribute_id:
-            raise_status(HTTPStatus.BAD_REQUEST, "Provided option_id does not belong to the resolved attribute")
-    else:
-        # We still need resolved_attribute_id if we skipped validation
-        option = attribute_option_crud.get(id=option_id)
-        resolved_attribute_id = option.attribute_id
-
-    logger.info(
-        "Saving product attribute value (by product in path)",
-        product_id=str(product_id),
-        attribute_id=str(resolved_attribute_id),
-        option_id=str(option_id) if option_id else None,
-    )
-
-    # Prevent duplicates for the same product + attribute + option
-    existing = product_attribute_value_crud.get_existing(
-        product_id=product_id,
-        attribute_id=resolved_attribute_id,
-        option_id=option_id,
-    )
-    if existing:
-        raise_status(HTTPStatus.CONFLICT, "Product attribute value already exists for this product/attribute/option")
-
-    pav_in = ProductAttributeValueBase(
-        product_id=product_id,
-        attribute_id=resolved_attribute_id,
-        option_id=option_id,
-    )
-    pav = product_attribute_value_crud.create(obj_in=pav_in)
-    return pav
+            new_pavs.append(
+                ProductAttributeValueTable(
+                    product_id=product_id,
+                    attribute_id=option.attribute_id,
+                    option_id=option.id,
+                )
+            )
+    return new_pavs
 
 
 @router.put(
@@ -307,53 +272,57 @@ def put_selected_product_attribute_values_by_product(
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
 
-    # Process each attribute group independently
-    for inferred_attribute_id, option_ids_for_attr in attr_to_option_ids.items():
-        # Fetch existing PAVs for this product+attribute
-        existing = (
-            db.session.query(ProductAttributeValueTable)
-            .filter(
-                ProductAttributeValueTable.product_id == product_id,
-                ProductAttributeValueTable.attribute_id == inferred_attribute_id,
-            )
-            .all()
+    # Fetch all existing PAVs for this product and these attributes in one go
+    existing_pavs = (
+        db.session.query(ProductAttributeValueTable)
+        .filter(
+            ProductAttributeValueTable.product_id == product_id,
+            ProductAttributeValueTable.attribute_id.in_(list(attr_to_option_ids.keys())),
         )
+        .all()
+    )
 
-        existing_option_ids = set(row.option_id for row in existing if row.option_id is not None)
+    # Group existing PAVs by attribute_id for easier processing
+    attr_to_existing_pavs: dict[UUID, list[ProductAttributeValueTable]] = {}
+    for pav in existing_pavs:
+        attr_to_existing_pavs.setdefault(pav.attribute_id, []).append(pav)
+
+    to_add_objs = []
+    to_delete_objs = []
+
+    # Process each attribute group
+    for inferred_attribute_id, option_ids_for_attr in attr_to_option_ids.items():
+        existing_for_attr = attr_to_existing_pavs.get(inferred_attribute_id, [])
+        existing_option_ids = {row.option_id for row in existing_for_attr if row.option_id is not None}
 
         to_add = option_ids_for_attr - existing_option_ids
-        to_remove_ids = [row.id for row in existing if row.option_id not in option_ids_for_attr]
+        for row in existing_for_attr:
+            if row.option_id not in option_ids_for_attr:
+                to_delete_objs.append(row)
 
-        # Create missing
         for option_id in to_add:
-            pav_in = ProductAttributeValueBase(
-                product_id=product_id,
-                attribute_id=inferred_attribute_id,
-                option_id=option_id,
-            )
             logger.info(
-                "Saving product attribute value",
+                "Saving product attribute value (batch replace)",
                 product_id=str(product_id),
                 attribute_id=str(inferred_attribute_id),
                 option_id=str(option_id),
             )
-            product_attribute_value_crud.create(
-                obj_in=pav_in,
+            to_add_objs.append(
+                ProductAttributeValueTable(
+                    product_id=product_id,
+                    attribute_id=inferred_attribute_id,
+                    option_id=option_id,
+                )
             )
 
-        # Delete absent
-        for pav_id in to_remove_ids:
-            product_attribute_value_crud.delete(
-                id=str(pav_id),
-            )
+    # Batch execute changes
+    if to_add_objs:
+        db.session.add_all(to_add_objs)
+    for obj in to_delete_objs:
+        db.session.delete(obj)
 
-        logger.info(
-            "Updated selected product attribute values (by product in path)",
-            product_id=str(product_id),
-            attribute_id=str(inferred_attribute_id),
-            added=len(to_add),
-            removed=len(to_remove_ids),
-        )
+    if to_add_objs or to_delete_objs:
+        db.session.commit()
 
     return None
 
