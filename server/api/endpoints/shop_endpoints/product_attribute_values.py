@@ -4,7 +4,7 @@ All routes are scoped by shop_id to ensure resources belong to the specified sho
 """
 
 from http import HTTPStatus
-from typing import List, Set, Union, Any
+from typing import Any, List, Set, Union
 from uuid import UUID
 
 import structlog
@@ -138,6 +138,21 @@ def create_product_attribute_values(shop_id: UUID, data: ProductAttributeValueBa
     )
 
 
+def get_attribute_options_by_ids(option_ids: list[UUID], shop_id: UUID) -> list[AttributeOptionTable]:
+    options = (
+        db.session.query(AttributeOptionTable)
+        .join(AttributeTable, AttributeTable.id == AttributeOptionTable.attribute_id)
+        .filter(
+            AttributeOptionTable.id.in_(list(option_ids)),
+            AttributeTable.shop_id == shop_id,
+        )
+        .all()
+    )
+    if len(options) != len(option_ids):
+        raise_status(HTTPStatus.BAD_REQUEST, "One or more option IDs do not exist (or are not in this shop)")
+    return options
+
+
 @router.post(
     "/{product_id}",
     response_model=None,
@@ -162,22 +177,16 @@ def create_product_attribute_values_for_product(
     - If everything is passed, it will create the product attribute values.
     - Duplicates are ignored, and the endpoint returns 201 Created for each successful creation. That means no 409 is raised when a duplicate is encountered; it just won't be created.
     """
+    # Validate and load provided options
+    if not data.option_ids:
+        raise_status(HTTPStatus.BAD_REQUEST, "option_ids must be a non-empty list")
+
     # Validate product belongs to shop via path param
     product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
 
-    options = (
-        db.session.query(AttributeOptionTable)
-        .join(AttributeTable, AttributeTable.id == AttributeOptionTable.attribute_id)
-        .filter(
-            AttributeOptionTable.id.in_(list(data.option_ids)),
-            AttributeTable.shop_id == shop_id,
-        )
-        .all()
-    )
-    if len(options) != len(data.option_ids):
-        raise_status(HTTPStatus.BAD_REQUEST, "One or more option IDs do not exist (or are not in this shop)")
+    options = get_attribute_options_by_ids(option_ids=data.option_ids, shop_id=shop_id)
 
     # Batch fetch existing PAVs for this product and these options
     existing_pavs = (
@@ -248,29 +257,20 @@ def put_selected_product_attribute_values_by_product(
         the provided option_ids that belong to that attribute
     """
     # Validate and load provided options
-    selected_set = set(data.option_ids or [])
-    if not selected_set:
+    if not data.option_ids:
         raise_status(HTTPStatus.BAD_REQUEST, "option_ids must be a non-empty list")
-
-    options = db.session.query(AttributeOptionTable).filter(AttributeOptionTable.id.in_(list(selected_set))).all()
-    if len(options) != len(selected_set):
-        raise_status(HTTPStatus.BAD_REQUEST, "One or more option IDs do not exist")
-
-    # Group selected options by their attribute_id. This also ended up making sure that the UUID/options_ids are `DISTINCT`
-    attr_to_option_ids: dict[UUID, set[UUID]] = {}
-    for opt in options:
-        attr_to_option_ids.setdefault(opt.attribute_id, set()).add(opt.id)
-
-    # Perform remaining validations (scoping) up-front
-    for inferred_attribute_id in attr_to_option_ids:
-        attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=inferred_attribute_id)
-        if not attribute:
-            raise_status(HTTPStatus.NOT_FOUND, f"Attribute {inferred_attribute_id} not found for this shop")
 
     # Validate product belongs to shop using path param
     product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
+
+    options = get_attribute_options_by_ids(list(data.option_ids), shop_id)
+
+    # Group selected options by their attribute_id. This also ended up making sure that the UUID/options_ids are `DISTINCT`
+    attr_to_option_ids: dict[UUID, set[UUID]] = {}
+    for opt in options:
+        attr_to_option_ids.setdefault(opt.attribute_id, set()).add(opt.id)
 
     # Fetch all existing PAVs for this product and these attributes in one go
     existing_pavs = (
@@ -298,6 +298,13 @@ def put_selected_product_attribute_values_by_product(
         to_add = option_ids_for_attr - existing_option_ids
         for row in existing_for_attr:
             if row.option_id not in option_ids_for_attr:
+                logger.info(
+                    "Deleting product attribute value (batch replace)",
+                    product_id=str(row.product_id),
+                    attribute_id=str(row.attribute_id),
+                    option_id=str(row.option_id),
+                    pav_id=str(row.id),
+                )
                 to_delete_objs.append(row)
 
         for option_id in to_add:
