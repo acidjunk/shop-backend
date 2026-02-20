@@ -536,7 +536,6 @@ class AttributeTable(BaseModel):
     attribute_values = relationship(
         "ProductAttributeValueTable",
         back_populates="attribute",
-        cascade="save-update, merge, delete",
     )
 
     __table_args__ = (sqlalchemy.UniqueConstraint("shop_id", "name", name="uq_attribute_shop_name"),)
@@ -567,7 +566,7 @@ class AttributeOptionTable(BaseModel):
     values = relationship(
         "ProductAttributeValueTable",
         back_populates="option",
-        cascade="save-update, merge, delete",
+        passive_deletes=True,
     )
 
     __table_args__ = (sqlalchemy.UniqueConstraint("attribute_id", "value_key", name="uq_attribute_option_key"),)
