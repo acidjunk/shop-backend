@@ -5,10 +5,12 @@ from uuid import UUID
 import structlog
 from fastapi import APIRouter, HTTPException
 from fastapi.param_functions import Body, Depends
+from sqlalchemy.exc import IntegrityError
 from starlette.responses import Response
 
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
+from server.crud.base import NotFound
 from server.crud.crud_attribute import attribute_crud
 from server.crud.crud_product import product_crud
 from server.db import db
@@ -115,4 +117,12 @@ def create(shop_id: UUID, data: AttributeCreate = Body(...)) -> None:
 
 @router.delete("/{attribute_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(attribute_id: UUID, shop_id: UUID) -> None:
-    return attribute_crud.delete_by_shop_id(shop_id=shop_id, id=attribute_id)
+    try:
+        return attribute_crud.delete_by_shop_id(shop_id=shop_id, id=attribute_id)
+    except NotFound:
+        raise_status(HTTPStatus.NOT_FOUND, f"Attribute with id {attribute_id} not found")
+    except IntegrityError as e:
+        raise_status(
+            HTTPStatus.CONFLICT,
+            detail={"message": "Attribute is in use and cannot be deleted"},
+        )
