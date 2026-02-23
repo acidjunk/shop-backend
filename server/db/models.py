@@ -522,6 +522,7 @@ class AttributeTable(BaseModel):
         "AttributeTranslationTable",
         back_populates="attribute",
         cascade="save-update, merge, delete",
+        uselist=False,
     )
 
     # One-to-many: all discrete choices (like XS/S/M/L/XL) that belong to this attribute when it acts as an enum.
