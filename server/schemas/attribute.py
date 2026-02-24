@@ -29,7 +29,7 @@ class AttributeBase(BoilerplateBaseModel):
     shop_id: UUID
     name: str
     unit: Optional[str] = None
-    translation: AttributeTranslationBase
+    translation: Optional[AttributeTranslationBase] = None
 
 
 class AttributeCreate(BoilerplateBaseModel):

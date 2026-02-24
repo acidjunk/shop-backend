@@ -26,11 +26,16 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
-@router.get("/", response_model=List[AttributeOptionSchema])
+@router.get(
+    "/",
+    response_model=List[AttributeOptionSchema],
+    summary="List attribute options",
+    description="Retrieve a paginated list of options (e.g., 'Small', 'Medium', 'Large') for a specific attribute within a shop.",
+)
 def list_options(
     shop_id: UUID, attribute_id: UUID, response: Response, common: dict = Depends(common_parameters)
 ) -> List[AttributeOptionSchema]:
-    """List options for an attribute within a shop. This effectively does the same as one of the attribute endpoints"""
+    """List options for an attribute within a shop."""
     # Ensure attribute belongs to shop
     attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id)
     if not attribute:
@@ -48,8 +53,14 @@ def list_options(
     return results
 
 
-@router.get("/{option_id}", response_model=AttributeOptionSchema)
+@router.get(
+    "/{option_id}",
+    response_model=AttributeOptionSchema,
+    summary="Get attribute option",
+    description="Retrieve the details of a specific attribute option by its unique ID.",
+)
 def get_option(shop_id: UUID, attribute_id: UUID, option_id: UUID) -> AttributeOptionSchema:
+    """Get a single attribute option."""
     # Ensure attribute belongs to shop
     attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id)
     if not attribute:
@@ -61,10 +72,17 @@ def get_option(shop_id: UUID, attribute_id: UUID, option_id: UUID) -> AttributeO
     return option
 
 
-@router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
-def create_option(shop_id: UUID, attribute_id: UUID, data: AttributeOptionCreate = Body(...)) -> None:
+@router.post(
+    "/",
+    response_model=AttributeOptionSchema,
+    status_code=HTTPStatus.CREATED,
+    summary="Create attribute option",
+    description="Create a new option for a specific attribute. The value_key should be a language-agnostic identifier (e.g., 'XL').",
+)
+def create_option(shop_id: UUID, attribute_id: UUID, data: AttributeOptionCreate = Body(...)) -> AttributeOptionSchema:
     """
     Create a new option for an attribute within a shop.
+
     Validates that the attribute exists and belongs to the given shop.
     The body must contain value_key; attribute_id from the path will be used.
     """
@@ -77,13 +95,24 @@ def create_option(shop_id: UUID, attribute_id: UUID, data: AttributeOptionCreate
     payload = AttributeOptionBase(attribute_id=attribute_id, value_key=data.value_key)
     logger.info("Saving attribute option", attribute_id=str(attribute_id), value_key=payload.value_key)
 
-    # TODO it now throws a 500 if it's not unique (DB unique constraint)
-    option = attribute_option_crud.create(obj_in=payload)
-    return option
+    try:
+        option = attribute_option_crud.create(obj_in=payload)
+        return option
+    except IntegrityError:
+        raise_status(
+            HTTPStatus.CONFLICT, f"Option with value_key {data.value_key} already exists for this attribute"
+        )
 
 
-@router.delete("/{option_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
+@router.delete(
+    "/{option_id}",
+    response_model=None,
+    status_code=HTTPStatus.NO_CONTENT,
+    summary="Delete attribute option",
+    description="Remove an attribute option. This will fail if the option is currently used by any product values.",
+)
 def delete_option(shop_id: UUID, attribute_id: UUID, option_id: UUID) -> None:
+    """Delete an attribute option."""
     # Ensure attribute belongs to shop
     attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id)
     if not attribute:
@@ -101,3 +130,30 @@ def delete_option(shop_id: UUID, attribute_id: UUID, option_id: UUID) -> None:
             detail={"message": "Attribute option is in use and cannot be deleted"},
         )
     return None
+
+
+@router.put(
+    "/{option_id}",
+    response_model=AttributeOptionSchema,
+    summary="Update attribute option",
+    description="Update the details of an existing attribute option, such as its value_key.",
+)
+def update_option(
+    shop_id: UUID, attribute_id: UUID, option_id: UUID, data: AttributeOptionUpdate = Body(...)
+) -> AttributeOptionSchema:
+    """Update an attribute option."""
+    # Ensure attribute belongs to shop
+    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id)
+    if not attribute:
+        raise_status(HTTPStatus.NOT_FOUND, f"Attribute with id {attribute_id} not found for this shop")
+
+    option = attribute_option_crud.get(id=option_id)
+    if not option or option.attribute_id != attribute_id:
+        raise_status(HTTPStatus.NOT_FOUND, f"Option with id {option_id} not found for this attribute")
+
+    try:
+        return attribute_option_crud.update(db_obj=option, obj_in=data)
+    except IntegrityError:
+        raise_status(
+            HTTPStatus.CONFLICT, f"Option with value_key {data.value_key} already exists for this attribute"
+        )
