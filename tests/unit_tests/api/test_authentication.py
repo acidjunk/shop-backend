@@ -60,7 +60,6 @@ def test_endpoint_auth(monkeypatch, fastapi_app_not_authenticated):
     not_401_responses = []
 
     for response in responses:
-        print(response.json())
         if response.status_code != 401:
             not_401_responses.append(response)
 
