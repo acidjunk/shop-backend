@@ -33,6 +33,7 @@ from server.exception_handlers.generic_exception_handlers import problem_detail_
 from server.security import auth_required
 from server.settings import app_settings
 from tests.unit_tests.factories.account import make_account
+from tests.unit_tests.factories.attribute import make_attribute, make_option
 from tests.unit_tests.factories.categories import make_category, make_category_translated
 from tests.unit_tests.factories.order import make_pending_order
 from tests.unit_tests.factories.product import make_product, make_translated_product
@@ -286,6 +287,52 @@ def shop_with_tags():
     make_tag(shop_id=shop_id)
     make_tag(shop_id=shop_id)
     return shop_id
+
+
+@pytest.fixture()
+def shop_with_products_and_attributes(shop_with_products):
+    shop = make_shop(with_config=False, random_shop_name=True)
+    main_shop_id = shop_with_products
+
+    # Fetch one product id in this shop by creating a category and a product if needed
+    category_id = make_category(shop_id=main_shop_id)
+    product_id = make_product(shop_id=main_shop_id, category_id=category_id)
+
+    # Create two attributes in main shop, each with options
+    attr1_id = make_attribute(main_shop_id, name="size")
+    opt1a_id = make_option(attr1_id, "S")
+    opt1b_id = make_option(attr1_id, "M")
+
+    attr2_id = make_attribute(main_shop_id, name="color")
+    opt2a_id = make_option(attr2_id, "RED")
+
+    # Create a second shop with its own attribute/option to test scoping
+    other_shop_id = shop  # empty shop id (no products for now)
+    other_attr_id = make_attribute(other_shop_id, name="other-attr")
+    other_opt_id = make_option(other_attr_id, "X")
+
+    return {
+        "shop_id": main_shop_id,
+        "product_id": product_id,
+        "attr1_id": attr1_id,
+        "opt1a_id": opt1a_id,
+        "opt1b_id": opt1b_id,
+        "attr2_id": attr2_id,
+        "opt2a_id": opt2a_id,
+        "other_shop_id": other_shop_id,
+        "other_attr_id": other_attr_id,
+        "other_opt_id": other_opt_id,
+    }
+
+
+@pytest.fixture()
+def other_shop_product(shop_with_products_and_attributes):
+    """Create and return a product that belongs to the 'other_shop_id' from the ids bundle.
+    Useful for negative scoping tests across multiple test cases.
+    """
+    ids = shop_with_products_and_attributes
+    other_cat = make_category(shop_id=ids["other_shop_id"])
+    return make_product(shop_id=ids["other_shop_id"], category_id=other_cat)
 
 
 @pytest.fixture()
