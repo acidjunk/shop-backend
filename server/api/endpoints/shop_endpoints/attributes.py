@@ -164,15 +164,11 @@ def create(shop_id: UUID, data: AttributeCreate = Body(...)) -> AttributeSchema:
     """
     logger.info("Saving attribute", data=data)
 
-    new_attribute: AttributeBase = AttributeBase(
-        translation=AttributeTranslationBase(main_name=data.name),
-        name=data.name,
-        shop_id=shop_id,
-        unit=data.unit,
-    )
+    if data.translation is None or data.translation.main_name is None:
+        data.translation = AttributeTranslationBase(main_name=data.name)
 
     try:
-        attr = attribute_crud.create_by_shop_id(shop_id=shop_id, obj_in=new_attribute)
+        attr = attribute_crud.create_by_shop_id(shop_id=shop_id, obj_in=data)
     except IntegrityError:
         raise_status(HTTPStatus.CONFLICT, f"Attribute with name {data.name} already exists for this shop")
     return attr

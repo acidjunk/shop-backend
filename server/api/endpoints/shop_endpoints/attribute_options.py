@@ -91,7 +91,6 @@ def create_option(shop_id: UUID, attribute_id: UUID, data: AttributeOptionCreate
     if not attribute:
         raise_status(HTTPStatus.NOT_FOUND, f"Attribute with id {attribute_id} not found for this shop")
 
-    # Override attribute_id from path to avoid spoofing
     payload = AttributeOptionBase(attribute_id=attribute_id, value_key=data.value_key)
     logger.info("Saving attribute option", attribute_id=str(attribute_id), value_key=payload.value_key)
 

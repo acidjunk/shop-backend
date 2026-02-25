@@ -35,10 +35,13 @@ class AttributeBase(BoilerplateBaseModel):
 class AttributeCreate(BoilerplateBaseModel):
     name: str
     unit: Optional[str] = None
+    translation: Optional[AttributeTranslationBase] = None
 
 
-class AttributeUpdate(AttributeBase):
-    pass
+class AttributeUpdate(BoilerplateBaseModel):
+    name: Optional[str] = None
+    unit: Optional[str] = None
+    translation: Optional[AttributeTranslationBase] = None
 
 
 class AttributeInDBBase(AttributeBase):
