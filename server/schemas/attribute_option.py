@@ -21,6 +21,7 @@ class AttributeOptionBase(BoilerplateBaseModel):
 
 
 class AttributeOptionCreate(BoilerplateBaseModel):
+    attribute_id: UUID
     value_key: str
 
 
