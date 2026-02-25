@@ -94,7 +94,7 @@ def test_products_get_multi_with_attributes(test_client, shop_with_products_and_
     assert len(products) > 0
     assert "product" in products[0]
     assert "attributes" in products[0]
-    
+
     # Verify that the response contains the expected product ID
     product_ids = {p["product"]["id"] for p in products}
     assert str(ids["product_id"]) in product_ids
@@ -147,6 +147,8 @@ def test_products_get_multi_with_attributes_mutually_exclusive_filters(test_clie
     attr1_id = ids["attr1_id"]
 
     # Providing both option_id and attribute_id should fail
-    response = test_client.get(f"/shops/{shop_id}/products/with_attributes?option_id={opt1a_id}&attribute_id={attr1_id}")
+    response = test_client.get(
+        f"/shops/{shop_id}/products/with_attributes?option_id={opt1a_id}&attribute_id={attr1_id}"
+    )
     assert response.status_code == 400
     assert "Only one filter may be used at a time" in response.json()["detail"]["message"]

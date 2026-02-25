@@ -23,6 +23,7 @@ def test_put_product_attribute_values_with_duplicate_option_ids(test_client, sho
     )
     assert resp.status_code == 400
 
+
 def test_put_product_attribute_values_with_duplicates_and_pre_existing_data(
     test_client, shop_with_products_and_attributes
 ):

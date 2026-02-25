@@ -113,6 +113,7 @@ def test_get_attribute_by_id_with_options_direct(test_client, shop_with_products
     assert any(opt["id"] == str(ids["opt1a_id"]) for opt in data["options"])
     # Verify that the response contains the expected attribute with options
 
+
 def test_create_attribute_fixed(test_client, shop_with_products_and_attributes):
     ids = shop_with_products_and_attributes
     shop_id = ids["shop_id"]
