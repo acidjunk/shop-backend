@@ -16,7 +16,69 @@ from server.schemas.product import ProductCreate, ProductUpdate
 
 
 class CRUDProduct(CRUDBase[ProductTable, ProductCreate, ProductUpdate]):
-    pass
+    def get_multi_by_shop_id(
+        self,
+        *,
+        shop_id: Any,
+        skip: int = 0,
+        limit: int = 100,
+        filter_parameters: Optional[List[str]],
+        sort_parameters: Optional[List[str]],
+        query_parameter: Optional[Any] = None,
+    ) -> Tuple[List[ProductTable], str]:
+        query = query_parameter
+        if query is None:
+            query = db.session.query(self.model).filter(self.model.shop_id == shop_id)
+
+        if filter_parameters:
+            for filter_parameter in filter_parameters:
+                key, *value = filter_parameter.split(":", 1)
+                if len(value) > 0:
+                    val = value[0]
+                    match key:
+                        case "attribute_id":
+                            query = query.join(ProductAttributeValueTable).filter(
+                                ProductAttributeValueTable.attribute_id == val
+                            )
+                        case "option_id":
+                            query = query.join(ProductAttributeValueTable).filter(
+                                ProductAttributeValueTable.option_id == val
+                            )
+                        case "option_value_key":
+                            query = (
+                                query.join(ProductAttributeValueTable)
+                                .join(
+                                    AttributeOptionTable,
+                                    ProductAttributeValueTable.option_id == AttributeOptionTable.id,
+                                )
+                                .filter(AttributeOptionTable.value_key.ilike(f"%{val}%"))
+                            )
+                        case "attribute_name":
+                            query = (
+                                query.join(ProductAttributeValueTable)
+                                .join(AttributeTable, ProductAttributeValueTable.attribute_id == AttributeTable.id)
+                                .join(
+                                    AttributeTranslationTable,
+                                    AttributeTable.id == AttributeTranslationTable.attribute_id,
+                                )
+                                .filter(
+                                    or_(
+                                        AttributeTranslationTable.main_name.ilike(f"%{val}%"),
+                                        AttributeTranslationTable.alt1_name.ilike(f"%{val}%"),
+                                        AttributeTranslationTable.alt2_name.ilike(f"%{val}%"),
+                                    )
+                                )
+                            )
+                        case _:
+                            pass
+
+        return self.get_multi(
+            skip=skip,
+            limit=limit,
+            filter_parameters=filter_parameters,
+            sort_parameters=sort_parameters,
+            query_parameter=query,
+        )
 
 
 product_crud = CRUDProduct(ProductTable)
