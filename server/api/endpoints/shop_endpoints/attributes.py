@@ -1,9 +1,9 @@
 from http import HTTPStatus
-from typing import Any, List
+from typing import List
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.param_functions import Body, Depends
 from sqlalchemy.exc import IntegrityError
 from starlette.responses import Response
@@ -12,9 +12,8 @@ from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud.base import NotFound
 from server.crud.crud_attribute import attribute_crud
-from server.crud.crud_product import product_crud
 from server.db import db
-from server.db.models import AttributeOptionTable, AttributeTable, ProductAttributeValueTable, ProductTable
+from server.db.models import AttributeOptionTable
 from server.schemas.attribute import (
     AttributeBase,
     AttributeCreate,
@@ -23,13 +22,10 @@ from server.schemas.attribute import (
     AttributeUpdate,
     AttributeWithOptionsSchema,
 )
-from server.schemas.product import ProductWithDefaultPrice
 
 logger = structlog.get_logger(__name__)
 
 router = APIRouter()
-
-# TODO add /attributes/{id}/with-options
 
 
 @router.get(

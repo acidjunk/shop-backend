@@ -99,9 +99,7 @@ def create_option(shop_id: UUID, attribute_id: UUID, data: AttributeOptionCreate
         option = attribute_option_crud.create(obj_in=payload)
         return option
     except IntegrityError:
-        raise_status(
-            HTTPStatus.CONFLICT, f"Option with value_key {data.value_key} already exists for this attribute"
-        )
+        raise_status(HTTPStatus.CONFLICT, f"Option with value_key {data.value_key} already exists for this attribute")
 
 
 @router.delete(
@@ -154,6 +152,4 @@ def update_option(
     try:
         return attribute_option_crud.update(db_obj=option, obj_in=data)
     except IntegrityError:
-        raise_status(
-            HTTPStatus.CONFLICT, f"Option with value_key {data.value_key} already exists for this attribute"
-        )
+        raise_status(HTTPStatus.CONFLICT, f"Option with value_key {data.value_key} already exists for this attribute")
