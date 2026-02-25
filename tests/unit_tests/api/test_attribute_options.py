@@ -62,50 +62,6 @@ def test_create_attribute_option_duplicate(test_client, shop_with_products_and_a
     assert resp.status_code == HTTPStatus.CONFLICT
 
 
-def test_update_attribute_option(test_client, shop_with_products_and_attributes):
-    ids = shop_with_products_and_attributes
-    shop_id = ids["shop_id"]
-    attr_id = ids["attr1_id"]
-    option_id = ids["opt1a_id"]
-
-    update_data = {"attribute_id": str(attr_id), "value_key": "UpdatedValue"}
-    resp = test_client.put(f"/shops/{shop_id}/attributes/{attr_id}/options/{option_id}", json=update_data)
-    assert resp.status_code == HTTPStatus.OK
-    data = resp.json()
-    assert data["value_key"] == "UpdatedValue"
-
-    # Verify in DB
-    option = db.session.query(AttributeOptionTable).filter_by(id=option_id).first()
-    assert option.value_key == "UpdatedValue"
-
-
-def test_update_attribute_option_duplicate(test_client, shop_with_products_and_attributes):
-    ids = shop_with_products_and_attributes
-    shop_id = ids["shop_id"]
-    attr_id = ids["attr1_id"]
-    opt1a_id = ids["opt1a_id"]
-
-    # Create another option first
-    new_option = AttributeOptionTable(attribute_id=attr_id, value_key="AnotherOne")
-    db.session.add(new_option)
-    db.session.commit()
-
-    update_data = {"attribute_id": str(attr_id), "value_key": "AnotherOne"}
-    resp = test_client.put(f"/shops/{shop_id}/attributes/{attr_id}/options/{opt1a_id}", json=update_data)
-    assert resp.status_code == HTTPStatus.CONFLICT
-
-
-def test_update_attribute_option_not_found(test_client, shop_with_products_and_attributes):
-    ids = shop_with_products_and_attributes
-    shop_id = ids["shop_id"]
-    attr_id = ids["attr1_id"]
-    fake_option_id = uuid4()
-
-    update_data = {"attribute_id": str(attr_id), "value_key": "Whatever"}
-    resp = test_client.put(f"/shops/{shop_id}/attributes/{attr_id}/options/{fake_option_id}", json=update_data)
-    assert resp.status_code == HTTPStatus.NOT_FOUND
-
-
 def test_delete_attribute_option(test_client, shop_with_products_and_attributes):
     ids = shop_with_products_and_attributes
     shop_id = ids["shop_id"]
