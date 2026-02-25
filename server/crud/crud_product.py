@@ -10,8 +10,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Any, List, Optional, Tuple
+
+from sqlalchemy import or_
+
 from server.crud.base import CRUDBase
-from server.db.models import ProductTable
+from server.db import db
+from server.db.models import (
+    AttributeOptionTable,
+    AttributeTable,
+    AttributeTranslationTable,
+    ProductAttributeValueTable,
+    ProductTable,
+)
 from server.schemas.product import ProductCreate, ProductUpdate
 
 
