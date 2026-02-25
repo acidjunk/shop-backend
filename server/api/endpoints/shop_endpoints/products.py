@@ -75,7 +75,7 @@ You can filter the results using one of the following mutually exclusive attribu
 * `attribute_name`: Filter by attribute name (e.g., 'Color', 'Size').
 
 Only one attribute filter can be used at a time.
-"""
+""",
 )
 def get_multi_with_attributes(
     shop_id: UUID,
