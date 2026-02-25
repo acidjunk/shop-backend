@@ -133,6 +133,12 @@ api_router.include_router(
 )
 api_router.include_router(
     attribute_options.router,
+    prefix="/shops/{shop_id}/attribute-options",
+    tags=["shops", "attributes"],
+    dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    attribute_options.deprecated_router,
     prefix="/shops/{shop_id}/attributes/{attribute_id}/options",
     tags=["shops", "attributes"],
     dependencies=[Depends(auth_required)],
