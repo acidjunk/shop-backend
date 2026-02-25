@@ -25,8 +25,8 @@ class AttributeOptionCreate(BoilerplateBaseModel):
     value_key: str
 
 
-class AttributeOptionUpdate(AttributeOptionBase):
-    pass
+class AttributeOptionUpdate(BoilerplateBaseModel):
+    value_key: str
 
 
 class AttributeOptionInDBBase(AttributeOptionBase):
