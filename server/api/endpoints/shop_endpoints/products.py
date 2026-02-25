@@ -80,13 +80,26 @@ Only one attribute filter can be used at a time.
 def get_multi_with_attributes(
     shop_id: UUID,
     response: Response,
+    option_id: List[UUID] = Query(None),
+    attribute_id: UUID = Query(None),
+    option_value_key: List[str] = Query(None),
+    attribute_name: str = Query(None),
     common: dict = Depends(common_parameters),
-    attribute_filters: AttributeFilters = Depends(AttributeFilters),
 ) -> List[ProductWithAttributes]:
+    attribute_filters = AttributeFilters(
+        option_id=option_id,
+        attribute_id=attribute_id,
+        option_value_key=option_value_key,
+        attribute_name=attribute_name,
+    )
     filter_parameters = common["filter"] or []
 
     for name, value in attribute_filters.model_dump(exclude_none=True).items():
-        filter_parameters.append(f"{name}:{value}")
+        if isinstance(value, list):
+            for v in value:
+                filter_parameters.append(f"{name}:{v}")
+        else:
+            filter_parameters.append(f"{name}:{value}")
 
     # Base: fetch paginated products for this shop
     products, header_range = product_crud.get_multi_by_shop_id(

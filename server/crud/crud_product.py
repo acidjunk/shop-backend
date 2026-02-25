@@ -13,6 +13,7 @@
 from typing import Any, List, Optional, Tuple
 
 from sqlalchemy import or_
+from sqlalchemy.orm import aliased
 
 from server.crud.base import CRUDBase
 from server.db import db
@@ -52,17 +53,22 @@ class CRUDProduct(CRUDBase[ProductTable, ProductCreate, ProductUpdate]):
                                 ProductAttributeValueTable.attribute_id == val
                             )
                         case "option_id":
-                            query = query.join(ProductAttributeValueTable).filter(
-                                ProductAttributeValueTable.option_id == val
+                            # We use aliased join for each option_id to achieve AND logic
+                            pav_alias = aliased(ProductAttributeValueTable)
+                            query = query.join(pav_alias, self.model.id == pav_alias.product_id).filter(
+                                pav_alias.option_id == val
                             )
                         case "option_value_key":
+                            # We use aliased join for each option_value_key to achieve AND logic
+                            pav_alias = aliased(ProductAttributeValueTable)
+                            opt_alias = aliased(AttributeOptionTable)
                             query = (
-                                query.join(ProductAttributeValueTable)
+                                query.join(pav_alias, self.model.id == pav_alias.product_id)
                                 .join(
-                                    AttributeOptionTable,
-                                    ProductAttributeValueTable.option_id == AttributeOptionTable.id,
+                                    opt_alias,
+                                    pav_alias.option_id == opt_alias.id,
                                 )
-                                .filter(AttributeOptionTable.value_key.ilike(f"%{val}%"))
+                                .filter(opt_alias.value_key.ilike(f"%{val}%"))
                             )
                         case "attribute_name":
                             query = (

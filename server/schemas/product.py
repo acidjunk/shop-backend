@@ -131,9 +131,9 @@ class AttributeFilters(BoilerplateBaseModel):
     Only one of the following filters can be used at a time.
     """
 
-    option_id: Optional[UUID] = Field(None)
+    option_id: Optional[List[UUID]] = Field(None)
     attribute_id: Optional[UUID] = Field(None)
-    option_value_key: Optional[str] = Field(None)
+    option_value_key: Optional[List[str]] = Field(None)
     attribute_name: Optional[str] = Field(None)
 
     @model_validator(mode="after")
