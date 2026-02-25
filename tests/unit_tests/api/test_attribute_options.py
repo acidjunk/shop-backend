@@ -16,7 +16,8 @@ def test_list_attribute_options(test_client, shop_with_products_and_attributes):
     assert resp.status_code == HTTPStatus.OK
     data = resp.json()
     assert len(data) >= 1
-    assert "value_key" in data[0]
+    assert any(opt["id"] == str(ids["opt1a_id"]) for opt in data)
+    # Verify that the response contains the expected attribute option
 
 
 def test_get_attribute_option(test_client, shop_with_products_and_attributes):

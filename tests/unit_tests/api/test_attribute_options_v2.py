@@ -14,7 +14,11 @@ def test_list_all_attribute_options_for_shop(test_client, shop_with_products_and
     data = resp.json()
     # At least opt1a, opt1b, opt2a should be there
     assert len(data) >= 3
-    assert all("value_key" in item for item in data)
+    option_ids = {item["id"] for item in data}
+    assert str(ids["opt1a_id"]) in option_ids
+    assert str(ids["opt1b_id"]) in option_ids
+    assert str(ids["opt2a_id"]) in option_ids
+    # Verify that the response contains the expected attribute options
 
 
 def test_get_attribute_option_v2(test_client, shop_with_products_and_attributes):
