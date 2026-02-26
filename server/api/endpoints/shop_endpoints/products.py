@@ -69,10 +69,10 @@ Fetch a list of products along with their associated attributes.
 
 You can filter the results using one of the following mutually exclusive attribute filters:
 
-* `option_id`: Filter by specific attribute option UUID.
-* `attribute_id`: Filter by attribute UUID.
-* `option_value_key`: Filter by option value (e.g., 'Red', 'XL').
-* `attribute_name`: Filter by attribute name (e.g., 'Color', 'Size').
+* `option_id` array[UUID]: Filter by one or multiple attribute option UUIDs.
+* `attribute_id` UUID: Filter by attribute UUID.
+* `option_value_key` array[str]: Filter by option value (e.g., 'Red', 'XL').
+* `attribute_name` array[str]: Filter by one or multiple attribute names (e.g., 'Color', 'Size').
 
 Only one attribute filter can be used at a time.
 """,
