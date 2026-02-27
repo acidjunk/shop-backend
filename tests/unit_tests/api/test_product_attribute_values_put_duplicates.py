@@ -23,17 +23,6 @@ def test_put_product_attribute_values_with_duplicate_option_ids(test_client, sho
     )
     assert resp.status_code == 400
 
-    # # Verify that only one PAV record exists for this product, attribute, and option
-    # pavs = (
-    #     db.session.query(ProductAttributeValueTable)
-    #     .filter(
-    #         ProductAttributeValueTable.product_id == product_id,
-    #         ProductAttributeValueTable.option_id == ids["opt1a_id"],
-    #     )
-    #     .all()
-    # )
-    # assert len(pavs) == 1
-
 
 def test_put_product_attribute_values_with_duplicates_and_pre_existing_data(
     test_client, shop_with_products_and_attributes
@@ -61,24 +50,3 @@ def test_put_product_attribute_values_with_duplicates_and_pre_existing_data(
         data=json_dumps(body),
     )
     assert resp.status_code == 400
-
-    # # 3. Verify that both exist exactly once
-    # pavs_a = (
-    #     db.session.query(ProductAttributeValueTable)
-    #     .filter(
-    #         ProductAttributeValueTable.product_id == product_id,
-    #         ProductAttributeValueTable.option_id == ids["opt1a_id"],
-    #     )
-    #     .all()
-    # )
-    # assert len(pavs_a) == 1
-    #
-    # pavs_b = (
-    #     db.session.query(ProductAttributeValueTable)
-    #     .filter(
-    #         ProductAttributeValueTable.product_id == product_id,
-    #         ProductAttributeValueTable.option_id == ids["opt1b_id"],
-    #     )
-    #     .all()
-    # )
-    # assert len(pavs_b) == 1

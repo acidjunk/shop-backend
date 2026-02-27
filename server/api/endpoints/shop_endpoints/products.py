@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 from http import HTTPStatus
+from textwrap import dedent
 from typing import Any, List, Optional
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, HTTPException
-from fastapi.param_functions import Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from starlette.responses import Response
 
 from server.api import deps
@@ -15,6 +15,7 @@ from server.crud import crud_shop
 from server.crud.crud_product import product_crud
 from server.db.models import ProductTable, UserTable
 from server.schemas.product import (
+    AttributeFilters,
     ProductCreate,
     ProductOrder,
     ProductSchema,
@@ -59,19 +60,53 @@ def get_multi(
     return products
 
 
-@router.get("/with_attributes", response_model=List[ProductWithAttributes])
+@router.get(
+    "/with_attributes",
+    response_model=List[ProductWithAttributes],
+    summary="List products with attributes",
+    description="""
+Fetch a list of products along with their associated attributes.
+
+You can filter the results using one of the following mutually exclusive attribute filters:
+
+* `option_id` array[UUID]: Filter by one or multiple attribute option UUIDs.
+* `attribute_id` UUID: Filter by attribute UUID.
+* `option_value_key` array[str]: Filter by option value (e.g., 'Red', 'XL').
+* `attribute_name` array[str]: Filter by one or multiple attribute names (e.g., 'Color', 'Size').
+
+Only one attribute filter can be used at a time.
+""",
+)
 def get_multi_with_attributes(
     shop_id: UUID,
     response: Response,
+    option_id: List[UUID] = Query(None),
+    attribute_id: UUID = Query(None),
+    option_value_key: List[str] = Query(None),
+    attribute_name: str = Query(None),
     common: dict = Depends(common_parameters),
-    option_id: Optional[UUID] = None,
 ) -> List[ProductWithAttributes]:
+    attribute_filters = AttributeFilters(
+        option_id=option_id,
+        attribute_id=attribute_id,
+        option_value_key=option_value_key,
+        attribute_name=attribute_name,
+    )
+    filter_parameters = common["filter"] or []
+
+    for name, value in attribute_filters.model_dump(exclude_none=True).items():
+        if isinstance(value, list):
+            for v in value:
+                filter_parameters.append(f"{name}:{v}")
+        else:
+            filter_parameters.append(f"{name}:{value}")
+
     # Base: fetch paginated products for this shop
     products, header_range = product_crud.get_multi_by_shop_id(
         shop_id=shop_id,
         skip=common["skip"],
         limit=common["limit"],
-        filter_parameters=common["filter"],
+        filter_parameters=filter_parameters,
         sort_parameters=common["sort"],
     )
     # We will update Content-Range if filtering by option_id changes the visible count
@@ -93,8 +128,6 @@ def get_multi_with_attributes(
         attrs: list[ProductAttributeItem] = []
         pavs = getattr(p, "attribute_values", []) or []
         for pav in pavs:
-            # if option_id is not None and getattr(pav, "option_id", None) != option_id:
-            #     continue
             attribute = getattr(pav, "attribute", None)
             option = getattr(pav, "option", None)
             attribute_name = None
@@ -109,9 +142,7 @@ def get_multi_with_attributes(
                     option_value_key=getattr(option, "value_key", None),
                 )
             )
-        # If filtering by option_id, skip products without matching attributes
-        if option_id is not None and not attrs:
-            continue
+
         prod_schema = ProductWithDefaultPrice.model_validate(p)
         out.append(
             ProductWithAttributes(
@@ -140,9 +171,7 @@ def get_multi_with_attributes(
 
 
 @router.get("/{product_id}/with_attributes", response_model=ProductWithAttributes)
-def get_by_id_with_attributes(
-    product_id: UUID, shop_id: UUID, option_id: Optional[UUID] = None
-) -> ProductWithAttributes:
+def get_by_id_with_attributes(product_id: UUID, shop_id: UUID) -> ProductWithAttributes:
     product = product_crud.get_id_by_shop_id(shop_id, product_id)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product with id {product_id} not found")
@@ -152,11 +181,8 @@ def get_by_id_with_attributes(
         if getattr(product, f"image_{i}"):
             product.images_amount += 1
 
-    # Build attributes, optionally filtered by option_id
     attrs: list[ProductAttributeItem] = []
     for pav in getattr(product, "attribute_values", []) or []:
-        # if option_id is not None and getattr(pav, "option_id", None) != option_id:
-        #     continue
         attribute = getattr(pav, "attribute", None)
         option = getattr(pav, "option", None)
         attribute_name = None

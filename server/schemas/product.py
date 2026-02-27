@@ -11,11 +11,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
+from http import HTTPStatus
 from typing import List, Optional, Union
 from uuid import UUID
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field, ValidationError, model_validator
 
+from server.api.error_handling import raise_status
 from server.schemas.base import BoilerplateBaseModel
 from server.schemas.price import DefaultPrice
 from server.schemas.product_attribute import ProductAttributeItem
@@ -121,3 +123,29 @@ class ProductImageDelete(ProductEmptyBase):
 
 class ProductOrder(BoilerplateBaseModel):
     order_number: int
+
+
+class AttributeFilters(BoilerplateBaseModel):
+    """Mutually exclusive filters for products with attributes.
+
+    Only one of the following filters can be used at a time.
+    """
+
+    option_id: Optional[List[UUID]] = Field(None)
+    attribute_id: Optional[UUID] = Field(None)
+    option_value_key: Optional[List[str]] = Field(None)
+    attribute_name: Optional[str] = Field(None)
+
+    @model_validator(mode="after")
+    def check_mutual_exclusivity(self) -> "AttributeFilters":
+        provided = [
+            field
+            for field, value in self.model_dump(exclude_none=True).items()
+            if field in {"option_id", "attribute_id", "option_value_key", "attribute_name"}
+        ]
+        if len(provided) > 1:
+            raise_status(
+                HTTPStatus.BAD_REQUEST,
+                detail={"message": f"Only one filter may be used at a time. Provided: {', '.join(provided)}"},
+            )
+        return self

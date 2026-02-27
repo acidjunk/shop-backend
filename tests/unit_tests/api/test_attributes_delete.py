@@ -30,11 +30,6 @@ def test_delete_attribute_success_no_products(test_client, shop_with_products_an
     shop_id = ids["shop_id"]
     attr_id = ids["attr1_id"]
 
-    # In this new implementation, we expect options and translations to stay
-    # IF they don't have cascade delete.
-    # Actually AttributeTable has cascade="save-update, merge, delete" for options and translation.
-    # So they should be deleted automatically by SQLAlchemy when the attribute is deleted.
-
     # Pre-verification
     assert db.session.query(AttributeTable).filter_by(id=attr_id).first() is not None
 

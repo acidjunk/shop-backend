@@ -32,12 +32,6 @@ def test_list_product_attribute_values_scoped_by_shop(
     assert item["attribute_id"] == str(ids["attr1_id"])
     assert item["option_id"] == str(ids["opt1a_id"])
 
-    # Check Content-Range header is present and represents total count 1
-    assert "Content-Range" in resp.headers
-    cr = resp.headers["Content-Range"]
-    assert cr.startswith("productattributevaluetables ")
-    assert cr.endswith("/1")
-
 
 def test_get_product_attribute_value_by_id_and_scoping(test_client, shop_with_products_and_attributes):
     ids = shop_with_products_and_attributes

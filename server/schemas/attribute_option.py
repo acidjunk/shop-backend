@@ -21,11 +21,12 @@ class AttributeOptionBase(BoilerplateBaseModel):
 
 
 class AttributeOptionCreate(BoilerplateBaseModel):
+    attribute_id: UUID
     value_key: str
 
 
-class AttributeOptionUpdate(AttributeOptionBase):
-    pass
+class AttributeOptionUpdate(BoilerplateBaseModel):
+    value_key: str
 
 
 class AttributeOptionInDBBase(AttributeOptionBase):
