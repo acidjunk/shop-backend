@@ -19,5 +19,6 @@ depends_on = None
 def upgrade() -> None:
     pass  # For now the old stuff can stay, removing this field will add some extra work and i dont want that for the MVP version of the new attributes
 
+
 def downgrade() -> None:
     pass  # For now the old stuff can stay, removing this field will add some extra work and i dont want that for the MVP version of the new attributes
