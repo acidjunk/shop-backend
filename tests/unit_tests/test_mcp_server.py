@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
+mcp_available = pytest.importorskip("mcp", reason="mcp not installed")
 from mcp_server import _api_request
 
 
