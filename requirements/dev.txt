@@ -5,3 +5,4 @@ pydocstyle==3.0.0
 watchdog
 typer==0.7.0  # added to speed up
 click==8.1.8
+mcp[cli]>=1.0.0

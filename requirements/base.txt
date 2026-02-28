@@ -12,7 +12,7 @@ gunicorn~=20.0.4
 more-itertools==10.2.0
 passlib[bcrypt]==1.7.4
 psycopg2-binary==2.9.9
-pydantic[email]==2.7.1
+pydantic[email]>=2.9.0,<3.0.0
 pyjwt==2.1.0  # Todo: Not sure if we need this one
 python-jose[cryptography]==3.2.0
 python-rapidjson==1.17
@@ -25,14 +25,13 @@ structlog
 uvicorn[standard]~=0.29.0
 itsdangerous
 pydantic-forms
-pydantic-settings~=2.4.0
+pydantic-settings>=2.4.0
 python-multipart==0.0.12
 wheel
 stripe==10.7.0
 phonenumbers==8.13.45
 pydantic_extra_types==2.9.0
 httpx>=0.27.0
-mcp[cli]>=1.0.0
 sentry-sdk~=2.28.0
 html2text==2024.2.26
 Jinja2==3.1.4

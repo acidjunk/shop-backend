@@ -401,9 +401,7 @@ async def list_attributes(shop_id: str, skip: int = 0, limit: int = 20) -> str:
 @mcp.tool()
 async def list_attributes_with_options(shop_id: str, skip: int = 0, limit: int = 20) -> str:
     """List attributes with their options for a shop. Shows each attribute and its available option values."""
-    return await _api_request(
-        "GET", f"/shops/{shop_id}/attributes/with-options", params={"skip": skip, "limit": limit}
-    )
+    return await _api_request("GET", f"/shops/{shop_id}/attributes/with-options", params={"skip": skip, "limit": limit})
 
 
 @mcp.tool()

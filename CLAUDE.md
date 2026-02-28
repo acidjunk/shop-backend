@@ -45,6 +45,11 @@ PYTHONPATH=. alembic revision --autogenerate -m "Description"
 
 # Create data migration (DML)
 PYTHONPATH=. alembic revision --message "Description"
+
+# CLI (requires running API server)
+python cli.py shops list
+python cli.py products list <shop-id>
+python cli.py --help
 ```
 
 Line length: **120** (configured in `pyproject.toml` for both black and isort).
