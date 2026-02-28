@@ -3,6 +3,7 @@ apache-license-check
 black
 isort
 pytest
+pytest-asyncio
 pytest-cov
 pytest-xdist
 pytest_benchmark
