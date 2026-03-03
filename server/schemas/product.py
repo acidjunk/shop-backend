@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
+from enum import Enum
 from http import HTTPStatus
 from typing import List, Optional, Union
 from uuid import UUID
@@ -21,6 +22,15 @@ from server.api.error_handling import raise_status
 from server.schemas.base import BoilerplateBaseModel
 from server.schemas.price import DefaultPrice
 from server.schemas.product_attribute import ProductAttributeItem
+
+
+class TaxCategory(str, Enum):
+    VAT_STANDARD = "vat_standard"
+    VAT_LOWER_1 = "vat_lower_1"
+    VAT_LOWER_2 = "vat_lower_2"
+    VAT_LOWER_3 = "vat_lower_3"
+    VAT_SPECIAL = "vat_special"
+    VAT_ZERO = "vat_zero"
 
 
 class ProductEmptyBase(BoilerplateBaseModel):
@@ -50,12 +60,11 @@ class ProductBase(BoilerplateBaseModel):
     recurring_price_monthly: Optional[float] = None
     recurring_price_yearly: Optional[float] = None
     max_one: bool
-    shippable: bool
+    shippable: Optional[bool] = None
     digital: Optional[str] = None
     featured: bool
     new_product: bool
-    # Todo: make enum with: vat_standard, vat_lower_1, vat_lower_2, vat_lower_3, vat_special, vat_zero
-    tax_category: str
+    tax_category: Optional[TaxCategory] = None
     discounted_price: Optional[float] = None
     discounted_from: Optional[datetime] = None
     discounted_to: Optional[datetime] = None

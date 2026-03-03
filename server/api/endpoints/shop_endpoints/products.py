@@ -11,8 +11,8 @@ from starlette.responses import Response
 from server.api import deps
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
-from server.crud import crud_shop
 from server.crud.crud_product import product_crud
+from server.crud.crud_shop import shop_crud
 from server.db.models import ProductTable, UserTable
 from server.schemas.product import (
     AttributeFilters,
@@ -23,6 +23,7 @@ from server.schemas.product import (
     ProductWithAttributes,
     ProductWithDefaultPrice,
     ProductWithDetailsAndPrices,
+    TaxCategory,
 )
 from server.schemas.product_attribute import ProductAttributeItem
 
@@ -32,7 +33,7 @@ router = APIRouter()
 
 
 def get_shop(shop_id: UUID):
-    shop = crud_shop.get_by_id(id=shop_id)
+    shop = shop_crud.get(id=shop_id)
     if not shop:
         raise HTTPException(status_code=404, detail="Shop not found")
     return shop
@@ -239,6 +240,26 @@ def get_by_id(product_id: UUID, shop_id: UUID) -> ProductWithDetailsAndPrices:
 
 @router.post("/", response_model=None, status_code=HTTPStatus.CREATED)
 def create(shop_id: UUID, data: ProductCreate = Body(...)) -> None:
+    shop = shop_crud.get(id=shop_id)
+    if not shop:
+        raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {shop_id} not found")
+
+    if data.shippable is None:
+        config = shop.config
+        if isinstance(config, str):
+            import json
+
+            config = json.loads(config)
+        data.shippable = config.get("defaults", {}).get("shippable", True)
+
+    if data.tax_category is None:
+        config = shop.config
+        if isinstance(config, str):
+            import json
+
+            config = json.loads(config)
+        data.tax_category = config.get("defaults", {}).get("tax_category", TaxCategory.VAT_STANDARD)
+
     product = (
         ProductTable.query.filter_by(shop_id=shop_id)
         .filter_by(category_id=data.category_id)

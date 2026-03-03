@@ -20,6 +20,7 @@ from pydantic_core import Url
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
 from server.schemas.base import BoilerplateBaseModel
+from server.schemas.product import TaxCategory
 
 
 class PhoneNumberNl(PhoneNumber):
@@ -162,6 +163,11 @@ class Toggles(BoilerplateBaseModel):
     enable_stock_on_products: bool = False
 
 
+class ConfigurationDefaults(BoilerplateBaseModel):
+    tax_category: TaxCategory = TaxCategory.VAT_STANDARD
+    shippable: bool = True
+
+
 class ConfigurationV1(BoilerplateBaseModel):
     short_shop_name: str
     logo: str
@@ -173,6 +179,7 @@ class ConfigurationV1(BoilerplateBaseModel):
     google_analytics_id: str | None = None
     contact: ConfigurationContact
     toggles: Toggles
+    defaults: ConfigurationDefaults = ConfigurationDefaults()
 
 
 class ShopTypeName(str, Enum):

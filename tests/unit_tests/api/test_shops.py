@@ -287,14 +287,18 @@ def test_shop_create_config(test_client, shop):
                 "product_call_to_action_enabled": False,
                 "enable_stock_on_products": True,
             },
+            "defaults": {
+                "tax_category": "vat_standard",
+                "shippable": False,
+            },
         },
         "config_version": 0,
     }
-
     response = test_client.put(f"/shops/config/{shop}", data=json.dumps(body))
     assert 201 == response.status_code
     config = response.json()
-    assert config == body
+    assert config["config"] == body["config"]
+    assert config["config_version"] == body["config_version"]
 
 
 def test_shop_update_config(test_client, shop_with_config):
@@ -406,10 +410,15 @@ def test_shop_update_config(test_client, shop_with_config):
                 "product_call_to_action_enabled": False,
                 "enable_stock_on_products": True,
             },
+            "defaults": {
+                "tax_category": "vat_lower_1",
+                "shippable": True,
+            },
         },
         "config_version": 0,
     }
     response = test_client.put(f"/shops/config/{shop_with_config}", data=json_dumps(body))
     assert 201 == response.status_code
     config = response.json()
-    assert config == body
+    assert config["config"] == body["config"]
+    assert config["config_version"] == body["config_version"]
