@@ -364,10 +364,7 @@ class ProductTable(BaseModel):
     )
 
     # All concrete attribute values for this product
-    attribute_values = relationship(
-        "ProductAttributeValueTable",
-        lazy="selectin",
-    )
+    attribute_values = relationship("ProductAttributeValueTable", lazy="selectin", cascade="save-update, merge, delete")
 
     # View-only relationship to attribute definitions used by this product
     attributes_rel = relationship(

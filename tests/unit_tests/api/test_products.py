@@ -84,6 +84,41 @@ def test_products_delete(shop_with_config, product, test_client):
     assert response.status_code == 204
 
 
+def test_products_delete_cascade_cleanup(shop_with_config, product, category, test_client):
+    """Test that deleting a product also deletes its attribute values and tag associations, but NOT the tags/options."""
+    from server.db import db
+    from server.db.models import (
+        AttributeOptionTable,
+        AttributeTable,
+        ProductAttributeValueTable,
+    )
+    from tests.unit_tests.factories.attribute import make_attribute, make_option, make_pav
+
+    # 1. Setup Test Data
+    # Create an attribute and an option
+    attr_id = make_attribute(shop_with_config, name="size")
+    opt_id = make_option(attr_id, "XL")
+
+    # Create associations
+    # Link product to the attribute option
+    pav_id = make_pav(product, attr_id, opt_id)
+
+    # Verify setup
+    assert db.session.get(ProductAttributeValueTable, pav_id) is not None
+
+    # 2. Perform Delete
+    response = test_client.delete(f"/shops/{shop_with_config}/products/{product}")
+    assert response.status_code == 204
+
+    # 3. Verify Cascade Deletion
+    # These should be gone
+    assert db.session.get(ProductAttributeValueTable, pav_id) is None
+
+    # These should still exist
+    assert db.session.get(AttributeOptionTable, opt_id) is not None
+    assert db.session.get(AttributeTable, attr_id) is not None
+
+
 def test_products_get_multi_with_attributes(test_client, shop_with_products_and_attributes):
     ids = shop_with_products_and_attributes
     shop_id = ids["shop_id"]
