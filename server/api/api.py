@@ -114,6 +114,11 @@ api_router.include_router(
     dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
+    products.public_router,
+    prefix="/shops/{shop_id}/products",
+    tags=["shops", "products"],
+)
+api_router.include_router(
     products_to_tags.router,
     prefix="/shops/{shop_id}/products-to-tags",
     tags=["shops", "products"],
