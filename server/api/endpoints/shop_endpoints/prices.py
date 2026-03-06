@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from enum import Enum
 from typing import List, Optional
@@ -193,9 +194,12 @@ def get_products(
 
     shop = shop_crud.get(shop_id)
 
+    if isinstance(shop.config, str):
+        shop.config = json.loads(shop.config)
+
     products = [to_response_model(product, lang, shop) for product in products]
 
-    if shop.config["toggles"]["enable_stock_on_products"]:
+    if shop.config.get("toggles", {}).get("enable_stock_on_products"):
         products = [p for p in products if p.stock and p.stock > 0]
 
     return products

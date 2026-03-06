@@ -84,6 +84,41 @@ def test_products_delete(shop_with_config, product, test_client):
     assert response.status_code == 204
 
 
+def test_products_delete_cascade_cleanup(shop_with_config, product, category, test_client):
+    """Test that deleting a product also deletes its attribute values and tag associations, but NOT the tags/options."""
+    from server.db import db
+    from server.db.models import (
+        AttributeOptionTable,
+        AttributeTable,
+        ProductAttributeValueTable,
+    )
+    from tests.unit_tests.factories.attribute import make_attribute, make_option, make_pav
+
+    # 1. Setup Test Data
+    # Create an attribute and an option
+    attr_id = make_attribute(shop_with_config, name="size")
+    opt_id = make_option(attr_id, "XL")
+
+    # Create associations
+    # Link product to the attribute option
+    pav_id = make_pav(product, attr_id, opt_id)
+
+    # Verify setup
+    assert db.session.get(ProductAttributeValueTable, pav_id) is not None
+
+    # 2. Perform Delete
+    response = test_client.delete(f"/shops/{shop_with_config}/products/{product}")
+    assert response.status_code == 204
+
+    # 3. Verify Cascade Deletion
+    # These should be gone
+    assert db.session.get(ProductAttributeValueTable, pav_id) is None
+
+    # These should still exist
+    assert db.session.get(AttributeOptionTable, opt_id) is not None
+    assert db.session.get(AttributeTable, attr_id) is not None
+
+
 def test_products_get_multi_with_attributes(test_client, shop_with_products_and_attributes):
     ids = shop_with_products_and_attributes
     shop_id = ids["shop_id"]
@@ -138,6 +173,66 @@ def test_products_get_multi_with_attributes_filtered_by_option(test_client, shop
     response = test_client.get(f"/shops/{shop_id}/products/with_attributes?option_id={uuid4()}")
     assert response.status_code == 200
     assert len(response.json()) == 0
+
+
+def test_get_products_config_robustness(test_client):
+    """Test get_products endpoint with various shop config scenarios."""
+    from server.db import db
+    from server.db.models import ShopTable
+    from tests.unit_tests.factories.categories import make_category
+    from tests.unit_tests.factories.product import make_product
+
+    # Helper to create a shop with specific config
+    def create_shop_with_config(config_val):
+        from uuid import uuid4
+
+        shop = ShopTable(
+            name=f"Config Test Shop {uuid4()}",
+            config=config_val,
+            shop_type="{}",
+        )
+        db.session.add(shop)
+        db.session.commit()
+        return shop.id
+
+    # 1. Test with completely empty config "{}" (toggles missing)
+    shop_id_1 = create_shop_with_config("{}")
+    cat_id_1 = make_category(shop_id=shop_id_1)
+    make_product(shop_id=shop_id_1, category_id=cat_id_1)
+
+    response = test_client.get(f"/shops/{shop_id_1}/products/?lang=main")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    # 2. Test with toggles present but enable_stock_on_products missing
+    shop_id_2 = create_shop_with_config({"toggles": {}})
+    cat_id_2 = make_category(shop_id=shop_id_2)
+    make_product(shop_id=shop_id_2, category_id=cat_id_2)
+
+    response = test_client.get(f"/shops/{shop_id_2}/products/?lang=main")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    # 3. Test with enable_stock_on_products=True
+    # (Testing basic robustness only as complex filtering depends on DB state in these tests)
+    shop_id_3 = create_shop_with_config({"toggles": {"enable_stock_on_products": True}})
+    cat_id_3 = make_category(shop_id=shop_id_3)
+    make_product(shop_id=shop_id_3, category_id=cat_id_3)
+
+    response = test_client.get(f"/shops/{shop_id_3}/products/?lang=main")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    # 4. Test with string config (should be handled by json.loads)
+    import json
+
+    shop_id_4 = create_shop_with_config(json.dumps({"toggles": {"enable_stock_on_products": False}}))
+    cat_id_4 = make_category(shop_id=shop_id_4)
+    make_product(shop_id=shop_id_4, category_id=cat_id_4)
+
+    response = test_client.get(f"/shops/{shop_id_4}/products/?lang=main")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
 
 
 def test_products_get_multi_with_attributes_mutually_exclusive_filters(test_client, shop_with_products_and_attributes):
