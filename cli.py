@@ -62,7 +62,7 @@ def _headers() -> dict:
 
 def _api(method: str, path: str, params: Optional[dict] = None, json_body: Optional[dict] = None):
     """Make an HTTP request to the ShopVirge API and return parsed JSON."""
-    url = f"{API_BASE_URL}/api{path}"
+    url = f"{API_BASE_URL}{path}"
     if params:
         params = {k: v for k, v in params.items() if v is not None}
 
