@@ -29,6 +29,7 @@ from server.schemas.product_attribute import ProductAttributeItem
 logger = structlog.get_logger(__name__)
 
 router = APIRouter()
+public_router = APIRouter()
 
 
 def get_shop(shop_id: UUID):
@@ -170,7 +171,7 @@ def get_multi_with_attributes(
     return out
 
 
-@router.get("/{product_id}/with_attributes", response_model=ProductWithAttributes, dependencies=[])
+@public_router.get("/{product_id}/with_attributes", response_model=ProductWithAttributes)
 def get_by_id_with_attributes(product_id: UUID, shop_id: UUID) -> ProductWithAttributes:
     product = product_crud.get_id_by_shop_id(shop_id, product_id)
     if not product:
@@ -202,7 +203,7 @@ def get_by_id_with_attributes(product_id: UUID, shop_id: UUID) -> ProductWithAtt
     return ProductWithAttributes(product=prod_schema, attributes=attrs)
 
 
-@router.get("/{product_id}", response_model=ProductWithDetailsAndPrices)
+@public_router.get("/{product_id}", response_model=ProductWithDetailsAndPrices)
 def get_by_id(product_id: UUID, shop_id: UUID) -> ProductWithDetailsAndPrices:
     product = product_crud.get_id_by_shop_id(shop_id, product_id)
     if not product:
