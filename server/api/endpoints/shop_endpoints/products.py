@@ -170,7 +170,7 @@ def get_multi_with_attributes(
     return out
 
 
-@router.get("/{product_id}/with_attributes", response_model=ProductWithAttributes)
+@router.get("/{product_id}/with_attributes", response_model=ProductWithAttributes, dependencies=[])
 def get_by_id_with_attributes(product_id: UUID, shop_id: UUID) -> ProductWithAttributes:
     product = product_crud.get_id_by_shop_id(shop_id, product_id)
     if not product:
