@@ -141,6 +141,5 @@ dmypy.json
 .DS_Store
 
 #stage
-pricelist_prod.psql
+*.psql
 config.env
-shop.psql
