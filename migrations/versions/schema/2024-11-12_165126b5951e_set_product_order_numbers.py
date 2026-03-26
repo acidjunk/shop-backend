@@ -26,13 +26,11 @@ def upgrade():
     for shop_id, category_id in shop_category_pairs:
         # Select products for this shop_id and category_id, sorted by id or another relevant field
         products = conn.execute(
-            sa.text(
-                """
+            sa.text("""
             SELECT id FROM products
             WHERE shop_id = :shop_id AND category_id = :category_id
             ORDER BY id ASC
-        """
-            ),
+        """),
             {"shop_id": shop_id, "category_id": category_id},
         ).fetchall()
 

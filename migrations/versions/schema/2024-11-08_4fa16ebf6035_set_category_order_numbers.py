@@ -28,13 +28,11 @@ def upgrade() -> None:
 
         # Select categories for this shop_id and sort them by id or another field
         categories = conn.execute(
-            sa.text(
-                """
+            sa.text("""
                 SELECT id FROM categories
                 WHERE shop_id = :shop_id
                 ORDER BY id ASC
-            """
-            ),
+            """),
             {"shop_id": shop_id},
         ).fetchall()
 
