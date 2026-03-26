@@ -149,6 +149,9 @@ class ConfigurationContact(BoilerplateBaseModel):
     linkedin: str | None = None
     tiktok: str | None = None
 
+class ConfigurationLegal(BoilerplateBaseModel):
+    kvk_number: str | None = None
+    btw_number: str | None = None
 
 class Toggles(BoilerplateBaseModel):
     show_new_products: bool = True
@@ -173,6 +176,7 @@ class ConfigurationV1(BoilerplateBaseModel):
     google_analytics_id: str | None = None
     contact: ConfigurationContact
     toggles: Toggles
+    legal: ConfigurationLegal | None = None
 
 
 class ShopTypeName(str, Enum):
