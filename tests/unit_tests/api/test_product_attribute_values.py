@@ -1,9 +1,7 @@
 from uuid import uuid4
 
 from server.db import db
-from server.db.models import (
-    ProductAttributeValueTable,
-)
+from server.db.models import ProductAttributeValueTable
 from server.utils.json import json_dumps
 from tests.unit_tests.factories.attribute import make_pav
 

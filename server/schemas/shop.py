@@ -149,9 +149,11 @@ class ConfigurationContact(BoilerplateBaseModel):
     linkedin: str | None = None
     tiktok: str | None = None
 
+
 class ConfigurationLegal(BoilerplateBaseModel):
     kvk_number: str | None = None
     btw_number: str | None = None
+
 
 class Toggles(BoilerplateBaseModel):
     show_new_products: bool = True

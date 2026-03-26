@@ -87,11 +87,7 @@ def test_products_delete(shop_with_config, product, test_client):
 def test_products_delete_cascade_cleanup(shop_with_config, product, category, test_client):
     """Test that deleting a product also deletes its attribute values and tag associations, but NOT the tags/options."""
     from server.db import db
-    from server.db.models import (
-        AttributeOptionTable,
-        AttributeTable,
-        ProductAttributeValueTable,
-    )
+    from server.db.models import AttributeOptionTable, AttributeTable, ProductAttributeValueTable
     from tests.unit_tests.factories.attribute import make_attribute, make_option, make_pav
 
     # 1. Setup Test Data
