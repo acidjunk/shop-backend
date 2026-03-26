@@ -287,6 +287,10 @@ def test_shop_create_config(test_client, shop):
                 "product_call_to_action_enabled": False,
                 "enable_stock_on_products": True,
             },
+            "legal": {
+                "kvk_number": "string",
+                "btw_number": "string",
+            },
         },
         "config_version": 0,
     }
@@ -405,6 +409,10 @@ def test_shop_update_config(test_client, shop_with_config):
                 "language_alt2_enabled": False,
                 "product_call_to_action_enabled": False,
                 "enable_stock_on_products": True,
+            },
+            "legal": {
+                "kvk_number": "string",
+                "btw_number": "string",
             },
         },
         "config_version": 0,
