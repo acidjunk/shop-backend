@@ -1,10 +1,5 @@
 from server.db import db
-from server.db.models import (
-    AttributeOptionTable,
-    AttributeTable,
-    AttributeTranslationTable,
-    ProductAttributeValueTable,
-)
+from server.db.models import AttributeOptionTable, AttributeTable, AttributeTranslationTable, ProductAttributeValueTable
 from tests.unit_tests.factories.attribute import make_attribute, make_option, make_pav
 
 

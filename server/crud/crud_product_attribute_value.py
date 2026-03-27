@@ -14,9 +14,7 @@ from typing import Optional
 
 from server.crud.base import CRUDBase
 from server.db.models import ProductAttributeValueTable
-from server.schemas.product_attribute_value import (
-    ProductAttributeValueCreate,
-)
+from server.schemas.product_attribute_value import ProductAttributeValueCreate
 
 
 # This CRUD is effectively not using a per-row update payload schema in your current flow.

@@ -19,12 +19,7 @@ from server.crud.crud_attribute_option import attribute_option_crud
 from server.crud.crud_product import product_crud
 from server.crud.crud_product_attribute_value import product_attribute_value_crud
 from server.db import db
-from server.db.models import (
-    AttributeOptionTable,
-    AttributeTable,
-    ProductAttributeValueTable,
-    ProductTable,
-)
+from server.db.models import AttributeOptionTable, AttributeTable, ProductAttributeValueTable, ProductTable
 from server.schemas.product_attribute_value import (
     ProductAttributeOptionSelectionAdd,
     ProductAttributeOptionSelectionReplace,
