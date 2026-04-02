@@ -189,7 +189,7 @@ class ShopTable(BaseModel):
         server_default=text("CURRENT_TIMESTAMP"),
         server_onupdate=text("CURRENT_TIMESTAMP"),
     )
-    shop_to_category = relationship("CategoryTable", cascade="save-update, merge, delete")
+    shop_to_category = relationship("CategoryTable", back_populates="shop", cascade="save-update, merge, delete")
 
     def __repr__(self):
         return self.name
@@ -261,7 +261,7 @@ class CategoryTable(BaseModel):
     # Todo: deal with translation in a correct way
     icon = Column(String(TAG_LENGTH), nullable=True)
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
-    shop = relationship("ShopTable", lazy=True)
+    shop = relationship("ShopTable", back_populates="shop_to_category", lazy=True)
     order_number = Column(Integer, default=0)
     main_image = Column(String(255), index=True)
     alt1_image = Column(String(255), index=True)
@@ -360,11 +360,14 @@ class ProductTable(BaseModel):
     tags = relationship(
         "TagTable",
         secondary="products_to_tags",
-        backref=backref("products", lazy="dynamic"),
+        backref=backref("products", lazy="dynamic", overlaps="products_to_tags"),
+        overlaps="products_to_tags",
     )
 
     # All concrete attribute values for this product
-    attribute_values = relationship("ProductAttributeValueTable", lazy="selectin", cascade="save-update, merge, delete")
+    attribute_values = relationship(
+        "ProductAttributeValueTable", back_populates="product", lazy="selectin", cascade="save-update, merge, delete"
+    )
 
     # View-only relationship to attribute definitions used by this product
     attributes_rel = relationship(
@@ -413,8 +416,8 @@ class ProductToTagTable(BaseModel):
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     product_id = Column("product_id", UUIDType, ForeignKey("products.id"), index=True)
     tag_id = Column("tag_id", UUIDType, ForeignKey("tags.id"), index=True)
-    product = relationship("ProductTable", lazy=True)
-    tag = relationship("TagTable", lazy=True)
+    product = relationship("ProductTable", lazy=True, viewonly=True, overlaps="products,tags")
+    tag = relationship("TagTable", lazy=True, viewonly=True, overlaps="products,products_to_tags,tags")
 
 
 class License(BaseModel):
@@ -580,7 +583,7 @@ class ProductAttributeValueTable(BaseModel):
     # For enumerations (points to AttributeOptionTable). Can be NULL for free-form values.
     option_id = Column("option_id", UUIDType, ForeignKey("attribute_options.id"), nullable=True, index=True)
 
-    product = relationship("ProductTable", lazy=True)
+    product = relationship("ProductTable", back_populates="attribute_values", lazy=True)
     attribute = relationship("AttributeTable", back_populates="attribute_values", lazy=True)
     option = relationship("AttributeOptionTable", back_populates="values", lazy=True)
 
