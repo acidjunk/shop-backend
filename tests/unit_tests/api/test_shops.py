@@ -286,6 +286,7 @@ def test_shop_create_config(test_client, shop):
                 "language_alt2_enabled": False,
                 "product_call_to_action_enabled": False,
                 "enable_stock_on_products": True,
+                "enable_attributes_for_categories": False,
             },
             "legal": {
                 "kvk_number": "string",
@@ -409,6 +410,7 @@ def test_shop_update_config(test_client, shop_with_config):
                 "language_alt2_enabled": False,
                 "product_call_to_action_enabled": False,
                 "enable_stock_on_products": True,
+                "enable_attributes_for_categories": False,
             },
             "legal": {
                 "kvk_number": "string",

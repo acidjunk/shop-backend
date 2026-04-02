@@ -89,6 +89,11 @@ api_router.include_router(
     dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
+    categories.public_router,
+    prefix="/shops/{shop_id}/categories",
+    tags=["categories"],
+)
+api_router.include_router(
     category_images.router,
     prefix="/shops/{shop_id}/categories-images",
     tags=["shops", "categories"],

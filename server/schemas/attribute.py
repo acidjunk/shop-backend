@@ -57,3 +57,17 @@ class AttributeSchema(AttributeInDBBase):
 
 class AttributeWithOptionsSchema(AttributeInDBBase):
     options: list[AttributeOptionSchema] = []
+
+
+class AvailableOptionSchema(BoilerplateBaseModel):
+    id: UUID
+    value_key: str
+    product_count: int
+
+
+class AvailableAttributeSchema(BoilerplateBaseModel):
+    id: UUID
+    name: str
+    unit: Optional[str] = None
+    translation: Optional[AttributeTranslationBase] = None
+    options: list[AvailableOptionSchema] = []
