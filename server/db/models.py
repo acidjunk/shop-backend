@@ -301,7 +301,7 @@ class OrderTable(BaseModel):
     customer_order_id = Column(Integer)
     notes = Column(String, nullable=True)
     shop_id = Column(UUIDType, ForeignKey("shops.id"), index=True)
-    account_id = Column(UUIDType, ForeignKey("accounts.id"), nullable=True)
+    account_id = Column(UUIDType, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=True)
     order_info = Column(postgresql.JSONB())
     total = Column(Float())
     status = Column(String(), default="pending")
