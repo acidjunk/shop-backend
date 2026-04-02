@@ -33,7 +33,7 @@ from server.exception_handlers.generic_exception_handlers import problem_detail_
 from server.security import auth_required
 from server.settings import app_settings
 from tests.unit_tests.factories.account import make_account
-from tests.unit_tests.factories.attribute import make_attribute, make_option
+from tests.unit_tests.factories.attribute import make_attribute, make_attribute_with_translation, make_option, make_pav
 from tests.unit_tests.factories.categories import make_category, make_category_translated
 from tests.unit_tests.factories.order import make_pending_order
 from tests.unit_tests.factories.product import make_product, make_translated_product
@@ -361,6 +361,62 @@ def product_translated(shop_with_config):
 def product_translated_category_untranslated(shop):
     category = make_category(shop_id=shop)
     return make_translated_product(shop_id=shop, category_id=category)
+
+
+@pytest.fixture()
+def shop_with_category_attributes():
+    shop_id = make_shop(with_config=False)
+
+    # Category 1 with 3 products
+    cat1_id = make_category(shop_id=shop_id, main_name="T-Shirts", main_description="T-Shirts category")
+    prod1_id = make_product(shop_id=shop_id, category_id=cat1_id, main_name="Shirt A")
+    prod2_id = make_product(shop_id=shop_id, category_id=cat1_id, main_name="Shirt B")
+    prod3_id = make_product(shop_id=shop_id, category_id=cat1_id, main_name="Shirt C")
+
+    # Category 2 with 1 product (for scoping tests)
+    cat2_id = make_category(shop_id=shop_id, main_name="Pants", main_description="Pants category")
+    prod4_id = make_product(shop_id=shop_id, category_id=cat2_id, main_name="Jeans A")
+
+    # Attribute: size (with translation)
+    size_attr_id = make_attribute_with_translation(
+        shop_id, name="size", unit="EU", main_name="Maat", alt1_name="Size", alt2_name="Taille"
+    )
+    size_s_id = make_option(size_attr_id, "S")
+    size_m_id = make_option(size_attr_id, "M")
+    size_l_id = make_option(size_attr_id, "L")
+
+    # Attribute: color (with translation)
+    color_attr_id = make_attribute_with_translation(shop_id, name="color", main_name="Kleur", alt1_name="Color")
+    color_red_id = make_option(color_attr_id, "RED")
+    color_blue_id = make_option(color_attr_id, "BLUE")
+
+    # PAVs for category 1 products
+    # prod1: size S, color RED
+    make_pav(prod1_id, size_attr_id, size_s_id)
+    make_pav(prod1_id, color_attr_id, color_red_id)
+    # prod2: size S, size M, color RED
+    make_pav(prod2_id, size_attr_id, size_s_id)
+    make_pav(prod2_id, size_attr_id, size_m_id)
+    make_pav(prod2_id, color_attr_id, color_red_id)
+    # prod3: size L, color BLUE
+    make_pav(prod3_id, size_attr_id, size_l_id)
+    make_pav(prod3_id, color_attr_id, color_blue_id)
+
+    # PAVs for category 2 product (only size M — should not appear in cat1 results)
+    make_pav(prod4_id, size_attr_id, size_m_id)
+
+    return {
+        "shop_id": shop_id,
+        "cat1_id": cat1_id,
+        "cat2_id": cat2_id,
+        "size_attr_id": size_attr_id,
+        "color_attr_id": color_attr_id,
+        "size_s_id": size_s_id,
+        "size_m_id": size_m_id,
+        "size_l_id": size_l_id,
+        "color_red_id": color_red_id,
+        "color_blue_id": color_blue_id,
+    }
 
 
 @pytest.fixture()

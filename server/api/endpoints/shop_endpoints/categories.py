@@ -1,3 +1,4 @@
+from collections import defaultdict
 from http import HTTPStatus
 from typing import Any, List
 from uuid import UUID
@@ -5,6 +6,7 @@ from uuid import UUID
 import structlog
 from fastapi import APIRouter, HTTPException
 from fastapi.param_functions import Body, Depends
+from sqlalchemy import func
 from starlette.responses import Response
 
 from server.api.deps import common_parameters
@@ -12,7 +14,20 @@ from server.api.error_handling import raise_status
 from server.api.helpers import invalidateShopCache
 from server.crud import crud_shop
 from server.crud.crud_category import category_crud
-from server.db.models import CategoryTable
+from server.db import db
+from server.db.models import (
+    AttributeOptionTable,
+    AttributeTable,
+    AttributeTranslationTable,
+    CategoryTable,
+    ProductAttributeValueTable,
+    ProductTable,
+)
+from server.schemas.attribute import (
+    AttributeTranslationBase,
+    AvailableAttributeSchema,
+    AvailableOptionSchema,
+)
 from server.schemas.category import (
     CategoryCreate,
     CategoryIsDeletable,
@@ -25,6 +40,7 @@ from server.schemas.category import (
 logger = structlog.get_logger(__name__)
 
 router = APIRouter()
+public_router = APIRouter()
 
 
 def get_shop(shop_id: UUID):
@@ -136,3 +152,81 @@ def swap(shop_id: UUID, category_id: UUID, move_up: bool):
 @router.delete("/{category_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
 def delete(category_id: UUID, shop_id: UUID) -> None:
     return category_crud.delete_by_shop_id(shop_id=shop_id, id=category_id)
+
+
+@public_router.get(
+    "/{category_id}/available-attributes",
+    response_model=list[AvailableAttributeSchema],
+    summary="Get available filter attributes for a category",
+    description="Returns attributes actually used by products in this category, with option counts.",
+)
+def get_available_attributes(shop_id: UUID, category_id: UUID) -> list[AvailableAttributeSchema]:
+    category = category_crud.get_id_by_shop_id(shop_id, category_id)
+    if not category:
+        raise_status(HTTPStatus.NOT_FOUND, f"Category with id {category_id} not found")
+
+    # Single aggregation query: get attribute+option+count for all used options in this category
+    results = (
+        db.session.query(
+            AttributeTable.id.label("attribute_id"),
+            AttributeTable.name.label("attribute_name"),
+            AttributeTable.unit.label("attribute_unit"),
+            AttributeOptionTable.id.label("option_id"),
+            AttributeOptionTable.value_key.label("option_value_key"),
+            func.count(ProductAttributeValueTable.id).label("product_count"),
+        )
+        .join(ProductAttributeValueTable, ProductAttributeValueTable.attribute_id == AttributeTable.id)
+        .join(ProductTable, ProductTable.id == ProductAttributeValueTable.product_id)
+        .join(AttributeOptionTable, AttributeOptionTable.id == ProductAttributeValueTable.option_id)
+        .filter(ProductTable.shop_id == shop_id)
+        .filter(ProductTable.category_id == category_id)
+        .group_by(
+            AttributeTable.id,
+            AttributeTable.name,
+            AttributeTable.unit,
+            AttributeOptionTable.id,
+            AttributeOptionTable.value_key,
+        )
+        .all()
+    )
+
+    if not results:
+        return []
+
+    # Batch-load translations for the distinct attribute IDs
+    attr_ids = list({r.attribute_id for r in results})
+    translations = (
+        db.session.query(AttributeTranslationTable).filter(AttributeTranslationTable.attribute_id.in_(attr_ids)).all()
+    )
+    trans_by_attr = {t.attribute_id: t for t in translations}
+
+    # Assemble nested response grouped by attribute
+    attrs_dict: dict[UUID, AvailableAttributeSchema] = {}
+    for row in results:
+        if row.attribute_id not in attrs_dict:
+            trans = trans_by_attr.get(row.attribute_id)
+            translation = (
+                AttributeTranslationBase(
+                    main_name=trans.main_name,
+                    alt1_name=trans.alt1_name,
+                    alt2_name=trans.alt2_name,
+                )
+                if trans
+                else None
+            )
+            attrs_dict[row.attribute_id] = AvailableAttributeSchema(
+                id=row.attribute_id,
+                name=row.attribute_name,
+                unit=row.attribute_unit,
+                translation=translation,
+                options=[],
+            )
+        attrs_dict[row.attribute_id].options.append(
+            AvailableOptionSchema(
+                id=row.option_id,
+                value_key=row.option_value_key,
+                product_count=row.product_count,
+            )
+        )
+
+    return list(attrs_dict.values())
