@@ -29,12 +29,6 @@ from server.schemas.attribute import (
     AvailableAttributeSchema,
     AvailableOptionSchema,
 )
-from server.schemas.product import (
-    AttributeFilters,
-    ProductWithAttributes,
-    ProductWithDefaultPrice,
-)
-from server.schemas.product_attribute import ProductAttributeItem
 from server.schemas.category import (
     CategoryCreate,
     CategoryIsDeletable,
@@ -43,6 +37,12 @@ from server.schemas.category import (
     CategoryUpdate,
     CategoryWithNames,
 )
+from server.schemas.product import (
+    AttributeFilters,
+    ProductWithAttributes,
+    ProductWithDefaultPrice,
+)
+from server.schemas.product_attribute import ProductAttributeItem
 
 logger = structlog.get_logger(__name__)
 
