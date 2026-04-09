@@ -1,6 +1,9 @@
 from http import HTTPStatus
 from uuid import uuid4
 
+from server.db import db
+from server.db.models import ProductTable, ShopTable
+
 
 def test_available_attributes_happy_path(test_client, shop_with_category_attributes):
     ids = shop_with_category_attributes
@@ -69,6 +72,103 @@ def test_available_attributes_empty_category(test_client, shop_with_category_att
     response = test_client.get(f"/shops/{ids['shop_id']}/categories/{empty_cat_id}/available-attributes")
     assert response.status_code == HTTPStatus.OK
     assert response.json() == []
+
+
+def test_available_attributes_excludes_products_without_price(test_client, shop_with_category_attributes):
+    """Products with price=None should not be counted in attribute options."""
+    ids = shop_with_category_attributes
+
+    # Set prod3 (the only product with size L and color BLUE) to have no price
+    prod3 = db.session.query(ProductTable).filter(ProductTable.category_id == ids["cat1_id"]).all()
+    # prod3 is the one with size L — find it via attribute values
+    from server.db.models import ProductAttributeValueTable
+
+    prod_with_l = (
+        db.session.query(ProductAttributeValueTable.product_id)
+        .filter(ProductAttributeValueTable.option_id == ids["size_l_id"])
+        .scalar()
+    )
+    product = db.session.query(ProductTable).get(prod_with_l)
+    product.price = None
+    db.session.commit()
+
+    response = test_client.get(f"/shops/{ids['shop_id']}/categories/{ids['cat1_id']}/available-attributes")
+    assert response.status_code == HTTPStatus.OK
+
+    data = response.json()
+    attrs_by_name = {a["name"]: a for a in data}
+
+    # Size L and color BLUE should be gone (only prod3 had them)
+    size_opts = {o["value_key"]: o for o in attrs_by_name["size"]["options"]}
+    assert "L" not in size_opts
+    assert size_opts["S"]["product_count"] == 2
+    assert size_opts["M"]["product_count"] == 1
+
+    color_opts = {o["value_key"]: o for o in attrs_by_name["color"]["options"]}
+    assert "BLUE" not in color_opts
+    assert color_opts["RED"]["product_count"] == 2
+
+
+def test_available_attributes_excludes_out_of_stock_when_enabled(test_client, shop_with_category_attributes):
+    """When enable_stock_on_products is on, products with stock<=0 should not be counted."""
+    ids = shop_with_category_attributes
+
+    # Enable stock toggle on the shop
+    shop = db.session.query(ShopTable).get(ids["shop_id"])
+    shop.config = {"toggles": {"enable_stock_on_products": True}}
+    db.session.commit()
+
+    # Set prod3 (size L, color BLUE) to stock=0
+    from server.db.models import ProductAttributeValueTable
+
+    prod_with_l = (
+        db.session.query(ProductAttributeValueTable.product_id)
+        .filter(ProductAttributeValueTable.option_id == ids["size_l_id"])
+        .scalar()
+    )
+    product = db.session.query(ProductTable).get(prod_with_l)
+    product.stock = 0
+    db.session.commit()
+
+    response = test_client.get(f"/shops/{ids['shop_id']}/categories/{ids['cat1_id']}/available-attributes")
+    assert response.status_code == HTTPStatus.OK
+
+    data = response.json()
+    attrs_by_name = {a["name"]: a for a in data}
+
+    size_opts = {o["value_key"]: o for o in attrs_by_name["size"]["options"]}
+    assert "L" not in size_opts
+
+    color_opts = {o["value_key"]: o for o in attrs_by_name["color"]["options"]}
+    assert "BLUE" not in color_opts
+
+
+def test_available_attributes_includes_out_of_stock_when_toggle_disabled(test_client, shop_with_category_attributes):
+    """When enable_stock_on_products is off, products with stock=0 should still be counted."""
+    ids = shop_with_category_attributes
+
+    # Set prod3 stock to 0 but don't enable the toggle (shop has no config)
+    from server.db.models import ProductAttributeValueTable
+
+    prod_with_l = (
+        db.session.query(ProductAttributeValueTable.product_id)
+        .filter(ProductAttributeValueTable.option_id == ids["size_l_id"])
+        .scalar()
+    )
+    product = db.session.query(ProductTable).get(prod_with_l)
+    product.stock = 0
+    db.session.commit()
+
+    response = test_client.get(f"/shops/{ids['shop_id']}/categories/{ids['cat1_id']}/available-attributes")
+    assert response.status_code == HTTPStatus.OK
+
+    data = response.json()
+    attrs_by_name = {a["name"]: a for a in data}
+
+    # L should still be present since stock toggle is off
+    size_opts = {o["value_key"]: o for o in attrs_by_name["size"]["options"]}
+    assert "L" in size_opts
+    assert size_opts["L"]["product_count"] == 1
 
 
 def test_available_attributes_nonexistent_category(test_client, shop_with_category_attributes):
