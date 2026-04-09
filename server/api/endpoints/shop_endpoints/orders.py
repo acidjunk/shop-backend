@@ -327,6 +327,11 @@ def patch(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
+    # Early exit if status of request is the same as in db, as or right now there is you cant cancel or complete an order again
+    if item_in.status and order.status == item_in.status:
+        logger.info(f"Order status is already set to {item_in.status}")
+        return order
+
     shop_id = order.shop_id
     shop = shop_crud.get(shop_id)
     if not shop:
@@ -357,9 +362,16 @@ def patch(
         id=order.id,
     )
 
+    # The following is fixed by the early exit from before `order.status == item_in.status`:
+    # `item_in.status == "complete"` is not enough because it doesn't account for the order's current status, this means that the stock gets updated even though the order might not have been changed
     if shop.config["toggles"]["enable_stock_on_products"] and item_in.status == "complete":
         for order_product in order.order_info:
             product = product_crud.get_id_by_shop_id(shop_id, order_product["product_id"])
+
+            logger.info(
+                f"Updating stock for order {product.id} , old stock: {product.stock}, new stock: {product.stock - order_product['quantity']}"
+            )
+
             new_product = ProductUpdate(
                 shop_id=product.shop_id,
                 category_id=product.category_id,
@@ -396,6 +408,12 @@ def patch(
 
     invalidateCompletedOrdersCache(updated_order.id)
     return updated_order
+
+
+def update_stock_on_order_complete(order_id: UUID):
+    order = order_crud.get(order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
 
 
 @router.put("/{order_id}", response_model=OrderUpdated, status_code=HTTPStatus.CREATED)
