@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 from http import HTTPStatus
 from typing import Any, List, Optional
@@ -15,6 +16,7 @@ from server.api.helpers import invalidateShopCache
 from server.crud import crud_shop
 from server.crud.crud_category import category_crud
 from server.crud.crud_product import product_crud
+from server.crud.crud_shop import shop_crud
 from server.db import db
 from server.db.models import (
     AttributeOptionTable,
@@ -172,8 +174,12 @@ def get_available_attributes(shop_id: UUID, category_id: UUID) -> list[Available
     if not category:
         raise_status(HTTPStatus.NOT_FOUND, f"Category with id {category_id} not found")
 
+    shop = shop_crud.get(shop_id)
+    if shop and isinstance(shop.config, str):
+        shop.config = json.loads(shop.config)
+
     # Single aggregation query: get attribute+option+count for all used options in this category
-    results = (
+    query = (
         db.session.query(
             AttributeTable.id.label("attribute_id"),
             AttributeTable.name.label("attribute_name"),
@@ -187,15 +193,19 @@ def get_available_attributes(shop_id: UUID, category_id: UUID) -> list[Available
         .join(AttributeOptionTable, AttributeOptionTable.id == ProductAttributeValueTable.option_id)
         .filter(ProductTable.shop_id == shop_id)
         .filter(ProductTable.category_id == category_id)
-        .group_by(
-            AttributeTable.id,
-            AttributeTable.name,
-            AttributeTable.unit,
-            AttributeOptionTable.id,
-            AttributeOptionTable.value_key,
-        )
-        .all()
+        .filter(ProductTable.price.isnot(None))
     )
+
+    if shop and shop.config.get("toggles", {}).get("enable_stock_on_products"):
+        query = query.filter(ProductTable.stock > 0)
+
+    results = query.group_by(
+        AttributeTable.id,
+        AttributeTable.name,
+        AttributeTable.unit,
+        AttributeOptionTable.id,
+        AttributeOptionTable.value_key,
+    ).all()
 
     if not results:
         return []
