@@ -206,6 +206,8 @@ class MailSettings(BaseSettings):
     MAIL_SERVER: str = "localhost"
     MAIL_PORT: int = 1025  # default to Mailhog, see Readme for setup instructions
     MAIL_STARTTLS: bool = False
+    MAIL_SMTP_USERNAME: str = ""
+    MAIL_SMTP_PASSWORD: str = ""
     MAIL_INFO_NAME: str = "More info"
     MAIL_INFO_LINK: str = "https://shop.pricelist.info"
 

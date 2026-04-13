@@ -1,11 +1,12 @@
 from enum import Enum
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 from pydantic import EmailStr
 
 
 class MailType(str, Enum):
     INFO = "INFO"
+    ORDER_CONFIRMATION = "ORDER_CONFIRMATION"
 
 
 class InlineImage(TypedDict):
@@ -32,4 +33,5 @@ class ConfirmationMail(TypedDict):
     to: list[MailAddress]
     cc: list[MailAddress]
     bcc: list[MailAddress]
-    sender: MailAddress
+    sender: NotRequired[MailAddress]
+    images: NotRequired[list[InlineImage]]
