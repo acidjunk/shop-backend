@@ -117,5 +117,4 @@ nav:
       - Testing: development/testing.md
       - Code style: development/code-style.md
       - Writing migrations: development/migrations.md
-  - Deployment: deployment/overview.md
   - Contributing: contributing.md

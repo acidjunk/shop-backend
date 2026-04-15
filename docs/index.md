@@ -33,10 +33,6 @@ ShopVirge is a FastAPI REST API for managing shop pricelists, products, categori
 
     Local setup, testing, code style, and writing migrations.
 
--   :material-cloud-upload: **[Deployment](deployment/overview.md)**
-
-    AWS SAM + App Runner notes and the `set-env.py` workflow.
-
 -   :material-source-pull: **[Contributing](contributing.md)**
 
     Branching, PR workflow, CI gates, and how the docs site is published.
