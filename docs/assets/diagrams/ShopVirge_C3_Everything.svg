@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 260" role="img" aria-label="ShopVirge C3 Everything diagram placeholder">
+  <rect x="1" y="1" width="758" height="258" fill="#f5faf9" stroke="#1f8f7e" stroke-width="2" rx="6"/>
+  <text x="380" y="80" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="24" font-weight="600" fill="#134e4a">ShopVirge — C3 · Components (everything)</text>
+  <text x="380" y="130" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="15" fill="#4b5563">Rendered SVG pending.</text>
+  <text x="380" y="160" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="15" fill="#4b5563">Run </text>
+  <text x="380" y="190" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#0f172a">bin/export-diagrams.sh</text>
+  <text x="380" y="220" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="13" fill="#64748b">to replace this placeholder with the exported drawio SVG.</text>
+</svg>

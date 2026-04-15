@@ -1,0 +1,121 @@
+site_name: ShopVirge Backend
+site_description: FastAPI REST API for managing shop pricelists, products, categories, orders, and attributes.
+site_author: René Dohmen
+site_url: https://shop-backend.readthedocs.io/
+
+repo_url: https://github.com/acidjunk/shop-backend
+repo_name: acidjunk/shop-backend
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.instant
+    - navigation.tracking
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+    - search.highlight
+    - search.suggest
+    - search.share
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/acidjunk/shop-backend
+
+plugins:
+  - search
+  - include-markdown
+  - git-revision-date-localized:
+      enable_creation_date: false
+      fallback_to_build_date: true
+      type: iso_date
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: Anchor link to this section
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Request flow: architecture/request-flow.md
+      - Database & models: architecture/database.md
+      - Migrations: architecture/migrations.md
+      - C4 diagrams: architecture/diagrams.md
+  - API:
+      - Overview: api/overview.md
+      - Shop-scoped endpoints: api/shop-scoped.md
+      - Authentication: api/authentication.md
+      - Admin accounts: api/admin-accounts.md
+      - Stripe: api/stripe.md
+      - Email notifications: api/email-notifications.md
+  - Development:
+      - Setup: development/setup.md
+      - Testing: development/testing.md
+      - Code style: development/code-style.md
+      - Writing migrations: development/migrations.md
+  - Deployment: deployment/overview.md
+  - Contributing: contributing.md
