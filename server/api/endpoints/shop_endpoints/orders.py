@@ -263,7 +263,11 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
             except StripeNotConfigured:
                 # Shop has no Stripe key configured — proceed without
                 # creating a Stripe customer (matches prior behavior).
-                pass
+                logger.info(
+                    "Skipping Stripe customer creation: shop has no stripe_secret_key",
+                    shop_id=str(shop.id),
+                    account_name=data.account_name,
+                )
 
             account_data = AccountCreate(shop_id=data.shop_id, name=data.account_name, details=details)
             account = account_crud.create(obj_in=account_data)
