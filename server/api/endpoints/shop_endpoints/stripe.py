@@ -8,6 +8,7 @@ from fastapi import APIRouter
 
 from server.crud.crud_shop import shop_crud
 from server.db.models import Account
+from server.services import stripe_client
 
 router = APIRouter()
 logger = structlog.get_logger(__name__)
@@ -15,7 +16,7 @@ logger = structlog.get_logger(__name__)
 
 def get_stripe_customer(account_id: UUID, shop_id: UUID):
     account = Account.query.filter(Account.id == account_id, Account.shop_id == shop_id).first()
-    return account.details["stripe_customer_id"]
+    return stripe_client.get_customer_id(account)
 
 
 def get_stripe_prices(product_ids: list[UUID], yearly: bool):
@@ -39,7 +40,7 @@ def get_stripe_prices(product_ids: list[UUID], yearly: bool):
 def create_payment_intent(shop_id: UUID, price: int, account_id: UUID):
     try:
         shop = shop_crud.get(shop_id)
-        stripe.api_key = shop.stripe_secret_key
+        stripe_client.configure_for_shop(shop)
         customer_id = get_stripe_customer(account_id, shop_id)
 
         intent = stripe.PaymentIntent.create(
@@ -58,7 +59,7 @@ def create_payment_intent(shop_id: UUID, price: int, account_id: UUID):
 def create_subscription_intent(shop_id: UUID, product_ids: list[UUID], account_id: UUID, yearly: bool = False):
     try:
         shop = shop_crud.get(shop_id)
-        stripe.api_key = shop.stripe_secret_key
+        stripe_client.configure_for_shop(shop)
         customer_id = get_stripe_customer(account_id, shop_id)
         prices = get_stripe_prices(product_ids, yearly)
 
@@ -84,7 +85,7 @@ def create_subscription_intent(shop_id: UUID, product_ids: list[UUID], account_i
 def cancel_subscription(shop_id: UUID, subscription_id: str):
     try:
         shop = shop_crud.get(shop_id)
-        stripe.api_key = shop.stripe_secret_key
+        stripe_client.configure_for_shop(shop)
         stripe.Subscription.cancel(subscription_id)
 
         return 204

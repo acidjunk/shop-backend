@@ -27,6 +27,8 @@ from server.schemas.account import AccountCreate
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.schemas.product import ProductTranslationBase
 from server.security import auth_required
+from server.services import stripe_client
+from server.services.stripe_client import StripeNotConfigured
 from server.settings import mail_settings
 from server.utils.discord.discord import post_discord_order_complete
 
@@ -254,10 +256,14 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
 
         if new_account:
             details = {}
-            if shop.stripe_secret_key:
-                stripe.api_key = shop.stripe_secret_key
+            try:
+                stripe_client.configure_for_shop(shop)
                 customer = stripe.Customer.create(email=data.account_name)
                 details["stripe_customer_id"] = customer.id
+            except StripeNotConfigured:
+                # Shop has no Stripe key configured — proceed without
+                # creating a Stripe customer (matches prior behavior).
+                pass
 
             account_data = AccountCreate(shop_id=data.shop_id, name=data.account_name, details=details)
             account = account_crud.create(obj_in=account_data)
