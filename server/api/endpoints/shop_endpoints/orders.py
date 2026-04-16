@@ -21,11 +21,13 @@ from server.crud.crud_order import order_crud
 from server.crud.crud_product import product_crud
 from server.crud.crud_shop import shop_crud
 from server.db.models import Account, OrderTable, ShopTable, UserTable
+from server.mail import send_order_confirmation_emails
 from server.schemas import ProductUpdate
 from server.schemas.account import AccountCreate
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.schemas.product import ProductTranslationBase
 from server.security import auth_required
+from server.settings import mail_settings
 from server.utils.discord.discord import post_discord_order_complete
 
 logger = structlog.get_logger(__name__)
@@ -391,10 +393,12 @@ def patch(
             )
             product_crud.update(db_obj=product, obj_in=new_product)
 
+    # Fetch account once for Discord and email notifications
+    account = account_crud.get(updated_order.account_id) if updated_order.account_id else None
+
     try:
         shop = load(ShopTable, updated_order.shop_id)
-        if shop.discord_webhook is not None:
-            account = account_crud.get(updated_order.account_id)
+        if shop.discord_webhook is not None and account:
             post_discord_order_complete(
                 f"New order from {account.name}",
                 botname=shop.name,
@@ -402,9 +406,15 @@ def patch(
                 order=updated_order,
                 email=account.name,
             )
-
     except Exception as e:
         logger.error("Failed to post to Discord: ", error=str(e))
+
+    # Send order confirmation emails
+    if mail_settings.SHOP_MAIL_ENABLED and item_in.status == "complete" and account:
+        try:
+            send_order_confirmation_emails(order=order, shop=shop, account=account)
+        except Exception as e:
+            logger.error("Failed to send order confirmation email", error=str(e))
 
     invalidateCompletedOrdersCache(updated_order.id)
     return updated_order

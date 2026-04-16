@@ -1,0 +1,92 @@
+{% set title = 'Orderbevestiging #' ~ customer_order_id %}
+{% set welcome_text = 'Orderbevestiging #' ~ customer_order_id %}
+
+{% import 'macros.html.j2' as m %}
+{% extends "default_layout.html.j2" %}
+
+{% block content %}
+<div>
+    <p>Beste klant,</p>
+
+    <p>Bedankt voor je bestelling bij <strong>{{ shop_name }}</strong>. Hieronder vind je een overzicht van je bestelling.</p>
+
+    {% if customer_company_name %}
+    <table style="width: 100%; margin-bottom: 20px;">
+        <tr>
+            <td style="width: 40%; font-weight: bold;">Bedrijfsnaam:</td>
+            <td>{{ customer_company_name }}</td>
+        </tr>
+        {% if customer_btw_number %}
+        <tr>
+            <td style="width: 40%; font-weight: bold;">BTW-nummer:</td>
+            <td>{{ customer_btw_number }}</td>
+        </tr>
+        {% endif %}
+    </table>
+    {% endif %}
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <thead>
+            <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
+                <th style="text-align: left; padding: 10px;">Product</th>
+                <th style="text-align: right; padding: 10px;">Aantal</th>
+                <th style="text-align: right; padding: 10px;">Prijs ex BTW</th>
+                <th style="text-align: right; padding: 10px;">BTW %</th>
+                <th style="text-align: right; padding: 10px;">Prijs inc BTW</th>
+                <th style="text-align: right; padding: 10px;">Totaal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in order_lines %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px;">
+                    <strong>{{ line.product_name }}</strong>
+                    {% if line.description %}
+                    <br><small style="color: #666;">{{ line.description }}</small>
+                    {% endif %}
+                    {% if line.attributes %}
+                    <br>
+                    {% for attr in line.attributes %}
+                    <small style="color: #666;">{{ attr.name }}: {{ attr.value }}{% if attr.unit %} {{ attr.unit }}{% endif %}{% if not loop.last %}, {% endif %}</small>
+                    {% endfor %}
+                    {% endif %}
+                </td>
+                <td style="text-align: right; padding: 10px;">{{ line.quantity }}</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(line.price_ex_btw) }}</td>
+                <td style="text-align: right; padding: 10px;">{{ "%.0f"|format(line.btw_rate) }}%</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(line.price_inc_btw) }}</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(line.line_total_inc_btw) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="border-top: 2px solid #ddd;">
+                <td colspan="5" style="text-align: right; padding: 10px; font-weight: bold;">Totaal ex BTW:</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(total_ex_btw) }}</td>
+            </tr>
+            <tr>
+                <td colspan="5" style="text-align: right; padding: 10px; font-weight: bold;">BTW:</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(total_btw) }}</td>
+            </tr>
+            <tr style="border-top: 1px solid #ddd;">
+                <td colspan="5" style="text-align: right; padding: 10px; font-weight: bold; font-size: 18px;">Totaal inc BTW:</td>
+                <td style="text-align: right; padding: 10px; font-weight: bold; font-size: 18px;">&euro; {{ "%.2f"|format(total_inc_btw) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <p style="margin-top: 30px;">Besteldatum: {{ completed_at }}</p>
+
+    <hr style="margin-top: 30px; border: none; border-top: 1px solid #ccc;">
+
+    <p style="font-size: 12px; color: #888; margin-top: 20px;">
+        <strong>{{ shop_company }}</strong><br>
+        {{ shop_address }}<br>
+        {{ shop_zip_code }} {{ shop_city }}<br>
+        {% if shop_phone %}Tel: {{ shop_phone }}<br>{% endif %}
+        {% if shop_email %}E-mail: {{ shop_email }}<br>{% endif %}
+        {% if kvk_number %}KVK: {{ kvk_number }}<br>{% endif %}
+        {% if btw_number %}BTW: {{ btw_number }}{% endif %}
+    </p>
+</div>
+{% endblock %}

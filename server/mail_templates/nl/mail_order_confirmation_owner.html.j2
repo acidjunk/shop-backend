@@ -1,0 +1,88 @@
+{% set title = 'Nieuwe bestelling #' ~ customer_order_id %}
+{% set welcome_text = 'Nieuwe bestelling #' ~ customer_order_id %}
+
+{% import 'macros.html.j2' as m %}
+{% extends "default_layout.html.j2" %}
+
+{% block content %}
+<div>
+    <p>Beste {{ shop_company }},</p>
+
+    <p>Er is een nieuwe bestelling geplaatst in je shop <strong>{{ shop_name }}</strong>.</p>
+
+    <table style="width: 100%; margin-bottom: 20px; background-color: #f9f9f9; padding: 10px;">
+        <tr>
+            <td style="width: 40%; font-weight: bold; padding: 5px;">Klant e-mail:</td>
+            <td style="padding: 5px;">{{ customer_email }}</td>
+        </tr>
+        <tr>
+            <td style="width: 40%; font-weight: bold; padding: 5px;">Bestelnummer:</td>
+            <td style="padding: 5px;">#{{ customer_order_id }}</td>
+        </tr>
+        {% if customer_company_name %}
+        <tr>
+            <td style="width: 40%; font-weight: bold; padding: 5px;">Bedrijfsnaam:</td>
+            <td style="padding: 5px;">{{ customer_company_name }}</td>
+        </tr>
+        {% endif %}
+        {% if customer_btw_number %}
+        <tr>
+            <td style="width: 40%; font-weight: bold; padding: 5px;">BTW-nummer klant:</td>
+            <td style="padding: 5px;">{{ customer_btw_number }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <thead>
+            <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
+                <th style="text-align: left; padding: 10px;">Product</th>
+                <th style="text-align: right; padding: 10px;">Aantal</th>
+                <th style="text-align: right; padding: 10px;">Prijs ex BTW</th>
+                <th style="text-align: right; padding: 10px;">BTW %</th>
+                <th style="text-align: right; padding: 10px;">Prijs inc BTW</th>
+                <th style="text-align: right; padding: 10px;">Totaal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in order_lines %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px;">
+                    <strong>{{ line.product_name }}</strong>
+                    {% if line.description %}
+                    <br><small style="color: #666;">{{ line.description }}</small>
+                    {% endif %}
+                    {% if line.attributes %}
+                    <br>
+                    {% for attr in line.attributes %}
+                    <small style="color: #666;">{{ attr.name }}: {{ attr.value }}{% if attr.unit %} {{ attr.unit }}{% endif %}{% if not loop.last %}, {% endif %}</small>
+                    {% endfor %}
+                    {% endif %}
+                </td>
+                <td style="text-align: right; padding: 10px;">{{ line.quantity }}</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(line.price_ex_btw) }}</td>
+                <td style="text-align: right; padding: 10px;">{{ "%.0f"|format(line.btw_rate) }}%</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(line.price_inc_btw) }}</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(line.line_total_inc_btw) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="border-top: 2px solid #ddd;">
+                <td colspan="5" style="text-align: right; padding: 10px; font-weight: bold;">Totaal ex BTW:</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(total_ex_btw) }}</td>
+            </tr>
+            <tr>
+                <td colspan="5" style="text-align: right; padding: 10px; font-weight: bold;">BTW:</td>
+                <td style="text-align: right; padding: 10px;">&euro; {{ "%.2f"|format(total_btw) }}</td>
+            </tr>
+            <tr style="border-top: 1px solid #ddd;">
+                <td colspan="5" style="text-align: right; padding: 10px; font-weight: bold; font-size: 18px;">Totaal inc BTW:</td>
+                <td style="text-align: right; padding: 10px; font-weight: bold; font-size: 18px;">&euro; {{ "%.2f"|format(total_inc_btw) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <p style="margin-top: 30px;">Besteldatum: {{ completed_at }}</p>
+</div>
+{% endblock %}
