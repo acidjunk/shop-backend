@@ -1,7 +1,7 @@
 site_name: ShopVirge Backend
 site_description: FastAPI REST API for managing shop pricelists, products, categories, orders, and attributes.
 site_author: René Dohmen
-site_url: https://shop-backend.readthedocs.io/
+site_url: https://shopvirge.readthedocs.io/
 
 repo_url: https://github.com/acidjunk/shop-backend
 repo_name: acidjunk/shop-backend
