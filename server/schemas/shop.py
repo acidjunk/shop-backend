@@ -150,6 +150,11 @@ class ConfigurationContact(BoilerplateBaseModel):
     tiktok: str | None = None
 
 
+class ConfigurationLegal(BoilerplateBaseModel):
+    kvk_number: str | None = None
+    btw_number: str | None = None
+
+
 class Toggles(BoilerplateBaseModel):
     show_new_products: bool = True
     show_featured_products: bool = True
@@ -159,6 +164,8 @@ class Toggles(BoilerplateBaseModel):
     language_alt1_enabled: bool = False
     language_alt2_enabled: bool = False
     product_call_to_action_enabled: bool = False
+    enable_stock_on_products: bool = False
+    enable_attributes_for_categories: bool = False
 
 
 class ConfigurationV1(BoilerplateBaseModel):
@@ -172,6 +179,7 @@ class ConfigurationV1(BoilerplateBaseModel):
     google_analytics_id: str | None = None
     contact: ConfigurationContact
     toggles: Toggles
+    legal: ConfigurationLegal | None = None
 
 
 class ShopTypeName(str, Enum):

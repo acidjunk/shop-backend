@@ -20,6 +20,7 @@ from server.api.endpoints import (
     api_keys,
     downloads,
     early_access,
+    faq,
     forms,
     health,
     images,
@@ -32,11 +33,14 @@ from server.api.endpoints import (
 )
 from server.api.endpoints.shop_endpoints import (
     accounts,
+    attribute_options,
+    attributes,
     categories,
     category_images,
     info_request,
     orders,
     prices,
+    product_attribute_values,
     products,
     products_to_tags,
     stripe,
@@ -86,6 +90,11 @@ api_router.include_router(
     dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
+    categories.public_router,
+    prefix="/shops/{shop_id}/categories",
+    tags=["categories"],
+)
+api_router.include_router(
     category_images.router,
     prefix="/shops/{shop_id}/categories-images",
     tags=["shops", "categories"],
@@ -111,6 +120,11 @@ api_router.include_router(
     dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
+    products.public_router,
+    prefix="/shops/{shop_id}/products",
+    tags=["shops", "products"],
+)
+api_router.include_router(
     products_to_tags.router,
     prefix="/shops/{shop_id}/products-to-tags",
     tags=["shops", "products"],
@@ -120,6 +134,30 @@ api_router.include_router(
     tags.router,
     prefix="/shops/{shop_id}/tags",
     tags=["shops", "products"],
+    dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    attributes.router,
+    prefix="/shops/{shop_id}/attributes",
+    tags=["shops", "attributes"],
+    dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    attribute_options.router,
+    prefix="/shops/{shop_id}/attribute-options",
+    tags=["shops", "attributes"],
+    dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    attribute_options.deprecated_router,
+    prefix="/shops/{shop_id}/attributes/{attribute_id}/options",
+    tags=["shops", "attributes"],
+    dependencies=[Depends(auth_required)],
+)
+api_router.include_router(
+    product_attribute_values.router,
+    prefix="/shops/{shop_id}/product-attribute-values",
+    tags=["shops", "products", "attributes"],
     dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
@@ -154,6 +192,8 @@ api_router.include_router(
     prefix="/test-forms",
     tags=["test-forms"],
 )
+
+api_router.include_router(faq.router, prefix="/faq", tags=["faq"])
 
 # api_router.include_router(
 #     shops_users.router,

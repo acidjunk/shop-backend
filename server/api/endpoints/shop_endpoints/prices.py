@@ -1,14 +1,26 @@
+import json
 from datetime import datetime
 from enum import Enum
+from typing import List, Optional
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from server.crud.crud_product import product_crud
 from server.crud.crud_shop import shop_crud
-from server.db import ProductTable
-from server.db.models import CategoryTable, CategoryTranslationTable, ProductTranslationTable
+from server.db import ProductTable, db
+from server.db.models import (
+    AttributeOptionTable,
+    AttributeTable,
+    AttributeTranslationTable,
+    CategoryTable,
+    CategoryTranslationTable,
+    ProductAttributeValueTable,
+    ProductTranslationTable,
+)
+from server.schemas.product_attribute import ProductAttributeItem
 
 router = APIRouter()
 
@@ -29,6 +41,7 @@ class ProductResponse(BaseModel):
     category_image: str | None = None
     category_order_number: int
     order_number: int
+    stock: int | None = None
     tags: list[str] = []
     name: str
     description_short: str
@@ -40,7 +53,7 @@ class ProductResponse(BaseModel):
     recurring_price_yearly: float | None = None
     max_one: bool
     shippable: bool
-    attributes: dict | None = None
+    attributes: list[str] = []
     digital: str | None = None
     featured: bool
     new_product: bool
@@ -80,7 +93,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             shippable=product.shippable,
             featured=product.featured,
             new_product=product.new_product,
-            attributes=product.attributes,
+            attributes=[attr.attribute.translation.main_name for attr in product.attribute_values],
         )
     elif lang == Lang.ALT1:
         product_response = ProductResponse(
@@ -101,7 +114,9 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             shippable=product.shippable,
             featured=product.featured,
             new_product=product.new_product,
-            attributes=product.attributes,
+            attributes=[
+                attr.attribute.translation.main_name for attr in product.attribute_values
+            ],  # TODO update me when attribute translations are implemented
         )
     elif lang == Lang.ALT2:
         product_response = ProductResponse(
@@ -122,7 +137,9 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
             shippable=product.shippable,
             featured=product.featured,
             new_product=product.new_product,
-            attributes=product.attributes,
+            attributes=[
+                attr.attribute.translation.main_name for attr in product.attribute_values
+            ],  # TODO update me when attribute translations are implemented
         )
     else:
         raise ValueError(f"Unsupported language: {lang}")
@@ -140,6 +157,7 @@ def to_response_model(product: ProductTable, lang: Lang, shop) -> ProductRespons
     product_response.image_5 = product.image_5
     product_response.image_6 = product.image_6
     product_response.digital = product.digital
+    product_response.stock = product.stock
 
     return product_response
 
@@ -176,7 +194,15 @@ def get_products(
 
     shop = shop_crud.get(shop_id)
 
-    return [to_response_model(product, lang, shop) for product in products]
+    if isinstance(shop.config, str):
+        shop.config = json.loads(shop.config)
+
+    products = [to_response_model(product, lang, shop) for product in products]
+
+    if shop.config.get("toggles", {}).get("enable_stock_on_products"):
+        products = [p for p in products if p.stock and p.stock > 0]
+
+    return products
 
 
 @router.post("/", response_model=list[ProductResponse])

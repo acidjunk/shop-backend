@@ -11,8 +11,8 @@ def test_products_get_multi(shop_with_products, test_client):
     assert 2 == len(products)
 
 
-def test_products_get_by_id(shop, product, test_client):
-    response = test_client.get(f"/shops/{shop}/products/{product}")
+def test_products_get_by_id(shop_with_config, product, test_client):
+    response = test_client.get(f"/shops/{shop_with_config}/products/{product}")
     assert response.status_code == 200
     product = response.json()
     assert product["translation"]["main_name"] == "Product for Testing"
@@ -49,9 +49,9 @@ def test_products_create(shop, category, test_client):
     assert product.translation.alt1_name == None
 
 
-def test_products_update(shop, product, category, test_client):
+def test_products_update(shop_with_config, product, category, test_client):
     body = {
-        "shop_id": shop,
+        "shop_id": shop_with_config,
         "category_id": category,
         "price": 1.0,
         "tax_category": "vat_zero",
@@ -72,13 +72,174 @@ def test_products_update(shop, product, category, test_client):
         "image_6": "",
     }
 
-    response = test_client.put(f"/shops/{shop}/products/{product}", data=json_dumps(body))
+    response = test_client.put(f"/shops/{shop_with_config}/products/{product}", data=json_dumps(body))
     assert response.status_code == 201
     product = ProductTable.query.filter_by(id=product).first()
     assert product.translation.main_name == "Update Product Test"
     assert product.translation.alt1_name == None
 
 
-def test_products_delete(shop, product, test_client):
-    response = test_client.delete(f"/shops/{shop}/products/{product}")
+def test_products_delete(shop_with_config, product, test_client):
+    response = test_client.delete(f"/shops/{shop_with_config}/products/{product}")
     assert response.status_code == 204
+
+
+def test_products_delete_cascade_cleanup(shop_with_config, product, category, test_client):
+    """Test that deleting a product also deletes its attribute values and tag associations, but NOT the tags/options."""
+    from server.db import db
+    from server.db.models import AttributeOptionTable, AttributeTable, ProductAttributeValueTable
+    from tests.unit_tests.factories.attribute import make_attribute, make_option, make_pav
+
+    # 1. Setup Test Data
+    # Create an attribute and an option
+    attr_id = make_attribute(shop_with_config, name="size")
+    opt_id = make_option(attr_id, "XL")
+
+    # Create associations
+    # Link product to the attribute option
+    pav_id = make_pav(product, attr_id, opt_id)
+
+    # Verify setup
+    assert db.session.get(ProductAttributeValueTable, pav_id) is not None
+
+    # 2. Perform Delete
+    response = test_client.delete(f"/shops/{shop_with_config}/products/{product}")
+    assert response.status_code == 204
+
+    # 3. Verify Cascade Deletion
+    # These should be gone
+    assert db.session.get(ProductAttributeValueTable, pav_id) is None
+
+    # These should still exist
+    assert db.session.get(AttributeOptionTable, opt_id) is not None
+    assert db.session.get(AttributeTable, attr_id) is not None
+
+
+def test_products_get_multi_with_attributes(test_client, shop_with_products_and_attributes):
+    ids = shop_with_products_and_attributes
+    shop_id = ids["shop_id"]
+
+    response = test_client.get(f"/shops/{shop_id}/products/with_attributes")
+    assert response.status_code == 200
+    products = response.json()
+    assert len(products) > 0
+    assert "product" in products[0]
+    assert "attributes" in products[0]
+
+    # Verify that the response contains the expected product ID
+    product_ids = {p["product"]["id"] for p in products}
+    assert str(ids["product_id"]) in product_ids
+
+
+def test_products_get_by_id_with_attributes(test_client, shop_with_products_and_attributes):
+    ids = shop_with_products_and_attributes
+    shop_id = ids["shop_id"]
+    product_id = ids["product_id"]
+
+    response = test_client.get(f"/shops/{shop_id}/products/{product_id}/with_attributes")
+    assert response.status_code == 200
+    product = response.json()
+    assert "product" in product
+    assert "attributes" in product
+    assert product["product"]["id"] == str(product_id)
+
+
+def test_products_get_multi_with_attributes_filtered_by_option(test_client, shop_with_products_and_attributes):
+    ids = shop_with_products_and_attributes
+    shop_id = ids["shop_id"]
+    product_id = ids["product_id"]
+    opt1a_id = ids["opt1a_id"]
+    attr1_id = ids["attr1_id"]
+
+    # First, we need to create a ProductAttributeValue (PAV) to associate the option with the product
+    from tests.unit_tests.factories.attribute import make_pav
+
+    make_pav(product_id, attr1_id, opt1a_id)
+
+    # Filter by option_id
+    response = test_client.get(f"/shops/{shop_id}/products/with_attributes?option_id={opt1a_id}")
+    assert response.status_code == 200
+    products = response.json()
+    assert len(products) == 1
+    assert products[0]["product"]["id"] == str(product_id)
+
+    # Filter by non-existent option_id should return empty list
+    from uuid import uuid4
+
+    response = test_client.get(f"/shops/{shop_id}/products/with_attributes?option_id={uuid4()}")
+    assert response.status_code == 200
+    assert len(response.json()) == 0
+
+
+def test_get_products_config_robustness(test_client):
+    """Test get_products endpoint with various shop config scenarios."""
+    from server.db import db
+    from server.db.models import ShopTable
+    from tests.unit_tests.factories.categories import make_category
+    from tests.unit_tests.factories.product import make_product
+
+    # Helper to create a shop with specific config
+    def create_shop_with_config(config_val):
+        from uuid import uuid4
+
+        shop = ShopTable(
+            name=f"Config Test Shop {uuid4()}",
+            config=config_val,
+            shop_type="{}",
+        )
+        db.session.add(shop)
+        db.session.commit()
+        return shop.id
+
+    # 1. Test with completely empty config "{}" (toggles missing)
+    shop_id_1 = create_shop_with_config("{}")
+    cat_id_1 = make_category(shop_id=shop_id_1)
+    make_product(shop_id=shop_id_1, category_id=cat_id_1)
+
+    response = test_client.get(f"/shops/{shop_id_1}/products/?lang=main")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    # 2. Test with toggles present but enable_stock_on_products missing
+    shop_id_2 = create_shop_with_config({"toggles": {}})
+    cat_id_2 = make_category(shop_id=shop_id_2)
+    make_product(shop_id=shop_id_2, category_id=cat_id_2)
+
+    response = test_client.get(f"/shops/{shop_id_2}/products/?lang=main")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    # 3. Test with enable_stock_on_products=True
+    # (Testing basic robustness only as complex filtering depends on DB state in these tests)
+    shop_id_3 = create_shop_with_config({"toggles": {"enable_stock_on_products": True}})
+    cat_id_3 = make_category(shop_id=shop_id_3)
+    make_product(shop_id=shop_id_3, category_id=cat_id_3)
+
+    response = test_client.get(f"/shops/{shop_id_3}/products/?lang=main")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    # 4. Test with string config (should be handled by json.loads)
+    import json
+
+    shop_id_4 = create_shop_with_config(json.dumps({"toggles": {"enable_stock_on_products": False}}))
+    cat_id_4 = make_category(shop_id=shop_id_4)
+    make_product(shop_id=shop_id_4, category_id=cat_id_4)
+
+    response = test_client.get(f"/shops/{shop_id_4}/products/?lang=main")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+
+def test_products_get_multi_with_attributes_mutually_exclusive_filters(test_client, shop_with_products_and_attributes):
+    ids = shop_with_products_and_attributes
+    shop_id = ids["shop_id"]
+    opt1a_id = ids["opt1a_id"]
+    attr1_id = ids["attr1_id"]
+
+    # Providing both option_id and attribute_id should fail
+    response = test_client.get(
+        f"/shops/{shop_id}/products/with_attributes?option_id={opt1a_id}&attribute_id={attr1_id}"
+    )
+    assert response.status_code == 400
+    assert "Only one filter may be used at a time" in response.json()["detail"]["message"]

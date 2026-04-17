@@ -11,13 +11,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
+from http import HTTPStatus
 from typing import List, Optional, Union
 from uuid import UUID
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field, ValidationError, model_validator
 
+from server.api.error_handling import raise_status
 from server.schemas.base import BoilerplateBaseModel
 from server.schemas.price import DefaultPrice
+from server.schemas.product_attribute import ProductAttributeItem
 
 
 class ProductEmptyBase(BoilerplateBaseModel):
@@ -53,11 +56,11 @@ class ProductBase(BoilerplateBaseModel):
     new_product: bool
     # Todo: make enum with: vat_standard, vat_lower_1, vat_lower_2, vat_lower_3, vat_special, vat_zero
     tax_category: str
-    attributes: dict | None = None
     discounted_price: Optional[float] = None
     discounted_from: Optional[datetime] = None
     discounted_to: Optional[datetime] = None
     order_number: Optional[int] = None
+    stock: Optional[int] = 1
     image_1: Union[Optional[dict], Optional[str]]
     image_2: Union[Optional[dict], Optional[str]]
     image_3: Union[Optional[dict], Optional[str]]
@@ -107,9 +110,42 @@ class ProductWithDetailsAndPrices(ProductWithDetails):
     prices: List[dict] = []
 
 
+class ProductWithAttributes(BoilerplateBaseModel):
+    """Schema for a product along with its associated attributes."""
+
+    product: ProductWithDefaultPrice
+    attributes: List[ProductAttributeItem] = []
+
+
 class ProductImageDelete(ProductEmptyBase):
     image: str
 
 
 class ProductOrder(BoilerplateBaseModel):
     order_number: int
+
+
+class AttributeFilters(BoilerplateBaseModel):
+    """Mutually exclusive filters for products with attributes.
+
+    Only one of the following filters can be used at a time.
+    """
+
+    option_id: Optional[List[UUID]] = Field(None)
+    attribute_id: Optional[UUID] = Field(None)
+    option_value_key: Optional[List[str]] = Field(None)
+    attribute_name: Optional[str] = Field(None)
+
+    @model_validator(mode="after")
+    def check_mutual_exclusivity(self) -> "AttributeFilters":
+        provided = [
+            field
+            for field, value in self.model_dump(exclude_none=True).items()
+            if field in {"option_id", "attribute_id", "option_value_key", "attribute_name"}
+        ]
+        if len(provided) > 1:
+            raise_status(
+                HTTPStatus.BAD_REQUEST,
+                detail={"message": f"Only one filter may be used at a time. Provided: {', '.join(provided)}"},
+            )
+        return self

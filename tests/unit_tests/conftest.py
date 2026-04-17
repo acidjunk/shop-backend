@@ -33,6 +33,7 @@ from server.security import CustomCognitoToken, auth_required, cognito_auth_requ
 from server.settings import app_settings
 from tests.unit_tests.factories.account import make_account
 from tests.unit_tests.factories.api_key import make_api_key
+from tests.unit_tests.factories.attribute import make_attribute, make_attribute_with_translation, make_option, make_pav
 from tests.unit_tests.factories.categories import make_category, make_category_translated
 from tests.unit_tests.factories.order import make_pending_order
 from tests.unit_tests.factories.product import make_product, make_translated_product
@@ -274,6 +275,52 @@ def shop_with_tags():
 
 
 @pytest.fixture()
+def shop_with_products_and_attributes(shop_with_products):
+    shop = make_shop(with_config=False, random_shop_name=True)
+    main_shop_id = shop_with_products
+
+    # Fetch one product id in this shop by creating a category and a product if needed
+    category_id = make_category(shop_id=main_shop_id)
+    product_id = make_product(shop_id=main_shop_id, category_id=category_id)
+
+    # Create two attributes in main shop, each with options
+    attr1_id = make_attribute(main_shop_id, name="size")
+    opt1a_id = make_option(attr1_id, "S")
+    opt1b_id = make_option(attr1_id, "M")
+
+    attr2_id = make_attribute(main_shop_id, name="color")
+    opt2a_id = make_option(attr2_id, "RED")
+
+    # Create a second shop with its own attribute/option to test scoping
+    other_shop_id = shop  # empty shop id (no products for now)
+    other_attr_id = make_attribute(other_shop_id, name="other-attr")
+    other_opt_id = make_option(other_attr_id, "X")
+
+    return {
+        "shop_id": main_shop_id,
+        "product_id": product_id,
+        "attr1_id": attr1_id,
+        "opt1a_id": opt1a_id,
+        "opt1b_id": opt1b_id,
+        "attr2_id": attr2_id,
+        "opt2a_id": opt2a_id,
+        "other_shop_id": other_shop_id,
+        "other_attr_id": other_attr_id,
+        "other_opt_id": other_opt_id,
+    }
+
+
+@pytest.fixture()
+def other_shop_product(shop_with_products_and_attributes):
+    """Create and return a product that belongs to the 'other_shop_id' from the ids bundle.
+    Useful for negative scoping tests across multiple test cases.
+    """
+    ids = shop_with_products_and_attributes
+    other_cat = make_category(shop_id=ids["other_shop_id"])
+    return make_product(shop_id=ids["other_shop_id"], category_id=other_cat)
+
+
+@pytest.fixture()
 def category(shop):
     return make_category(shop_id=shop)
 
@@ -284,21 +331,77 @@ def tag(shop):
 
 
 @pytest.fixture()
-def product(shop):
-    category = make_category(shop_id=shop)
-    return make_product(shop_id=shop, category_id=category)
+def product(shop_with_config):
+    category = make_category(shop_id=shop_with_config)
+    return make_product(shop_id=shop_with_config, category_id=category)
 
 
 @pytest.fixture()
-def product_translated(shop):
-    category = make_category_translated(shop_id=shop)
-    return make_translated_product(shop_id=shop, category_id=category)
+def product_translated(shop_with_config):
+    category = make_category_translated(shop_id=shop_with_config)
+    return make_translated_product(shop_id=shop_with_config, category_id=category)
 
 
 @pytest.fixture()
 def product_translated_category_untranslated(shop):
     category = make_category(shop_id=shop)
     return make_translated_product(shop_id=shop, category_id=category)
+
+
+@pytest.fixture()
+def shop_with_category_attributes():
+    shop_id = make_shop(with_config=False)
+
+    # Category 1 with 3 products
+    cat1_id = make_category(shop_id=shop_id, main_name="T-Shirts", main_description="T-Shirts category")
+    prod1_id = make_product(shop_id=shop_id, category_id=cat1_id, main_name="Shirt A")
+    prod2_id = make_product(shop_id=shop_id, category_id=cat1_id, main_name="Shirt B")
+    prod3_id = make_product(shop_id=shop_id, category_id=cat1_id, main_name="Shirt C")
+
+    # Category 2 with 1 product (for scoping tests)
+    cat2_id = make_category(shop_id=shop_id, main_name="Pants", main_description="Pants category")
+    prod4_id = make_product(shop_id=shop_id, category_id=cat2_id, main_name="Jeans A")
+
+    # Attribute: size (with translation)
+    size_attr_id = make_attribute_with_translation(
+        shop_id, name="size", unit="EU", main_name="Maat", alt1_name="Size", alt2_name="Taille"
+    )
+    size_s_id = make_option(size_attr_id, "S")
+    size_m_id = make_option(size_attr_id, "M")
+    size_l_id = make_option(size_attr_id, "L")
+
+    # Attribute: color (with translation)
+    color_attr_id = make_attribute_with_translation(shop_id, name="color", main_name="Kleur", alt1_name="Color")
+    color_red_id = make_option(color_attr_id, "RED")
+    color_blue_id = make_option(color_attr_id, "BLUE")
+
+    # PAVs for category 1 products
+    # prod1: size S, color RED
+    make_pav(prod1_id, size_attr_id, size_s_id)
+    make_pav(prod1_id, color_attr_id, color_red_id)
+    # prod2: size S, size M, color RED
+    make_pav(prod2_id, size_attr_id, size_s_id)
+    make_pav(prod2_id, size_attr_id, size_m_id)
+    make_pav(prod2_id, color_attr_id, color_red_id)
+    # prod3: size L, color BLUE
+    make_pav(prod3_id, size_attr_id, size_l_id)
+    make_pav(prod3_id, color_attr_id, color_blue_id)
+
+    # PAVs for category 2 product (only size M — should not appear in cat1 results)
+    make_pav(prod4_id, size_attr_id, size_m_id)
+
+    return {
+        "shop_id": shop_id,
+        "cat1_id": cat1_id,
+        "cat2_id": cat2_id,
+        "size_attr_id": size_attr_id,
+        "color_attr_id": color_attr_id,
+        "size_s_id": size_s_id,
+        "size_m_id": size_m_id,
+        "size_l_id": size_l_id,
+        "color_red_id": color_red_id,
+        "color_blue_id": color_blue_id,
+    }
 
 
 @pytest.fixture()

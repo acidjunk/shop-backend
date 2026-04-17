@@ -206,7 +206,7 @@ class ShopTable(BaseModel):
         server_default=text("CURRENT_TIMESTAMP"),
         server_onupdate=text("CURRENT_TIMESTAMP"),
     )
-    shop_to_category = relationship("CategoryTable", cascade="save-update, merge, delete")
+    shop_to_category = relationship("CategoryTable", back_populates="shop", cascade="save-update, merge, delete")
 
     def __repr__(self):
         return self.name
@@ -278,7 +278,7 @@ class CategoryTable(BaseModel):
     # Todo: deal with translation in a correct way
     icon = Column(String(TAG_LENGTH), nullable=True)
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
-    shop = relationship("ShopTable", lazy=True)
+    shop = relationship("ShopTable", back_populates="shop_to_category", lazy=True)
     order_number = Column(Integer, default=0)
     main_image = Column(String(255), index=True)
     alt1_image = Column(String(255), index=True)
@@ -318,7 +318,7 @@ class OrderTable(BaseModel):
     customer_order_id = Column(Integer)
     notes = Column(String, nullable=True)
     shop_id = Column(UUIDType, ForeignKey("shops.id"), index=True)
-    account_id = Column(UUIDType, ForeignKey("accounts.id"), nullable=True)
+    account_id = Column(UUIDType, ForeignKey("accounts.id", ondelete="CASCADE"), nullable=True)
     order_info = Column(postgresql.JSONB())
     total = Column(Float())
     status = Column(String(), default="pending")
@@ -357,7 +357,7 @@ class ProductTable(BaseModel):
     featured = Column(Boolean(), default=False)
     new_product = Column(Boolean(), default=False)
     order_number = Column(Integer, default=0)
-    attributes = Column(postgresql.JSONB())
+    stock = Column(Integer, default=1)
     image_1 = Column(String(255), index=True)
     image_2 = Column(String(255), index=True)
     image_3 = Column(String(255), index=True)
@@ -377,7 +377,23 @@ class ProductTable(BaseModel):
     tags = relationship(
         "TagTable",
         secondary="products_to_tags",
-        backref=backref("products", lazy="dynamic"),
+        backref=backref("products", lazy="dynamic", overlaps="products_to_tags"),
+        overlaps="products_to_tags",
+    )
+
+    # All concrete attribute values for this product
+    attribute_values = relationship(
+        "ProductAttributeValueTable", back_populates="product", lazy="selectin", cascade="save-update, merge, delete"
+    )
+
+    # View-only relationship to attribute definitions used by this product
+    attributes_rel = relationship(
+        "AttributeTable",
+        secondary="product_attribute_values",
+        primaryjoin="ProductTable.id == ProductAttributeValueTable.product_id",
+        secondaryjoin="AttributeTable.id == ProductAttributeValueTable.attribute_id",
+        viewonly=True,
+        lazy="selectin",
     )
 
     def __repr__(self):
@@ -417,8 +433,8 @@ class ProductToTagTable(BaseModel):
     shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
     product_id = Column("product_id", UUIDType, ForeignKey("products.id"), index=True)
     tag_id = Column("tag_id", UUIDType, ForeignKey("tags.id"), index=True)
-    product = relationship("ProductTable", lazy=True)
-    tag = relationship("TagTable", lazy=True)
+    product = relationship("ProductTable", lazy=True, viewonly=True, overlaps="products,tags")
+    tag = relationship("TagTable", lazy=True, viewonly=True, overlaps="products,products_to_tags,tags")
 
 
 class License(BaseModel):
@@ -472,3 +488,129 @@ class InfoRequestTable(BaseModel):
 
     shop = relationship("ShopTable", lazy=True)
     product = relationship("ProductTable", lazy=True)
+
+
+class FaqTable(BaseModel):
+    __tablename__ = "faq"
+
+    id = Column(
+        UUIDType,
+        primary_key=True,
+        server_default=text("uuid_generate_v4()"),
+        index=True,
+    )
+    question = Column(String(255), nullable=False)
+    answer = Column(String(255), nullable=False)
+    category = Column(String(100), nullable=False)  # or use Enum if needed later
+    created_at = Column(UtcTimestamp, server_default=text("CURRENT_TIMESTAMP"))
+    modified_at = Column(
+        UtcTimestamp,
+        server_default=text("CURRENT_TIMESTAMP"),
+        server_onupdate=text("CURRENT_TIMESTAMP"),
+    )
+
+
+class AttributeTable(BaseModel):
+    __tablename__ = "attributes"
+
+    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    shop_id = Column("shop_id", UUIDType, ForeignKey("shops.id"), index=True)
+
+    # A machine-friendly key (unique within a shop), e.g. "shoe_size", "clothing_size", "length"
+    name = Column(String(60), index=True)
+
+    # I removed this for now since it adds complexity, everthing can be strings for now
+    # Optional hint about the attribute’s nature. You can omit it now or keep low-cardinality values like
+    #   - "enum"  → has discrete options (see AttributeOptionTable)
+    #   - "range" → values stored as range (e.g., "33-50")
+    #   - "text"  → free-form string
+    # value_kind = Column(String(20), nullable=True)
+
+    # Short display unit or sizing system for this attribute.
+    # Examples:
+    #   - Physical: "cm", "mm", "in", "kg", "g", "L", "ml"
+    #   - Sizes:   "EU", "US", "UK" (indicates the system for shoe/clothing sizes)
+    #   - Other:   "W" (watt), "V" (volt)
+    # Leave empty for free-text or when no unit/system is needed.
+    unit = Column(String(20), nullable=True)
+
+    shop = relationship("ShopTable", lazy=True)
+    translation = relationship(
+        "AttributeTranslationTable",
+        back_populates="attribute",
+        cascade="save-update, merge, delete",
+        uselist=False,
+    )
+
+    # One-to-many: all discrete choices (like XS/S/M/L/XL) that belong to this attribute when it acts as an enum.
+    # For non-enum attributes, this list can be empty. Deleting an attribute deletes its options.
+    options = relationship(
+        "AttributeOptionTable",
+        back_populates="attribute",
+        cascade="save-update, merge, delete",
+    )
+
+    # All concrete product values that reference this attribute
+    attribute_values = relationship(
+        "ProductAttributeValueTable",
+        back_populates="attribute",
+    )
+
+    __table_args__ = (sqlalchemy.UniqueConstraint("shop_id", "name", name="uq_attribute_shop_name"),)
+
+
+class AttributeTranslationTable(BaseModel):
+    __tablename__ = "attribute_translations"
+
+    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    attribute_id = Column("attribute_id", UUIDType, ForeignKey("attributes.id"))
+    main_name = Column(String(TAG_LENGTH), index=True, nullable=False)
+    alt1_name = Column(String(TAG_LENGTH), index=True, nullable=True)
+    alt2_name = Column(String(TAG_LENGTH), index=True, nullable=True)
+
+    attribute = relationship("AttributeTable", back_populates="translation")
+
+
+class AttributeOptionTable(BaseModel):
+    __tablename__ = "attribute_options"
+
+    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    attribute_id = Column("attribute_id", UUIDType, ForeignKey("attributes.id"), index=True)
+    # Compact, language-agnostic key for the option. Example values: "XS", "S", "M", "L", "XL"
+    value_key = Column(String(60), index=True)
+
+    attribute = relationship("AttributeTable", back_populates="options", lazy=True)
+    # All product attribute values that use this option
+    values = relationship(
+        "ProductAttributeValueTable",
+        back_populates="option",
+        passive_deletes=True,
+    )
+
+    __table_args__ = (sqlalchemy.UniqueConstraint("attribute_id", "value_key", name="uq_attribute_option_key"),)
+
+
+class ProductAttributeValueTable(BaseModel):
+    __tablename__ = "product_attribute_values"
+
+    id = Column(UUIDType, server_default=text("uuid_generate_v4()"), primary_key=True, index=True)
+    product_id = Column("product_id", UUIDType, ForeignKey("products.id"), index=True)
+    attribute_id = Column("attribute_id", UUIDType, ForeignKey("attributes.id"), index=True)
+
+    # For enumerations (points to AttributeOptionTable). Can be NULL for free-form values.
+    option_id = Column("option_id", UUIDType, ForeignKey("attribute_options.id"), nullable=True, index=True)
+
+    product = relationship("ProductTable", back_populates="attribute_values", lazy=True)
+    attribute = relationship("AttributeTable", back_populates="attribute_values", lazy=True)
+    option = relationship("AttributeOptionTable", back_populates="values", lazy=True)
+
+    # Prevent exact duplicates while allowing multiple options per product+attribute,
+    # and multiple distinct free-form values when needed.
+    __table_args__ = (
+        sqlalchemy.UniqueConstraint(
+            "product_id",
+            "attribute_id",
+            "option_id",
+            name="uq_pav_product_attribute_option_value",
+        ),
+    )

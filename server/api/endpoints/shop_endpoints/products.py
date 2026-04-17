@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 from http import HTTPStatus
+from textwrap import dedent
 from typing import Any, List, Optional
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, HTTPException
-from fastapi.param_functions import Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from starlette.responses import Response
 
 from server.api import deps
@@ -15,17 +15,21 @@ from server.crud import crud_shop
 from server.crud.crud_product import product_crud
 from server.db.models import ProductTable, UserTable
 from server.schemas.product import (
+    AttributeFilters,
     ProductCreate,
     ProductOrder,
     ProductSchema,
     ProductUpdate,
+    ProductWithAttributes,
     ProductWithDefaultPrice,
     ProductWithDetailsAndPrices,
 )
+from server.schemas.product_attribute import ProductAttributeItem
 
 logger = structlog.get_logger(__name__)
 
 router = APIRouter()
+public_router = APIRouter()
 
 
 def get_shop(shop_id: UUID):
@@ -39,7 +43,6 @@ def get_shop(shop_id: UUID):
 def get_multi(
     shop_id: UUID, response: Response, common: dict = Depends(common_parameters)
 ) -> List[ProductWithDefaultPrice]:
-    # shop = get_shop(shop_id)
     products, header_range = product_crud.get_multi_by_shop_id(
         shop_id=shop_id,
         skip=common["skip"],
@@ -58,7 +61,149 @@ def get_multi(
     return products
 
 
-@router.get("/{product_id}", response_model=ProductWithDetailsAndPrices)
+@router.get(
+    "/with_attributes",
+    response_model=List[ProductWithAttributes],
+    summary="List products with attributes",
+    description="""
+Fetch a list of products along with their associated attributes.
+
+You can filter the results using one of the following mutually exclusive attribute filters:
+
+* `option_id` array[UUID]: Filter by one or multiple attribute option UUIDs.
+* `attribute_id` UUID: Filter by attribute UUID.
+* `option_value_key` array[str]: Filter by option value (e.g., 'Red', 'XL').
+* `attribute_name` array[str]: Filter by one or multiple attribute names (e.g., 'Color', 'Size').
+
+Only one attribute filter can be used at a time.
+""",
+)
+def get_multi_with_attributes(
+    shop_id: UUID,
+    response: Response,
+    option_id: List[UUID] = Query(None),
+    attribute_id: UUID = Query(None),
+    option_value_key: List[str] = Query(None),
+    attribute_name: str = Query(None),
+    common: dict = Depends(common_parameters),
+) -> List[ProductWithAttributes]:
+    attribute_filters = AttributeFilters(
+        option_id=option_id,
+        attribute_id=attribute_id,
+        option_value_key=option_value_key,
+        attribute_name=attribute_name,
+    )
+    filter_parameters = common["filter"] or []
+
+    for name, value in attribute_filters.model_dump(exclude_none=True).items():
+        if isinstance(value, list):
+            for v in value:
+                filter_parameters.append(f"{name}:{v}")
+        else:
+            filter_parameters.append(f"{name}:{value}")
+
+    # Base: fetch paginated products for this shop
+    products, header_range = product_crud.get_multi_by_shop_id(
+        shop_id=shop_id,
+        skip=common["skip"],
+        limit=common["limit"],
+        filter_parameters=filter_parameters,
+        sort_parameters=common["sort"],
+    )
+    # We will update Content-Range if filtering by option_id changes the visible count
+    response.headers["Content-Range"] = header_range
+
+    if not products:
+        return []
+
+    # Calculate images_amount
+    for product in products:
+        product.images_amount = 0
+        for i in [1, 2, 3, 4, 5, 6]:
+            if getattr(product, f"image_{i}"):
+                product.images_amount += 1
+
+    # Build response preserving order, using ORM relationships
+    out: List[ProductWithAttributes] = []
+    for p in products:
+        attrs: list[ProductAttributeItem] = []
+        pavs = getattr(p, "attribute_values", []) or []
+        for pav in pavs:
+            attribute = getattr(pav, "attribute", None)
+            option = getattr(pav, "option", None)
+            attribute_name = None
+            if attribute is not None:
+                translation = getattr(attribute, "translation", None)
+                attribute_name = getattr(translation, "main_name", None) or getattr(attribute, "name", None)
+            attrs.append(
+                ProductAttributeItem(
+                    attribute_id=getattr(attribute, "id", None),
+                    attribute_name=attribute_name,
+                    option_id=getattr(option, "id", None),
+                    option_value_key=getattr(option, "value_key", None),
+                )
+            )
+
+        prod_schema = ProductWithDefaultPrice.model_validate(p)
+        out.append(
+            ProductWithAttributes(
+                product=prod_schema,
+                attributes=attrs,
+            )
+        )
+
+    # Adjust Content-Range count to reflect filtered number within page (keeps total as-is)
+    try:
+        # header_range format expected: "items start-end/total"
+        kind, rest = header_range.split(" ", 1)
+        range_part, total_part = rest.split("/")
+        start, end = [int(x) for x in range_part.split("-")]
+        # Keep start the same, recompute end based on returned count
+        if out:
+            end = start + len(out) - 1
+        else:
+            end = start - 1
+        response.headers["Content-Range"] = f"{kind} {start}-{end}/{total_part}"
+    except Exception:
+        # If parsing fails, leave header as-is
+        pass
+
+    return out
+
+
+@public_router.get("/{product_id}/with_attributes", response_model=ProductWithAttributes)
+def get_by_id_with_attributes(product_id: UUID, shop_id: UUID) -> ProductWithAttributes:
+    product = product_crud.get_id_by_shop_id(shop_id, product_id)
+    if not product:
+        raise_status(HTTPStatus.NOT_FOUND, f"Product with id {product_id} not found")
+
+    product.images_amount = 0
+    for i in [1, 2, 3, 4, 5, 6]:
+        if getattr(product, f"image_{i}"):
+            product.images_amount += 1
+
+    attrs: list[ProductAttributeItem] = []
+    for pav in getattr(product, "attribute_values", []) or []:
+        attribute = getattr(pav, "attribute", None)
+        option = getattr(pav, "option", None)
+        attribute_name = None
+        if attribute is not None:
+            translation = getattr(attribute, "translation", None)
+            attribute_name = getattr(translation, "main_name", None) or getattr(attribute, "name", None)
+        attrs.append(
+            ProductAttributeItem(
+                attribute_id=getattr(attribute, "id", None),
+                attribute_name=attribute_name,
+                option_id=getattr(option, "id", None),
+                option_value_key=getattr(option, "value_key", None),
+            )
+        )
+
+    prod_schema = ProductWithDefaultPrice.model_validate(product)
+    return ProductWithAttributes(product=prod_schema, attributes=attrs)
+
+
+@public_router.get("/{product_id}", response_model=ProductWithDetailsAndPrices)
 def get_by_id(product_id: UUID, shop_id: UUID) -> ProductWithDetailsAndPrices:
     product = product_crud.get_id_by_shop_id(shop_id, product_id)
     if not product:

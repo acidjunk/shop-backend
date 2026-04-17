@@ -70,10 +70,10 @@ class ApiException(Exception):
     ):
         super().__init__(status, reason, http_resp)
         if http_resp:
-            self.status = http_resp.status  # type:ignore
-            self.reason = http_resp.reason  # type:ignore
-            self.body = http_resp.data  # type:ignore
-            self.headers = http_resp.getheaders()  # type:ignore
+            self.status = http_resp.status  # type: ignore
+            self.reason = http_resp.reason  # type: ignore
+            self.body = http_resp.data  # type: ignore
+            self.headers = http_resp.getheaders()  # type: ignore
         else:
             self.status = status
             self.reason = reason
@@ -128,7 +128,7 @@ def error_state_to_dict(err: ErrorState) -> ErrorDict:
             "class": type(err).__name__,
             "error": str(err),
             "traceback": err,
-            "validation_errors": err.errors,  # type:ignore
+            "validation_errors": err.errors,  # type: ignore
             "status_code": HTTPStatus.BAD_REQUEST,
         }
     elif isinstance(err, FormNotCompleteError):

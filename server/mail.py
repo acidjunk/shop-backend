@@ -105,7 +105,12 @@ def send_mail(
     if mail_settings.MAIL_ENABLED:
         logger.debug("Sending an email", message=message)
         mailer = SMTP(host=mail_settings.MAIL_SERVER, port=mail_settings.MAIL_PORT)
+        if mail_settings.MAIL_STARTTLS:
+            mailer.starttls()
+        if mail_settings.MAIL_SMTP_USERNAME and mail_settings.MAIL_SMTP_PASSWORD:
+            mailer.login(user=mail_settings.MAIL_SMTP_USERNAME, password=mail_settings.MAIL_SMTP_PASSWORD)
         mailer.send_message(message)
+        mailer.quit()
     return message
 
 
@@ -363,46 +368,173 @@ def shop_product_summary(product: ProductBase, extra_content: str | None = None)
     )
 
 
-# @generate_product_summary.register
-# def other_product_summary(subscription: OtherProvisioning, extra_content: str | None = None) -> str:
-#     """Create and return an ConfirmationMail for :class:`~products.product_types.other.OtherProvisioning`.
-#
-#     Args:
-#         model: OtherProvisioning
-#         extra_content: Optional str to add extra text above the summary
-#         kwargs: Extra arguments, only to be signature compatible
-#
-#     Returns: HTML string
-#     """
-#
-#     # Todo BEV-3979: resolve the items from live system: contact and representative info should be
-#     # resolved in the ET. That will enable us to re-send the confirmation mail at all times.
-#
-#     # Setup labels to translate fields
-#     labels = {
-#         # section headers
-#         "title": "Titel",
-#         "company": "Bedrijfsinformatie",
-#         # data fields
-#         "company_name": "Bedrijfsnaam",
-#     }
-#     # Map domain model data to labels
-#     data = {
-#         "company_name": subscription.other.company.chamber_of_commerce_name,
-#     }
-#
-#     # Group data in to sections
-#     section_fields = {
-#         "company": ["company_name"],
-#     }
-#     sections = ["company"]
-#
-#     template = get_template_for_product_summary("other_summary.html.j2")
-#     return template.render(
-#         subscription=subscription.model_dump(),
-#         sections=sections,
-#         section_fields=section_fields,
-#         data=data,
-#         labels=labels,
-#         extra_content=extra_content,
-#     )
+def _map_language(language_name: str) -> str:
+    """Map a language name from shop config to a template folder code."""
+    mapping = {
+        "nederlands": "NL",
+        "dutch": "NL",
+        "nl": "NL",
+        "english": "EN",
+        "en": "EN",
+        "engels": "EN",
+        "deutsch": "DE",
+        "german": "DE",
+        "de": "DE",
+    }
+    return mapping.get(language_name.lower().strip(), "NL")
+
+
+def _compute_order_lines_for_email(order_info: list[dict], shop: Any) -> list[dict]:
+    """Build enriched order line dicts with VAT and attribute info for email templates."""
+    from server.crud.crud_product import product_crud
+
+    lines = []
+    for item in order_info:
+        product = product_crud.get_id_by_shop_id(shop.id, item["product_id"])
+
+        # Determine VAT rate from product's tax_category mapped to shop column
+        vat_rate = shop.vat_standard
+        if product and product.tax_category:
+            vat_rate = getattr(shop, product.tax_category, shop.vat_standard)
+
+        price_ex = item["price"]
+        price_inc = round(price_ex * (1 + vat_rate / 100), 2)
+
+        # Collect product attributes
+        attributes = []
+        if product and hasattr(product, "attribute_values") and product.attribute_values:
+            for av in product.attribute_values:
+                attr_name = av.attribute.name
+                if av.attribute.translation and av.attribute.translation.main_name:
+                    attr_name = av.attribute.translation.main_name
+                attr_value = av.option.value_key if av.option else ""
+                attr_unit = av.attribute.unit or ""
+                attributes.append({"name": attr_name, "value": attr_value, "unit": attr_unit})
+
+        lines.append(
+            {
+                "product_name": item.get("product_name", "Unknown product"),
+                "description": item.get("description"),
+                "attributes": attributes,
+                "quantity": item.get("quantity", 1),
+                "price_ex_btw": price_ex,
+                "price_inc_btw": price_inc,
+                "btw_rate": vat_rate,
+                "line_total_ex_btw": round(price_ex * item.get("quantity", 1), 2),
+                "line_total_inc_btw": round(price_inc * item.get("quantity", 1), 2),
+            }
+        )
+    return lines
+
+
+def send_order_confirmation_emails(order: Any, shop: Any, account: Any) -> None:
+    """Send order confirmation emails to both customer and shop owner.
+
+    Args:
+        order: OrderTable instance with order_info, customer_order_id, completed_at
+        shop: ShopTable instance with config (contact, legal, languages) and VAT rates
+        account: Account instance with name (customer email) and details (optional business info)
+    """
+    try:
+        config = shop.config
+        contact = config.get("contact", {})
+        legal = config.get("legal") or {}
+
+        # Determine language from shop config
+        language = "NL"
+        languages_config = config.get("languages", {})
+        main_lang = languages_config.get("main", {})
+        if main_lang.get("language_name"):
+            language = _map_language(main_lang["language_name"])
+
+        # Build order lines with VAT and attribute data
+        order_lines = _compute_order_lines_for_email(order.order_info, shop)
+
+        # Compute totals
+        total_ex_btw = round(sum(line["line_total_ex_btw"] for line in order_lines), 2)
+        total_inc_btw = round(sum(line["line_total_inc_btw"] for line in order_lines), 2)
+        total_btw = round(total_inc_btw - total_ex_btw, 2)
+
+        # Extract business info from account details
+        account_details = account.details or {} if account.details else {}
+        customer_company_name = account_details.get("company_name")
+        customer_btw_number = account_details.get("btw_number")
+
+        # Format completion date
+        completed_at_str = ""
+        if order.completed_at:
+            completed_at_str = order.completed_at.strftime("%d-%m-%Y %H:%M")
+
+        # Common template variables
+        template_vars = {
+            "customer_order_id": order.customer_order_id,
+            "customer_email": account.name,
+            "order_lines": order_lines,
+            "total_ex_btw": total_ex_btw,
+            "total_inc_btw": total_inc_btw,
+            "total_btw": total_btw,
+            "shop_name": shop.name,
+            "shop_company": contact.get("company", shop.name),
+            "shop_address": contact.get("address", ""),
+            "shop_zip_code": contact.get("zip_code", ""),
+            "shop_city": contact.get("city", ""),
+            "shop_phone": contact.get("phone", ""),
+            "shop_email": contact.get("email", ""),
+            "kvk_number": legal.get("kvk_number"),
+            "btw_number": legal.get("btw_number"),
+            "customer_company_name": customer_company_name,
+            "customer_btw_number": customer_btw_number,
+            "completed_at": completed_at_str,
+        }
+
+        env = template_environment(loader)
+        lang_folder = language.lower()
+
+        # Send customer email
+        customer_template = env.get_template(f"{lang_folder}/mail_order_confirmation_customer.html.j2")
+        customer_body = customer_template.render(**template_vars)
+
+        subject_prefix_customer = {
+            "NL": f"Orderbevestiging #{order.customer_order_id} - {shop.name}",
+            "EN": f"Order confirmation #{order.customer_order_id} - {shop.name}",
+        }
+
+        customer_mail: ConfirmationMail = {
+            "message": customer_body,
+            "subject": subject_prefix_customer.get(language, subject_prefix_customer["NL"]),
+            "to": [{"email": account.name, "name": account.name}],
+            "cc": [],
+            "bcc": BCC,
+            "language": language,
+            "images": IMAGES_SHOP_VIRGE,
+        }
+        send_mail(customer_mail)
+        logger.info("Sent order confirmation to customer", order_id=str(order.id), customer=account.name)
+
+        # Send shop owner email
+        owner_email = contact.get("email")
+        if owner_email:
+            owner_template = env.get_template(f"{lang_folder}/mail_order_confirmation_owner.html.j2")
+            owner_body = owner_template.render(**template_vars)
+
+            subject_prefix_owner = {
+                "NL": f"Nieuwe bestelling #{order.customer_order_id} - {shop.name}",
+                "EN": f"New order #{order.customer_order_id} - {shop.name}",
+            }
+
+            owner_mail: ConfirmationMail = {
+                "message": owner_body,
+                "subject": subject_prefix_owner.get(language, subject_prefix_owner["NL"]),
+                "to": [{"email": owner_email, "name": contact.get("company", shop.name)}],
+                "cc": [],
+                "bcc": BCC,
+                "language": language,
+                "images": IMAGES_SHOP_VIRGE,
+            }
+            send_mail(owner_mail)
+            logger.info("Sent order notification to shop owner", order_id=str(order.id), owner=owner_email)
+        else:
+            logger.warning("No shop owner email configured, skipping owner notification", shop_id=str(shop.id))
+
+    except Exception as e:
+        logger.error("Failed to send order confirmation emails", error=str(e), order_id=str(order.id))

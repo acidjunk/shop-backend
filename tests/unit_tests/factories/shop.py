@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 
 import structlog
 
@@ -18,9 +19,10 @@ from server.schemas.shop import (
 logger = structlog.getLogger(__name__)
 
 
-def make_shop(
-    with_config=False,
-):
+def make_shop(with_config=False, random_shop_name=False):
+    name = ""
+    if random_shop_name:
+        name = f" - {str(uuid4())}"
     if with_config:
         menu_items = ConfigurationLanguageFieldMenuItems(
             about="string",
@@ -54,6 +56,8 @@ def make_shop(
             show_nav_categories=False,
             language_alt1_enabled=False,
             language_alt2_enabled=False,
+            enable_stock_on_products=True,
+            enable_attributes_for_categories=False,
         )
 
         config_languages = ConfigurationLanguages(main=language_fields, alt1=language_fields, alt2=language_fields)
@@ -71,7 +75,7 @@ def make_shop(
             instagram="https://example.com/",
         )
 
-        top_config = ConfigurationV1(
+        config = ConfigurationV1(
             languages=config_languages,
             short_shop_name="string",
             main_banner="string",
@@ -82,11 +86,9 @@ def make_shop(
             toggles=toggles,
         )
 
-        config = ShopConfigUpdate(config=top_config, config_version=0)
-
         shop = ShopTable(
-            name="Test Shop",
-            description="Test Shop Description",
+            name=f"Test Shop with config{name}",
+            description=f"Test Shop Description with config{name}",
             config=config.model_dump(),
             shop_type="{}",
             vat_standard=21,
@@ -99,8 +101,8 @@ def make_shop(
         )
     else:
         shop = ShopTable(
-            name="Test Shop",
-            description="Test Shop Description",
+            name=f"Test Shop{name}",
+            description=f"Test Shop Description{name}",
             stripe_public_key="string",
             vat_standard=21,
             vat_lower_1=15,
