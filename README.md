@@ -156,6 +156,45 @@ Set up the ENV var for FIRST_USER and run this command:
 PYTHONPATH=. python server/create_initial_user.py
 ```
 
+# Updating architecture diagrams
+
+The C4 diagrams under `docs/diagrams/` are authored in [drawio](https://www.drawio.com/) (Apache 2.0, free). After editing a `.drawio` source, re-export it to SVG so the docs site picks up the change:
+
+```bash
+bin/export-diagrams.sh
+```
+
+The script shells out to the drawio desktop CLI, so drawio needs to be on your `PATH`.
+
+## Install drawio desktop
+
+### macOS
+
+```bash
+brew install --cask drawio
+```
+
+### Linux
+
+Via snap (quickest on Ubuntu):
+
+```bash
+sudo snap install drawio
+```
+
+Or grab the `.deb` / `.AppImage` from the [drawio-desktop releases](https://github.com/jgraph/drawio-desktop/releases).
+
+**Headless Linux** — on a server or CI job without an X display, drawio (Electron under the hood) refuses to launch. Wrap the export with `xvfb`:
+
+```bash
+sudo apt install xvfb
+xvfb-run -a bin/export-diagrams.sh
+```
+
+### No install?
+
+Open each `.drawio` at <https://app.diagrams.net> → **File → Export as → SVG…** and save the result into `docs/assets/diagrams/` under the matching base filename (e.g. `ShopVirge_C1.svg`).
+
 # Running on Windows
 
 ## Server

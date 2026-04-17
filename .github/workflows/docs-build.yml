@@ -1,0 +1,38 @@
+name: Docs build
+
+on:
+  push:
+    paths:
+      - docs/**
+      - mkdocs.yml
+      - requirements/docs.txt
+      - .readthedocs.yaml
+      - README.md
+      - .github/workflows/docs-build.yml
+  pull_request:
+    paths:
+      - docs/**
+      - mkdocs.yml
+      - requirements/docs.txt
+      - .readthedocs.yaml
+      - README.md
+      - .github/workflows/docs-build.yml
+
+jobs:
+  build:
+    name: Build mkdocs site
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install -r requirements/docs.txt
+      - name: Build docs (strict)
+        run: mkdocs build --strict
