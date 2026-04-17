@@ -10,6 +10,7 @@ fastapi-cognito
 #fastapi-mail~=0.3.5.0
 gunicorn~=20.0.4
 more-itertools==10.2.0
+bcrypt<4.0.0
 passlib[bcrypt]==1.7.4
 psycopg2-binary==2.9.9
 pydantic[email]==2.7.1
