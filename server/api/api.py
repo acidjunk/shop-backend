@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends
 
 from server.api import deps
 from server.api.endpoints import (
+    admin_accounts,
     api_keys,
     downloads,
     early_access,
@@ -67,6 +68,12 @@ api_router.include_router(
     licenses.router,
     prefix="/licenses",
     tags=["licenses"],
+)
+
+api_router.include_router(
+    admin_accounts.router,
+    prefix="/admin/accounts",
+    tags=["admin", "accounts"],
 )
 
 api_router.include_router(
