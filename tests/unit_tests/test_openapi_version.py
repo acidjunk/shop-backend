@@ -13,6 +13,7 @@ version='<new-version>', default_response_class=JSONResponse); \
 app.include_router(api_router); \
 json.dump(app.openapi(), open('tests/unit_tests/openapi_snapshot.json', 'w'), indent=2, sort_keys=True)"
 """
+
 import json
 import re
 from pathlib import Path
