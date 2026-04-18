@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 from fastapi import HTTPException
 from fastapi.param_functions import Depends
@@ -27,6 +27,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 logger = get_logger(__name__)
 
+ADMIN_GROUP = "Admins"
+
 
 class CustomCognitoToken(BaseModel):
     origin_jti: Optional[str] = None
@@ -41,6 +43,9 @@ class CustomCognitoToken(BaseModel):
     jti: str
     client_id: str
     username: str | None = None
+    cognito_groups: List[str] = Field(default_factory=list, alias="cognito:groups")
+
+    model_config = {"populate_by_name": True}
 
 
 cognito_eu = CognitoAuth(settings=CognitoSettings.from_global_settings(auth_settings), custom_model=CustomCognitoToken)
@@ -56,6 +61,17 @@ def auth_required(token: CognitoToken = Depends(cognito_eu.auth_required)):
         return token
 
     raise HTTPException(status_code=401, detail="Invalid OAuth2 scope")
+
+
+def admin_required(token: CognitoToken = Depends(auth_required)):
+    # M2M tokens (already validated by auth_required) are trusted as admin.
+    if token.client_id != app_settings.AWS_COGNITO_CLIENT_ID:
+        return token
+
+    if ADMIN_GROUP in getattr(token, "cognito_groups", []):
+        return token
+
+    raise HTTPException(status_code=403, detail=f"User is not a member of the '{ADMIN_GROUP}' group")
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: Optional[timedelta] = None) -> str:
