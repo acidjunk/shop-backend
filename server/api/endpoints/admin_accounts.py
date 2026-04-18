@@ -12,10 +12,11 @@
 # limitations under the License.
 """Cross-shop admin endpoints for investigating accounts and Stripe state.
 
-Mounted at ``/admin/accounts``. All handlers require a superuser
-(``Depends(deps.get_current_active_superuser)``). The shop-scoped
-``/shops/{shop_id}/accounts`` routes remain the standard read/write
-path for end-user shops; this router exists so a superuser can:
+Mounted at ``/admin/accounts``. All handlers require membership of the
+Cognito ``Admins`` group (M2M tokens are trusted) via
+``Depends(admin_required)``. The shop-scoped ``/shops/{shop_id}/accounts``
+routes remain the standard read/write path for end-user shops; this
+router exists so an admin can:
 
 * see accounts across every shop in one place,
 * identify accounts that are missing a Stripe linkage,
@@ -35,18 +36,18 @@ from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 from starlette.responses import Response
 
-from server.api import deps
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud.crud_account import account_crud
 from server.db import db
-from server.db.models import Account, UserTable
+from server.db.models import Account
 from server.schemas.admin_account import (
     AdminAccountSchema,
     LinkStripeBody,
     SyncStripeResponse,
     build_admin_account,
 )
+from server.security import admin_required
 from server.services import stripe_client
 from server.services.stripe_client import StripeCustomerMissing, StripeNotConfigured
 
@@ -73,7 +74,7 @@ def _require_linked_shop(account: Account) -> None:
 @router.get(
     "",
     response_model=List[AdminAccountSchema],
-    responses={HTTPStatus.FORBIDDEN.value: {"description": "Not a superuser"}},
+    responses={HTTPStatus.FORBIDDEN.value: {"description": "Not a member of the Admins group"}},
 )
 def list_accounts(
     response: Response,
@@ -83,7 +84,7 @@ def list_accounts(
         description="If true, only accounts without a stripe_customer_id; if false, only those with one.",
     ),
     common: dict = Depends(common_parameters),
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    _: object = Depends(admin_required),
 ) -> List[AdminAccountSchema]:
     query = db.session.query(Account).options(joinedload(Account.shop))
 
@@ -118,13 +119,13 @@ def list_accounts(
     "/{id}",
     response_model=AdminAccountSchema,
     responses={
-        HTTPStatus.FORBIDDEN.value: {"description": "Not a superuser"},
+        HTTPStatus.FORBIDDEN.value: {"description": "Not a member of the Admins group"},
         HTTPStatus.NOT_FOUND.value: {"description": "Account not found"},
     },
 )
 def get_account(
     id: UUID,
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    _: object = Depends(admin_required),
 ) -> AdminAccountSchema:
     account = _load_account_or_404(id)
     return build_admin_account(account)
@@ -133,7 +134,7 @@ def get_account(
 @router.get(
     "/{id}/stripe-customer",
     responses={
-        HTTPStatus.FORBIDDEN.value: {"description": "Not a superuser"},
+        HTTPStatus.FORBIDDEN.value: {"description": "Not a member of the Admins group"},
         HTTPStatus.NOT_FOUND.value: {"description": "Account not found"},
         HTTPStatus.BAD_REQUEST.value: {"description": "Account or shop not configured for Stripe"},
         HTTPStatus.BAD_GATEWAY.value: {"description": "Stripe API error"},
@@ -141,7 +142,7 @@ def get_account(
 )
 def get_stripe_customer(
     id: UUID,
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    _: object = Depends(admin_required),
 ) -> dict:
     """Read-through: fetch the Stripe customer for this account.
 
@@ -175,7 +176,7 @@ def get_stripe_customer(
     "/{id}/sync-stripe",
     response_model=SyncStripeResponse,
     responses={
-        HTTPStatus.FORBIDDEN.value: {"description": "Not a superuser"},
+        HTTPStatus.FORBIDDEN.value: {"description": "Not a member of the Admins group"},
         HTTPStatus.NOT_FOUND.value: {"description": "Account not found"},
         HTTPStatus.BAD_REQUEST.value: {"description": "Account or shop not configured for Stripe"},
         HTTPStatus.BAD_GATEWAY.value: {"description": "Stripe API error"},
@@ -183,7 +184,7 @@ def get_stripe_customer(
 )
 def sync_stripe(
     id: UUID,
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    _: object = Depends(admin_required),
 ) -> SyncStripeResponse:
     """Pull the Stripe customer snapshot and persist it on the account.
 
@@ -231,14 +232,14 @@ def sync_stripe(
     "/{id}/link-stripe",
     response_model=AdminAccountSchema,
     responses={
-        HTTPStatus.FORBIDDEN.value: {"description": "Not a superuser"},
+        HTTPStatus.FORBIDDEN.value: {"description": "Not a member of the Admins group"},
         HTTPStatus.NOT_FOUND.value: {"description": "Account not found"},
     },
 )
 def link_stripe(
     id: UUID,
     body: LinkStripeBody = Body(...),
-    current_user: UserTable = Depends(deps.get_current_active_superuser),
+    _: object = Depends(admin_required),
 ) -> AdminAccountSchema:
     """Manually associate a Stripe customer id with an account.
 

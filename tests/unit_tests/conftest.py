@@ -10,7 +10,6 @@ from alembic.config import Config
 from fastapi import HTTPException
 from fastapi.applications import FastAPI
 from fastapi.testclient import TestClient
-from fastapi_cognito import CognitoToken
 from sqlalchemy import create_engine, make_url, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 from starlette.middleware.cors import CORSMiddleware
@@ -31,7 +30,7 @@ from server.db.database import (
 )
 from server.db.models import ProductTable, UserTable
 from server.exception_handlers.generic_exception_handlers import problem_detail_handler
-from server.security import auth_required
+from server.security import CustomCognitoToken, auth_required
 from server.settings import app_settings
 from tests.unit_tests.factories.account import make_account
 from tests.unit_tests.factories.attribute import make_attribute, make_attribute_with_translation, make_option, make_pav
@@ -194,9 +193,13 @@ def fastapi_app(database, db_uri):
     # app.add_exception_handler(FormException, form_error_handler)
     app.add_exception_handler(ProblemDetailException, problem_detail_handler)
 
-    def get_current_active_superuser_override() -> CognitoToken:
-        CognitoToken(
-            client_id="1234",
+    def get_current_active_superuser_override() -> CustomCognitoToken:
+        # Return a token with the ``Admins`` Cognito group so the
+        # ``admin_required`` dependency lets requests through in tests.
+        # Use the configured client id so it's treated as a user token,
+        # not M2M, by ``admin_required``.
+        return CustomCognitoToken(
+            client_id=app_settings.AWS_COGNITO_CLIENT_ID,
             sub="5678",
             token_use="access",
             scope="openid profile email",
@@ -206,6 +209,7 @@ def fastapi_app(database, db_uri):
             iat=9727169594,
             jti="jti",
             username="5678",
+            **{"cognito:groups": ["Admins"]},
         )
 
     app.dependency_overrides[auth_required] = get_current_active_superuser_override
