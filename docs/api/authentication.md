@@ -1,6 +1,18 @@
+---
+title: Authentication & Authorization
+description: Cognito token handling, local JWT compatibility, and shop access checks.
+---
+
 # Authentication
 
 Authentication lives in `server/security.py` and is built on [AWS Cognito](https://aws.amazon.com/cognito/) via [`fastapi-cognito`](https://pypi.org/project/fastapi-cognito/).
+
+## Summary
+
+- `auth_required` is the main dependency for Cognito-backed API access.
+- Two token shapes are accepted: user tokens and M2M client-credentials tokens.
+- A second, older local JWT system still exists for endpoints that authenticate against the local `UserTable`.
+- Authentication and shop authorization are separate checks.
 
 ## Token model
 
@@ -45,6 +57,33 @@ def protected_route(token = Depends(auth_required)):
 
 `auth_required` accepts both user and M2M tokens. For M2M-only endpoints, the handler can assert on `token.scopes` inside the body.
 
+### Example: call a protected endpoint
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8080/shops/<shop-id>/products
+```
+
+If this returns **401**, check token validity and Cognito configuration. If it returns **403**, check the caller's role or shop access mapping.
+
+## Legacy local JWT system
+
+`server/api/deps.py` contains a second, older auth system using locally-signed JWTs (HS256, signed with `SESSION_SECRET`). It is used by endpoints that return a `UserTable` object rather than a `CognitoToken`:
+
+- `get_current_user` — decodes the JWT, looks up the user in `UserTable` by `sub` (user ID).
+- `get_current_active_user` — wraps the above, additionally checks `is_active`.
+- `get_current_active_superuser` / `get_current_active_employee` — role checks on top.
+
+Tokens for this system are issued by `POST /login/access-token` (username + password against the local `UserTable`). **Do not mix** these dependencies with `auth_required` — they return different types.
+
+> **Passlib/bcrypt compatibility:** `passlib` crashes with `bcrypt >= 4.x` (`ValueError: password cannot be longer than 72 bytes`). Pin to `bcrypt==4.0.1` if you hit this locally.
+
 ## Shop access checks
 
 Authentication proves *who* is calling; authorisation proves *what shop* they can touch. Shop-scoped handlers resolve the caller's `UserTable` row and check `ShopUserTable` for a link to the `shop_id` path parameter. M2M tokens with `/api` scope bypass the per-shop check (they're trusted server credentials).
+
+## Troubleshooting
+
+- **401 on every Cognito-protected route:** verify `AWS_COGNITO_USERPOOL_ID`, region, and client IDs in the environment. Placeholder defaults in `server/settings.py` will not work against real tokens.
+- **Password login works but `auth_required` does not:** you are probably mixing the local JWT system with Cognito-backed dependencies. They return different token/user shapes.
+- **403 on a shop route:** the user authenticated successfully, but there is no matching `ShopUserTable` association for the requested `shop_id`.

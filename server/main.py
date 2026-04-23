@@ -71,7 +71,7 @@ APP_VERSION = "0.2.7"
 
 app = FastAPI(
     title="ShopVirge API",
-    description="Backend for ShopVirge Shops.",
+    description="Backend for ShopVirge Shops.\n\n**Login tip:** client_id and client_secret fields in the Authorize dialog can be left empty.",
     openapi_url="/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
