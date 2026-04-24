@@ -174,6 +174,7 @@ class AppSettings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 
 app_settings = AppSettings()
@@ -212,6 +213,15 @@ class MailSettings(BaseSettings):
     MAIL_INFO_LINK: str = "https://shop.pricelist.info"
 
     SHOP_MAIL_ENABLED: bool = False
+
+    # Opens an unauthenticated /mail-test endpoint that sends a fake order confirmation
+    # through the configured SMTP (i.e. Mailpit) for local smoke testing. Never enable
+    # in production — anyone who can reach the backend can trigger outbound mail.
+    MAIL_TEST_ENDPOINT_ENABLED: bool = False
+
+    class Config:
+        env_file = ".env"
+        extra = "ignore"
 
 
 def template_environment(loader: jinja2.BaseLoader) -> jinja2.Environment:

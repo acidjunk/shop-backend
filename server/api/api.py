@@ -26,6 +26,7 @@ from server.api.endpoints import (
     images,
     licenses,
     login,
+    mail_test,
     sentry_test,
     shops,
     test_forms,
@@ -48,6 +49,7 @@ from server.api.endpoints.shop_endpoints import (
 )
 from server.api.endpoints.shop_endpoints.images import router as shop_image_router
 from server.security import auth_required
+from server.settings import mail_settings
 
 api_router = APIRouter()
 
@@ -197,6 +199,9 @@ api_router.include_router(
 )
 
 api_router.include_router(faq.router, prefix="/faq", tags=["faq"])
+
+if mail_settings.MAIL_TEST_ENDPOINT_ENABLED:
+    api_router.include_router(mail_test.router, prefix="/mail-test", tags=["mail-test"])
 
 # api_router.include_router(
 #     shops_users.router,
