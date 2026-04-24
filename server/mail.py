@@ -28,7 +28,6 @@ logger = structlog.get_logger(__name__)
 BCC: list[MailAddress] = [
     {"email": mail_settings.MAIL_BCC, "name": "BCC"},
 ]
-INFO_LINK = {"uri": mail_settings.MAIL_INFO_LINK, "name": mail_settings.MAIL_INFO_NAME}
 IMAGES_SHOP_VIRGE = [
     InlineImage(cid="headerimg", filename="shop_virge.png", subtype="png"),
     InlineImage(cid="bannerimg", filename="shop_virge_banner.png", subtype="png"),
@@ -192,7 +191,6 @@ def _generate_mail_intro_for_product_info(
     return template.render(
         subscription=ProductBase.from_orm(product),
         contact_names=contact_names,
-        info_link=INFO_LINK,
         summary=summary,
         date=date,
     )
@@ -533,6 +531,23 @@ def send_order_confirmation_emails(order: Any, shop: Any, account: Any) -> None:
             }
             send_mail(owner_mail)
             logger.info("Sent order notification to shop owner", order_id=str(order.id), owner=owner_email)
+
+            subject_prefix_customer_copy = {
+                "NL": f"[KOPIE klantmail] Orderbevestiging #{order.customer_order_id} - {shop.name}",
+                "EN": f"[COPY of customer mail] Order confirmation #{order.customer_order_id} - {shop.name}",
+            }
+
+            owner_customer_copy_mail: ConfirmationMail = {
+                "message": customer_body,
+                "subject": subject_prefix_customer_copy.get(language, subject_prefix_customer_copy["NL"]),
+                "to": [{"email": owner_email, "name": contact.get("company", shop.name)}],
+                "cc": [],
+                "bcc": BCC,
+                "language": language,
+                "images": IMAGES_SHOP_VIRGE,
+            }
+            send_mail(owner_customer_copy_mail)
+            logger.info("Sent customer-mail copy to shop owner", order_id=str(order.id), owner=owner_email)
         else:
             logger.warning("No shop owner email configured, skipping owner notification", shop_id=str(shop.id))
 

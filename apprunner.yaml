@@ -16,6 +16,12 @@ run:
       value: production
     - name: JWT_ALGORITHM
       value: HS256
+    - name: MAIL_ENABLED
+      value: "true"
+    - name: SHOP_MAIL_ENABLED
+      value: "true"
+    - name: MAIL_TEST_ENDPOINT_ENABLED
+      value: "true"
   secrets:
     - name: DATABASE_URI
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/DATABASE_URI"
@@ -41,3 +47,17 @@ run:
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/CO2TREE_WEBHOOK_URL"
     - name: SENTRY_DSN
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/SENTRY_DSN"
+    - name: MAIL_SERVER
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/MAIL_SERVER"
+    - name: MAIL_PORT
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/MAIL_PORT"
+    - name: MAIL_STARTTLS
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/MAIL_STARTTLS"
+    - name: MAIL_FROM
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/MAIL_FROM"
+    - name: MAIL_BCC
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/MAIL_BCC"
+    - name: MAIL_SMTP_USERNAME
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/MAIL_SMTP_USERNAME"
+    - name: MAIL_SMTP_PASSWORD
+      value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/MAIL_SMTP_PASSWORD"
