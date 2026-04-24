@@ -209,8 +209,6 @@ class MailSettings(BaseSettings):
     MAIL_STARTTLS: bool = False
     MAIL_SMTP_USERNAME: str = ""
     MAIL_SMTP_PASSWORD: str = ""
-    MAIL_INFO_NAME: str = "More info"
-    MAIL_INFO_LINK: str = "https://shop.pricelist.info"
 
     SHOP_MAIL_ENABLED: bool = False
 

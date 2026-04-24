@@ -64,18 +64,19 @@ def test_send_order_confirmation_emails_renders_without_smtp(completed_order, sh
 
     send_order_confirmation_emails(order=order, shop=shop, account=account)
 
-    # Customer + shop owner (shop_with_config has contact.email set) — two SMTP sessions.
-    assert smtp_cls.call_count == 2
-    assert smtp_instance.send_message.call_count == 2
+    # Customer + owner notification + owner copy of customer mail — three SMTP sessions.
+    assert smtp_cls.call_count == 3
+    assert smtp_instance.send_message.call_count == 3
     smtp_instance.quit.assert_called()
 
     subjects = [call.args[0]["Subject"] for call in smtp_instance.send_message.call_args_list]
-    assert any("Orderbevestiging #42" in s for s in subjects), subjects
+    assert any(s.startswith("Orderbevestiging #42") for s in subjects), subjects
     assert any("Nieuwe bestelling #42" in s for s in subjects), subjects
+    assert any(s.startswith("[KOPIE klantmail]") and "#42" in s for s in subjects), subjects
 
     recipients = [call.args[0]["To"] for call in smtp_instance.send_message.call_args_list]
     assert "customer@example.com" in recipients
-    assert "user@example.com" in recipients  # owner email from shop_with_config contact
+    assert recipients.count("user@example.com") == 2  # owner notification + owner copy of customer mail
 
 
 def test_send_order_confirmation_emails_skips_owner_without_contact_email(
