@@ -5,7 +5,7 @@ import pytest
 
 from server.db import db
 from server.db.models import OrderTable, ShopTable
-from server.mail import send_order_confirmation_emails
+from server.mail import _compute_order_lines_for_email, send_order_confirmation_emails
 from tests.unit_tests.factories.account import make_account
 from tests.unit_tests.factories.categories import make_category
 from tests.unit_tests.factories.product import make_product
@@ -115,3 +115,69 @@ def test_send_order_confirmation_emails_swallows_render_errors(shop_with_config,
 
     send_order_confirmation_emails(order=broken_order, shop=shop, account=account)
     assert smtp_cls.call_count == 0
+
+
+def test_compute_order_lines_treats_stored_price_as_vat_inclusive(completed_order, shop_with_config):
+    """Stored order_info price includes VAT — ex-VAT must divide out the rate, not add it on top.
+
+    The first order line is Widget A at price 10.00 x 2, VAT 21% (shop.vat_standard).
+    After the fix, price_inc_btw == 10.00 (as stored), price_ex_btw == 10.00 / 1.21 ≈ 8.26,
+    and line_total_inc_btw == 20.00. Prior to the fix, price_inc_btw came out as 12.10
+    because ex was treated as the ground truth and VAT was stacked on top.
+    """
+    order = db.session.get(OrderTable, completed_order)
+    shop = db.session.get(ShopTable, shop_with_config)
+
+    lines = _compute_order_lines_for_email(order.order_info, shop)
+
+    widget_a = next(line for line in lines if line["product_name"] == "Widget A")
+    assert widget_a["btw_rate"] == shop.vat_standard
+    assert widget_a["price_inc_btw"] == 10.0, "stored price must be surfaced as the inc-VAT price"
+    assert widget_a["price_ex_btw"] == round(10.0 / 1.21, 2)
+    assert widget_a["line_total_inc_btw"] == 20.0
+    assert widget_a["line_total_ex_btw"] == round(20.0 / 1.21, 2)
+
+    widget_b = next(line for line in lines if line["product_name"] == "Widget B")
+    assert widget_b["price_inc_btw"] == 5.0
+    assert widget_b["price_ex_btw"] == round(5.0 / 1.21, 2)
+    assert widget_b["line_total_inc_btw"] == 5.0
+
+
+def test_customer_mail_shows_completed_at_in_europe_amsterdam_for_nl(completed_order, shop_with_config, mock_smtp):
+    """NL mails render order.completed_at in Europe/Amsterdam, not UTC.
+
+    The fixture sets completed_at = 2026-04-23 12:00 UTC. In late April the
+    Netherlands is on CEST (UTC+2), so the rendered date string must read 14:00,
+    not 12:00. Without conversion the mail would show the customer a time two
+    hours behind the moment they actually placed the order.
+    """
+    _, smtp_instance = mock_smtp
+    order = db.session.get(OrderTable, completed_order)
+    shop = db.session.get(ShopTable, shop_with_config)
+
+    send_order_confirmation_emails(order=order, shop=shop, account=order.account)
+
+    customer_call = next(
+        call for call in smtp_instance.send_message.call_args_list if call.args[0]["To"] == "customer@example.com"
+    )
+    message = customer_call.args[0]
+    html_parts = [part for part in message.walk() if part.get_content_type() == "text/html"]
+    assert html_parts, "no HTML part in customer mail"
+    html_body = html_parts[0].get_payload(decode=True).decode("utf-8")
+
+    assert "23-04-2026 14:00" in html_body, "expected Amsterdam-local time in NL mail body"
+    assert "23-04-2026 12:00" not in html_body, "UTC value must not leak into NL mail"
+
+
+def test_compute_order_lines_zero_vat_is_lossless(completed_order, shop_with_config):
+    """With a 0% VAT rate, ex and inc figures must be identical (no division by zero fragility)."""
+    shop = db.session.get(ShopTable, shop_with_config)
+    shop.vat_standard = 0.0
+    db.session.commit()
+
+    order = db.session.get(OrderTable, completed_order)
+    lines = _compute_order_lines_for_email(order.order_info, shop)
+
+    for line in lines:
+        assert line["price_ex_btw"] == line["price_inc_btw"]
+        assert line["line_total_ex_btw"] == line["line_total_inc_btw"]

@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from email.encoders import encode_base64
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
@@ -9,6 +9,7 @@ from functools import singledispatch
 from itertools import filterfalse
 from smtplib import SMTP
 from typing import Any, Callable, NoReturn
+from zoneinfo import ZoneInfo
 
 import html2text
 import jinja2
@@ -394,8 +395,16 @@ def _compute_order_lines_for_email(order_info: list[dict], shop: Any) -> list[di
         if product and product.tax_category:
             vat_rate = getattr(shop, product.tax_category, shop.vat_standard)
 
-        price_ex = item["price"]
-        price_inc = round(price_ex * (1 + vat_rate / 100), 2)
+        # order_info prices are VAT-inclusive (they match the catalog price the
+        # customer sees in the shop). Derive the ex-VAT figures by dividing out
+        # the rate, and keep the inc-VAT line total as the authoritative value
+        # so shown totals match what the customer paid.
+        quantity = item.get("quantity", 1)
+        price_inc = item["price"]
+        vat_divisor = 1 + vat_rate / 100
+        price_ex = round(price_inc / vat_divisor, 2)
+        line_total_inc = round(price_inc * quantity, 2)
+        line_total_ex = round(line_total_inc / vat_divisor, 2)
 
         # Collect product attributes
         attributes = []
@@ -413,12 +422,12 @@ def _compute_order_lines_for_email(order_info: list[dict], shop: Any) -> list[di
                 "product_name": item.get("product_name", "Unknown product"),
                 "description": item.get("description"),
                 "attributes": attributes,
-                "quantity": item.get("quantity", 1),
+                "quantity": quantity,
                 "price_ex_btw": price_ex,
                 "price_inc_btw": price_inc,
                 "btw_rate": vat_rate,
-                "line_total_ex_btw": round(price_ex * item.get("quantity", 1), 2),
-                "line_total_inc_btw": round(price_inc * item.get("quantity", 1), 2),
+                "line_total_ex_btw": line_total_ex,
+                "line_total_inc_btw": line_total_inc,
             }
         )
     return lines
@@ -457,10 +466,17 @@ def send_order_confirmation_emails(order: Any, shop: Any, account: Any) -> None:
         customer_company_name = account_details.get("company_name")
         customer_btw_number = account_details.get("btw_number")
 
-        # Format completion date
+        # Format completion date. `completed_at` is stored as a naive UTC timestamp
+        # (DateTime column without timezone=True); for NL mails we render it in
+        # Europe/Amsterdam so the date shown to customers matches their local clock.
         completed_at_str = ""
         if order.completed_at:
-            completed_at_str = order.completed_at.strftime("%d-%m-%Y %H:%M")
+            completed_at_dt = order.completed_at
+            if completed_at_dt.tzinfo is None:
+                completed_at_dt = completed_at_dt.replace(tzinfo=timezone.utc)
+            if language == "NL":
+                completed_at_dt = completed_at_dt.astimezone(ZoneInfo("Europe/Amsterdam"))
+            completed_at_str = completed_at_dt.strftime("%d-%m-%Y %H:%M")
 
         # Common template variables
         template_vars = {
