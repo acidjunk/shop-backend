@@ -45,6 +45,22 @@ sequenceDiagram
 
 The call site wraps the send in try/except and logs failures rather than aborting the request — a delivery error must not undo a successful order completion.
 
+## Price and VAT convention
+
+`order_info[*].price` is **VAT-inclusive** — it matches the catalog price the customer sees in the shop. `_compute_order_lines_for_email` treats it as the ground truth and derives the ex-VAT figures by dividing out the applicable rate:
+
+```
+price_inc_btw     = item["price"]
+price_ex_btw      = round(price_inc_btw / (1 + vat_rate/100), 2)
+line_total_inc    = round(price_inc_btw * quantity, 2)
+line_total_ex     = round(line_total_inc / (1 + vat_rate/100), 2)
+```
+
+The VAT rate comes from the product's `tax_category` (e.g. `vat_standard`, `vat_lower_1`), resolved against the shop's per-category rates (`shop.vat_standard`, `shop.vat_lower_1`, …). If the product has no `tax_category`, `shop.vat_standard` is used.
+
+!!! warning
+    Do **not** re-order this math to `price_ex = item["price"]; price_inc = price_ex * (1 + rate/100)`. That double-counts VAT — the displayed "Totaal inc BTW" would no longer match the amount the customer actually paid. See `test_compute_order_lines_treats_stored_price_as_vat_inclusive` in `tests/unit_tests/test_mail.py`.
+
 ## Local smoke-testing (Mailpit)
 
 A disabled-by-default endpoint lets you exercise the full render + SMTP path against a local Mailpit instance without creating a real order.
@@ -57,6 +73,10 @@ The endpoint builds synthetic shop/order/account objects in memory and calls `se
 
 !!! warning
     Never enable `MAIL_TEST_ENDPOINT_ENABLED` in production. The route is unauthenticated; anyone who can reach the backend can trigger outbound mail.
+
+## Completion date timezone
+
+`order.completed_at` is stored as a naive UTC timestamp (PostgreSQL `DateTime` column without `timezone=True`). For NL mails the renderer converts it to `Europe/Amsterdam` so the date shown to the customer matches their local clock; other languages currently render the UTC value as-is. Add new conversions in `send_order_confirmation_emails` when introducing another locale.
 
 ## Language selection
 
