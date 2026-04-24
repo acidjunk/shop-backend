@@ -21,7 +21,7 @@ run:
     - name: SHOP_MAIL_ENABLED
       value: "true"
     - name: MAIL_TEST_ENDPOINT_ENABLED
-      value: "true"
+      value: "false"
   secrets:
     - name: DATABASE_URI
       value-from: "arn:aws:ssm:eu-central-1:987457788157:parameter/pricelist-backend/DATABASE_URI"
