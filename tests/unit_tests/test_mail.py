@@ -79,9 +79,7 @@ def test_send_order_confirmation_emails_renders_without_smtp(completed_order, sh
     assert recipients.count("user@example.com") == 2  # owner notification + owner copy of customer mail
 
 
-def test_send_order_confirmation_emails_skips_owner_without_contact_email(
-    completed_order, shop_with_config, mock_smtp
-):
+def test_send_order_confirmation_emails_skips_owner_without_contact_email(completed_order, shop_with_config, mock_smtp):
     """If the shop config has no contact.email, only the customer mail goes out."""
     smtp_cls, smtp_instance = mock_smtp
     shop = db.session.get(ShopTable, shop_with_config)
