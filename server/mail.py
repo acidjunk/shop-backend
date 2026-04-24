@@ -29,7 +29,6 @@ BCC: list[MailAddress] = [
     {"email": mail_settings.MAIL_BCC, "name": "BCC"},
 ]
 IMAGES_SHOP_VIRGE = [
-    InlineImage(cid="headerimg", filename="shop_virge.png", subtype="png"),
     InlineImage(cid="bannerimg", filename="shop_virge_banner.png", subtype="png"),
     # jpeg example:
     # InlineImage(cid="bannerimg", filename="shop_virge_banner.png", subtype="jpeg"),
