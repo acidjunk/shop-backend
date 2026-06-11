@@ -267,55 +267,52 @@ def _patch_order_status_mails(shop, **kwargs):
     db.session.commit()
 
 
-def test_owner_notification_disabled_sends_only_customer(completed_order, shop_with_config):
+def test_owner_notification_disabled_sends_only_customer(completed_order, shop_with_config, mail_spy):
     """owner_notification_enabled=False → only customer mail goes out (no copy_email configured)."""
     shop = db.session.get(ShopTable, shop_with_config)
     _patch_order_status_mails(shop, owner_notification_enabled=False)
     order = db.session.get(OrderTable, completed_order)
 
-    with patch("server.mail.send_mail", wraps=mail_module.send_mail) as spy:
-        send_order_confirmation_emails(order=order, shop=shop, account=order.account)
+    send_order_confirmation_emails(order=order, shop=shop, account=order.account)
 
-    assert spy.call_count == 1
-    assert spy.call_args.args[0]["to"][0]["email"] == "customer@example.com"
+    assert mail_spy.call_count == 1
+    assert mail_spy.call_args.args[0]["to"][0]["email"] == "customer@example.com"
 
 
-def test_owner_notification_email_overrides_contact_email(completed_order, shop_with_config):
+def test_owner_notification_email_overrides_contact_email(completed_order, shop_with_config, mail_spy):
     """owner_notification_email routes the notification to a specific address instead of contact.email."""
     shop = db.session.get(ShopTable, shop_with_config)
     _patch_order_status_mails(shop, owner_notification_email="orders@myshop.com")
     order = db.session.get(OrderTable, completed_order)
 
-    with patch("server.mail.send_mail", wraps=mail_module.send_mail) as spy:
-        send_order_confirmation_emails(order=order, shop=shop, account=order.account)
+    send_order_confirmation_emails(order=order, shop=shop, account=order.account)
 
-    assert spy.call_count == 2
-    recipients = [c.args[0]["to"][0]["email"] for c in spy.call_args_list]
+    assert mail_spy.call_count == 2
+    recipients = [c.args[0]["to"][0]["email"] for c in mail_spy.call_args_list]
     assert "customer@example.com" in recipients
     assert "orders@myshop.com" in recipients
     assert "user@example.com" not in recipients
 
 
-def test_copy_email_sends_backup_copy(completed_order, shop_with_config):
+def test_copy_email_sends_backup_copy(completed_order, shop_with_config, mail_spy):
     """copy_enabled=True + copy_email set → backup copy goes to that address in addition to normal flow."""
     shop = db.session.get(ShopTable, shop_with_config)
     _patch_order_status_mails(shop, copy_enabled=True, copy_email="archive@support.com")
     order = db.session.get(OrderTable, completed_order)
 
-    with patch("server.mail.send_mail", wraps=mail_module.send_mail) as spy:
-        send_order_confirmation_emails(order=order, shop=shop, account=order.account)
+    send_order_confirmation_emails(order=order, shop=shop, account=order.account)
 
-    assert spy.call_count == 3
-    recipients = [c.args[0]["to"][0]["email"] for c in spy.call_args_list]
+    assert mail_spy.call_count == 3
+    recipients = [c.args[0]["to"][0]["email"] for c in mail_spy.call_args_list]
     assert "customer@example.com" in recipients
-    assert "user@example.com" in recipients  # owner notification still goes to contact.email
+    assert "user@example.com" in recipients
     assert "archive@support.com" in recipients
 
-    copy_call = next(c for c in spy.call_args_list if c.args[0]["to"][0]["email"] == "archive@support.com")
+    copy_call = next(c for c in mail_spy.call_args_list if c.args[0]["to"][0]["email"] == "archive@support.com")
     assert "[KOPIE klantmail]" in copy_call.args[0]["subject"]
 
 
-def test_copy_email_and_custom_notification_email_are_independent(completed_order, shop_with_config):
+def test_copy_email_and_custom_notification_email_are_independent(completed_order, shop_with_config, mail_spy):
     """copy_email and owner_notification_email can both be set to different addresses."""
     shop = db.session.get(ShopTable, shop_with_config)
     _patch_order_status_mails(
@@ -323,11 +320,10 @@ def test_copy_email_and_custom_notification_email_are_independent(completed_orde
     )
     order = db.session.get(OrderTable, completed_order)
 
-    with patch("server.mail.send_mail", wraps=mail_module.send_mail) as spy:
-        send_order_confirmation_emails(order=order, shop=shop, account=order.account)
+    send_order_confirmation_emails(order=order, shop=shop, account=order.account)
 
-    assert spy.call_count == 3
-    recipients = [c.args[0]["to"][0]["email"] for c in spy.call_args_list]
+    assert mail_spy.call_count == 3
+    recipients = [c.args[0]["to"][0]["email"] for c in mail_spy.call_args_list]
     assert "customer@example.com" in recipients
     assert "orders@myshop.com" in recipients
     assert "archive@support.com" in recipients
