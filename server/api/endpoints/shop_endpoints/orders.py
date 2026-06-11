@@ -54,52 +54,6 @@ def get_price_rules_total(order_items):
     return total
 
 
-# Commented because 'active' field no longer exists on products, nor does shops_to_prices
-# def get_first_unavailable_product_name(order_items, shop_id):
-#     """Search for the first unavailable product and return it's name."""
-#     # products = shop_to_price_crud.get_products_with_prices_by_shop_id(shop_id=shop_id)
-#     #
-#     # for item in order_items:
-#     #     found_product = False  # Start False
-#     #     for product in products:
-#     #         if item.kind_id == str(product.kind_id):
-#     #             if product.active:
-#     #                 if item.description == "0,5 gram" and (not product.use_half or not product.price.half):
-#     #                     logger.warning("Product is currently not available in 0.5 gram", kind_name=item.kind_name)
-#     #                 elif item.description == "1 gram" and (not product.use_one or not product.price.one):
-#     #                     logger.warning("Product is currently not available in 1 gram", kind_name=item.kind_name)
-#     #                 elif item.description == "2,5 gram" and (not product.use_two_five or not product.price.two_five):
-#     #                     logger.warning("Product is currently not available in 2.5 gram", kind_name=item.kind_name)
-#     #                 elif item.description == "5 gram" and (not product.use_five or not product.price.five):
-#     #                     logger.warning("Product is currently not available in 5 gram", kind_name=item.kind_name)
-#     #                 elif item.description == "1 joint" and (not product.use_joint or not product.price.joint):
-#     #                     logger.warning("Product is currently not available as joint", kind_name=item.kind_name)
-#     #                 else:
-#     #                     logger.info(
-#     #                         "Found product in order item and in available products",
-#     #                         kind_id=item.kind_id,
-#     #                         kind_name=item.kind_name,
-#     #                     )
-#     #                     found_product = True
-#     #             else:
-#     #                 logger.warning("Product is currently not available", kind_name=item.kind_name)
-#     #         if item.product_id == str(product.product_id):
-#     #             if product.active:
-#     #                 if not product.use_piece or not product.price.piece:
-#     #                     logger.warning("Product is currently not available as piece", product_name=item.product_name)
-#     #                 else:
-#     #                     logger.info(
-#     #                         "Found horeca product in order item and in available products",
-#     #                         product_id=item.product_id,
-#     #                         product_name=item.product_name,
-#     #                     )
-#     #                     found_product = True
-#     #             else:
-#     #                 logger.warning("Horeca product is currently not available", product_name=item.product_name)
-#     #     if not found_product:
-#     #         return item.kind_name if item.kind_name else item.product_name
-#     return None
-
 
 @router.get("/", response_model=List[OrderSchema])
 def get_multi(

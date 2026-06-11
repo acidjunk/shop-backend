@@ -205,3 +205,118 @@ def test_calculate_shipping_vat_bypass_mixed_rates(shop_shipping_vat_bypass_mixe
     assert j["fee_inc_btw"] == 5.0
     assert j["fee_btw"] == 0.0
     assert j["lines"] == []
+
+
+# ---------------------------------------------------------------------------
+# Per-line shippable flag tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def shop_shipping_with_non_shippable_product():
+    """Shop with fixed shipping; one shippable product, one DB-level non-shippable product."""
+    shop_id = make_shop_with_shipping(fixed_fee=4.95)
+    category = make_category(shop_id=shop_id)
+    p_shippable = make_product(shop_id=shop_id, category_id=category, price=20.0, shippable=True)
+    p_non_shippable = make_product(shop_id=shop_id, category_id=category, price=30.0, shippable=False)
+    return {"shop_id": shop_id, "p_shippable": p_shippable, "p_non_shippable": p_non_shippable}
+
+
+def test_calculate_all_lines_non_shippable_via_flag(shop_shipping_fixed, test_client):
+    """Explicit shippable=False on every line → shipping base is empty → fee is zero."""
+    ids = shop_shipping_fixed
+    items = [
+        {
+            "description": "x",
+            "price": 10.0,
+            "product_id": str(ids["p"]),
+            "product_name": "p",
+            "quantity": 2,
+            "shippable": False,
+        }
+    ]
+    response = test_client.post("/shipping/calculate", json=_calc_body(ids["shop_id"], items))
+    assert response.status_code == 200
+    j = response.json()
+    assert j["enabled"] is True
+    assert j["fee_inc_btw"] == 0.0
+    assert j["lines"] == []
+
+
+def test_calculate_mixed_shippable_via_flag(shop_shipping_fixed, test_client):
+    """One line shippable=True, one shippable=False → fee computed only on the shippable line."""
+    ids = shop_shipping_fixed
+    p = ids["p"]
+    items = [
+        {
+            "description": "a",
+            "price": 20.0,
+            "product_id": str(p),
+            "product_name": "shippable",
+            "quantity": 1,
+            "shippable": True,
+        },
+        {
+            "description": "b",
+            "price": 80.0,
+            "product_id": str(p),
+            "product_name": "non-shippable",
+            "quantity": 1,
+            "shippable": False,
+        },
+    ]
+    response = test_client.post("/shipping/calculate", json=_calc_body(ids["shop_id"], items))
+    assert response.status_code == 200
+    j = response.json()
+    assert j["enabled"] is True
+    # fixed_fee=4.95 ex-VAT with 21% → 5.99 inc, regardless of which line is shippable
+    assert j["fee_ex_btw"] == 4.95
+    assert j["fee_inc_btw"] == 5.99
+
+
+def test_calculate_non_shippable_via_db(shop_shipping_with_non_shippable_product, test_client):
+    """No explicit flag on items; DB product.shippable=False causes line to be excluded from base."""
+    ids = shop_shipping_with_non_shippable_product
+    items = [
+        {
+            "description": "s",
+            "price": 20.0,
+            "product_id": str(ids["p_shippable"]),
+            "product_name": "shippable",
+            "quantity": 1,
+        },
+        {
+            "description": "n",
+            "price": 30.0,
+            "product_id": str(ids["p_non_shippable"]),
+            "product_name": "non-shippable",
+            "quantity": 1,
+        },
+    ]
+    response = test_client.post("/shipping/calculate", json=_calc_body(ids["shop_id"], items))
+    assert response.status_code == 200
+    j = response.json()
+    assert j["enabled"] is True
+    # fee is still applied (shippable line present), only base changes
+    assert j["fee_ex_btw"] == 4.95
+    assert j["fee_inc_btw"] == 5.99
+
+
+def test_calculate_all_db_non_shippable_gives_zero_fee(shop_shipping_with_non_shippable_product, test_client):
+    """When only the non-shippable product is ordered, the shipping base is empty → zero fee."""
+    ids = shop_shipping_with_non_shippable_product
+    items = [
+        {
+            "description": "n",
+            "price": 30.0,
+            "product_id": str(ids["p_non_shippable"]),
+            "product_name": "non-shippable",
+            "quantity": 2,
+        }
+    ]
+    response = test_client.post("/shipping/calculate", json=_calc_body(ids["shop_id"], items))
+    assert response.status_code == 200
+    j = response.json()
+    assert j["enabled"] is True
+    assert j["fee_inc_btw"] == 0.0
+    assert j["lines"] == []
