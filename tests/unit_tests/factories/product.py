@@ -17,6 +17,7 @@ def make_product(
     price=1.0,
     tax_category="vat_standard",
     stock: int = 1,
+    shippable: bool = True,
 ):
     product = ProductTable(
         shop_id=shop_id,
@@ -24,6 +25,7 @@ def make_product(
         price=price,
         stock=stock,
         tax_category=tax_category,
+        shippable=shippable,
     )
     db.session.add(product)
     db.session.commit()

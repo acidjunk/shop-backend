@@ -28,6 +28,9 @@ class OrderItem(BoilerplateBaseModel):
     product_name: str  # Was optional
     # internal_product_id: Optional[str]
     quantity: int  # Was optional
+    # When provided by the caller, skips the DB lookup in shipping calculation.
+    # None means "unknown — look it up"; False means "not shippable — skip this line".
+    shippable: Optional[bool] = None
 
     # @root_validator
     # def check_order_item_if_has_both(cls, values):

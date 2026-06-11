@@ -32,16 +32,30 @@ def resolve_vat_rate(product: Any, shop: Any) -> Decimal:
 
 
 def build_rate_subtotals(order_info: list, shop: Any) -> dict[Decimal, Decimal]:
-    """Sum cart inc-VAT line totals grouped by VAT rate.
+    """Sum cart inc-VAT line totals grouped by VAT rate, skipping non-shippable lines.
 
     `order_info` may contain dicts or Pydantic items; both are accepted.
+
+    Shippability resolution per line:
+    - ``shippable=False`` on the item → skip without a DB hit.
+    - ``shippable=None`` (missing) → look up the product; skip if ``product.shippable is False``.
+    - ``shippable=True`` → always include; DB lookup still needed for VAT rate.
     """
     from server.crud.crud_product import product_crud
 
     subtotals: dict[Decimal, Decimal] = {}
     for raw in order_info:
         item = raw.model_dump() if hasattr(raw, "model_dump") else dict(raw)
+
+        shippable_flag = item.get("shippable")
+        if shippable_flag is False:
+            continue
+
         product = product_crud.get_id_by_shop_id(shop.id, item["product_id"])
+
+        if shippable_flag is None and product is not None and product.shippable is False:
+            continue
+
         rate = resolve_vat_rate(product, shop)
         quantity = item.get("quantity", 1)
         price = item["price"] if isinstance(item["price"], Decimal) else Decimal(str(item["price"]))
@@ -117,6 +131,20 @@ def compute_shipping_for_cart(order_info: list, shop: Any) -> Optional[ShippingC
     free_above_amount = Decimal(str(shipping_cfg.get("free_shipping_above_amount", "0") or "0"))
 
     rate_subtotals = build_rate_subtotals(order_info, shop)
+
+    if not rate_subtotals:
+        # No shippable lines in the cart → no shipping fee applies.
+        return ShippingCalculation(
+            enabled=True,
+            method=method,
+            fee_inc_btw=Decimal("0.00"),
+            fee_ex_btw=Decimal("0.00"),
+            fee_btw=Decimal("0.00"),
+            free_shipping_applied=False,
+            free_shipping_threshold=free_above_amount if free_above_enabled else None,
+            lines=[],
+        )
+
     cart_total_inc = quantize_money(sum(rate_subtotals.values(), Decimal("0")))
 
     free_shipping_applied = False
