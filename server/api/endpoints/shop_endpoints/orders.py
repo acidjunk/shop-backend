@@ -28,6 +28,7 @@ from server.schemas.account import AccountCreate
 from server.schemas.base import quantize_money
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.schemas.product import ProductTranslationBase
+from server.agent_tags import AgentTag
 from server.security import auth_required
 from server.services import stripe_client
 from server.services.shipping import compute_shipping_for_cart
@@ -75,7 +76,7 @@ def get_multi(
     return orders
 
 
-@router.get("/shop/{shop_id}/pending", response_model=List[OrderSchema])
+@router.get("/shop/{shop_id}/pending", response_model=List[OrderSchema], tags=[AgentTag.EXPOSED], operation_id="list_pending_orders")
 def show_all_pending_orders_per_shop(
     shop_id: UUID,
     response: Response,
@@ -101,7 +102,7 @@ def show_all_pending_orders_per_shop(
     return orders
 
 
-@router.get("/shop/{shop_id}/complete", response_model=List[OrderSchema])
+@router.get("/shop/{shop_id}/complete", response_model=List[OrderSchema], tags=[AgentTag.EXPOSED], operation_id="list_complete_orders")
 def show_all_complete_orders_per_shop(
     shop_id: UUID,
     response: Response,
@@ -131,7 +132,7 @@ def show_all_complete_orders_per_shop(
     return orders
 
 
-@router.get("/{id}")
+@router.get("/{id}", tags=[AgentTag.EXPOSED], operation_id="get_order")
 def get_by_id(id: UUID) -> OrderSchema:
     order = order_crud.get(id)
     if not order:
@@ -147,7 +148,7 @@ def get_by_id(id: UUID) -> OrderSchema:
     return order
 
 
-@router.get("/check/{ids}", response_model=List[OrderCreated])
+@router.get("/check/{ids}", response_model=List[OrderCreated], tags=[AgentTag.EXPOSED], operation_id="check_orders")
 def check(
     ids: str,
 ) -> List[OrderCreated]:
@@ -190,7 +191,7 @@ def check(
     return items_with_schema
 
 
-@router.post("/", response_model=OrderCreated, status_code=HTTPStatus.CREATED)
+@router.post("/", response_model=OrderCreated, status_code=HTTPStatus.CREATED, tags=[AgentTag.EXPOSED], operation_id="create_order")
 def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
     logger.info("Saving order", data=data)
 
@@ -293,7 +294,7 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
     return created_order
 
 
-@router.patch("/{order_id}", response_model=OrderUpdated, status_code=HTTPStatus.CREATED)
+@router.patch("/{order_id}", response_model=OrderUpdated, status_code=HTTPStatus.CREATED, tags=[AgentTag.EXPOSED], operation_id="patch_order")
 def patch(
     *,
     order_id: UUID,
@@ -401,7 +402,7 @@ def update_stock_on_order_complete(order_id: UUID):
         raise HTTPException(status_code=404, detail="Order not found")
 
 
-@router.put("/{order_id}", response_model=OrderUpdated, status_code=HTTPStatus.CREATED)
+@router.put("/{order_id}", response_model=OrderUpdated, status_code=HTTPStatus.CREATED, tags=[AgentTag.EXPOSED], operation_id="update_order")
 def update(*, order_id: UUID, item_in: OrderUpdate, current_user: UserTable = Depends(auth_required)) -> OrderUpdated:
     order = order_crud.get(order_id)
     if not order:
@@ -430,12 +431,12 @@ def update(*, order_id: UUID, item_in: OrderUpdate, current_user: UserTable = De
     return updated_order
 
 
-@router.delete("/{order_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT)
+@router.delete("/{order_id}", response_model=None, status_code=HTTPStatus.NO_CONTENT, tags=[AgentTag.EXPOSED], operation_id="delete_order")
 def delete(order_id: UUID, current_user: UserTable = Depends(auth_required)) -> None:
     return order_crud.delete(id=order_id)
 
 
-@router.get("/stock/{order_id}", response_model=bool)
+@router.get("/stock/{order_id}", response_model=bool, tags=[AgentTag.EXPOSED], operation_id="get_order_stock")
 def get_order_products_in_stock(order_id: UUID) -> bool:
     order = order_crud.get(order_id)
     if not order:
