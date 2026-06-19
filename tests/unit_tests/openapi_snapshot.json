@@ -656,6 +656,132 @@
         "title": "Cart",
         "type": "object"
       },
+      "CartCalculateItem": {
+        "properties": {
+          "plan": {
+            "default": "onetime",
+            "enum": [
+              "onetime",
+              "monthly",
+              "yearly"
+            ],
+            "title": "Plan",
+            "type": "string"
+          },
+          "product_id": {
+            "format": "uuid",
+            "title": "Product Id",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "quantity"
+        ],
+        "title": "CartCalculateItem",
+        "type": "object"
+      },
+      "CartCalculateRequest": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CartCalculateItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "shop_id": {
+            "format": "uuid",
+            "title": "Shop Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shop_id",
+          "items"
+        ],
+        "title": "CartCalculateRequest",
+        "type": "object"
+      },
+      "CartCalculation": {
+        "properties": {
+          "grand_total": {
+            "title": "Grand Total",
+            "type": "number"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/CartLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "shipping": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShippingCalculation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subtotal_inc_vat": {
+            "title": "Subtotal Inc Vat",
+            "type": "number"
+          }
+        },
+        "required": [
+          "lines",
+          "subtotal_inc_vat",
+          "grand_total"
+        ],
+        "title": "CartCalculation",
+        "type": "object"
+      },
+      "CartLine": {
+        "properties": {
+          "line_total_inc_vat": {
+            "title": "Line Total Inc Vat",
+            "type": "number"
+          },
+          "product_id": {
+            "format": "uuid",
+            "title": "Product Id",
+            "type": "string"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          },
+          "unit_price_inc_vat": {
+            "title": "Unit Price Inc Vat",
+            "type": "number"
+          },
+          "vat_rate": {
+            "title": "Vat Rate",
+            "type": "number"
+          }
+        },
+        "required": [
+          "product_id",
+          "product_name",
+          "quantity",
+          "unit_price_inc_vat",
+          "vat_rate",
+          "line_total_inc_vat"
+        ],
+        "title": "CartLine",
+        "type": "object"
+      },
       "CategoryCreate": {
         "properties": {
           "alt1_image": {
@@ -2519,6 +2645,17 @@
           "quantity": {
             "title": "Quantity",
             "type": "integer"
+          },
+          "shippable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shippable"
           }
         },
         "required": [
@@ -2560,6 +2697,17 @@
           "quantity": {
             "title": "Quantity",
             "type": "integer"
+          },
+          "shippable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shippable"
           }
         },
         "required": [
@@ -5628,7 +5776,7 @@
   "info": {
     "description": "Backend for ShopVirge Shops.",
     "title": "ShopVirge API",
-    "version": "0.3.4"
+    "version": "0.3.5"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -6009,6 +6157,48 @@
         "tags": [
           "admin",
           "accounts"
+        ]
+      }
+    },
+    "/cart/calculate": {
+      "post": {
+        "description": "Resolves prices (including active discounts), applies VAT per line, computes the subtotal, and\u2014when shipping is configured on the shop\u2014appends the shipping fee to produce a grand total.",
+        "operationId": "calculate_cart_calculate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartCalculateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartCalculation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Calculate cart totals",
+        "tags": [
+          "cart"
         ]
       }
     },

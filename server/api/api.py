@@ -36,6 +36,7 @@ from server.api.endpoints.shop_endpoints import (
     api_keys,
     attribute_options,
     attributes,
+    cart,
     categories,
     category_images,
     info_request,
@@ -95,6 +96,11 @@ api_router.include_router(
     shipping.router,
     prefix="/shipping",
     tags=["shipping"],
+)
+api_router.include_router(
+    cart.router,
+    prefix="/cart",
+    tags=["cart"],
 )
 api_router.include_router(
     categories.router,
