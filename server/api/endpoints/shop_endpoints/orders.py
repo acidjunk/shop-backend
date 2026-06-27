@@ -18,6 +18,7 @@ from server.api.error_handling import raise_status
 from server.api.helpers import _query_with_filters, invalidateCompletedOrdersCache, invalidatePendingOrdersCache, load
 from server.api.utils import is_ip_allowed, validate_uuid4
 from server.crud.crud_account import account_crud
+from server.crud.crud_api_key import api_key_crud
 from server.crud.crud_order import order_crud
 from server.crud.crud_product import product_crud
 from server.crud.crud_shop import shop_crud
@@ -211,8 +212,14 @@ def create(
 ) -> OrderCreated:
     logger.info("Saving order", data=data)
 
-    if app_settings.ORDER_API_KEY and x_order_api_key != app_settings.ORDER_API_KEY:
-        raise_status(HTTPStatus.FORBIDDEN, "Missing or invalid X-Order-Api-Key")
+    if x_order_api_key is not None:
+        row = api_key_crud.lookup_by_plaintext(x_order_api_key)
+        if row is None or str(row.shop_id) != str(data.shop_id):
+            raise_status(HTTPStatus.FORBIDDEN, "Missing or invalid X-Order-Api-Key")
+    else:
+        active_keys = [k for k in api_key_crud.list_by_shop(data.shop_id) if k.revoked_at is None]
+        if active_keys:
+            raise_status(HTTPStatus.FORBIDDEN, "Missing or invalid X-Order-Api-Key")
 
     if data.customer_order_id:
         del data.customer_order_id

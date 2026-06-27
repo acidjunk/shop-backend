@@ -1,5 +1,6 @@
 import pytest
 
+from tests.unit_tests.factories.api_key import make_api_key
 from tests.unit_tests.factories.categories import make_category
 from tests.unit_tests.factories.product import make_product
 from tests.unit_tests.factories.shop import make_shop_with_shipping
@@ -186,3 +187,55 @@ def test_create_order_vat_bypass_adds_flat_fee(shop_shipping_vat_bypass_with_pro
     # Configured 5.00 added flat (no VAT split, no per-rate inflation)
     assert j["shipping_fee_inc_btw"] == 5.0
     assert j["total"] == 25.0
+
+
+# ---------------------------------------------------------------------------
+# Per-shop API key tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def shop_with_key(shop_no_shipping_with_products):
+    ids = shop_no_shipping_with_products
+    _row, plaintext = make_api_key(ids["shop_id"])
+    return {**ids, "plaintext": plaintext}
+
+
+def test_create_order_with_valid_per_shop_key(shop_with_key, test_client):
+    """Valid sv_ key for the correct shop allows the order through."""
+    ids = shop_with_key
+    items = [{"description": "x", "price": 10.0, "product_id": str(ids["p1"]), "product_name": "Item 1", "quantity": 1}]
+    body = _order_body(ids["shop_id"], items)
+    response = test_client.post("/orders/", json=body, headers={"X-Order-Api-Key": ids["plaintext"]})
+    assert response.status_code == 201, response.json()
+
+
+def test_create_order_with_wrong_shop_key(shop_with_key, test_client):
+    """Key minted for shop A is rejected when ordering on a different shop B."""
+    shop_a = shop_with_key
+    # Create a completely separate shop B with its own product
+    shop_b_id = make_shop_with_shipping(enabled=False)
+    category_b = make_category(shop_id=shop_b_id)
+    p_b = make_product(shop_id=shop_b_id, category_id=category_b, main_name="B Item", price=5.0)
+    items = [{"description": "x", "price": 5.0, "product_id": str(p_b), "product_name": "B Item", "quantity": 1}]
+    body = _order_body(shop_b_id, items)
+    response = test_client.post("/orders/", json=body, headers={"X-Order-Api-Key": shop_a["plaintext"]})
+    assert response.status_code == 403
+
+
+def test_create_order_no_key_but_shop_has_active_key(shop_with_key, test_client):
+    """No header is rejected when the shop has at least one active key."""
+    ids = shop_with_key
+    items = [{"description": "x", "price": 10.0, "product_id": str(ids["p1"]), "product_name": "Item 1", "quantity": 1}]
+    body = _order_body(ids["shop_id"], items)
+    response = test_client.post("/orders/", json=body)
+    assert response.status_code == 403
+
+
+def test_create_order_no_key_shop_has_no_keys(shop_no_shipping_with_products, test_client):
+    """No header is fine when the shop has no keys — backward compat for legacy shops."""
+    ids = shop_no_shipping_with_products
+    items = [{"description": "x", "price": 10.0, "product_id": str(ids["p1"]), "product_name": "Item 1", "quantity": 1}]
+    body = _order_body(ids["shop_id"], items)
+    response = test_client.post("/orders/", json=body)
+    assert response.status_code == 201, response.json()

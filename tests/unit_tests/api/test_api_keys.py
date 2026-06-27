@@ -8,7 +8,21 @@ from fastapi.testclient import TestClient
 from server.crud.crud_api_key import api_key_crud
 from server.security import auth_required_any
 from tests.unit_tests.factories.api_key import make_api_key
-from tests.unit_tests.factories.shop import make_shop
+from tests.unit_tests.factories.categories import make_category
+from tests.unit_tests.factories.product import make_product
+from tests.unit_tests.factories.shop import make_shop, make_shop_with_shipping
+
+
+def _order_body(shop_id, items):
+    return {
+        "shop_id": str(shop_id),
+        "order_info": items,
+        "account_name": f"buyer-{shop_id}@example.com",
+        "notes": "test",
+        "status": "pending",
+        "customer_order_id": 1,
+        "total": 0.0,
+    }
 
 
 @pytest.fixture
@@ -131,3 +145,34 @@ def test_revoked_api_key_stops_opening_endpoints(real_auth_client):
 
     api_key_crud.revoke(shop_id=shop_id, key_id=row.id)
     assert real_auth_client.get(f"/shops/{shop_id}/tags/", headers=headers).status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# Order endpoint — X-Order-Api-Key header
+# ---------------------------------------------------------------------------
+
+
+def test_api_key_allows_order_creation(test_client):
+    """An sv_ key in X-Order-Api-Key allows POST /orders/ for that shop."""
+    shop_id = make_shop_with_shipping(enabled=False)
+    category = make_category(shop_id=shop_id)
+    product = make_product(shop_id=shop_id, category_id=category, main_name="Item", price=10.0)
+    _, plaintext = make_api_key(shop_id)
+    items = [{"description": "x", "price": 10.0, "product_id": str(product), "product_name": "Item", "quantity": 1}]
+    resp = test_client.post("/orders/", json=_order_body(shop_id, items), headers={"X-Order-Api-Key": plaintext})
+    assert resp.status_code == 201, resp.text
+
+
+def test_revoked_api_key_blocks_order_creation(test_client):
+    """Revoking a key causes the order endpoint to reject it with 403."""
+    shop_id = make_shop_with_shipping(enabled=False)
+    category = make_category(shop_id=shop_id)
+    product = make_product(shop_id=shop_id, category_id=category, main_name="Item", price=10.0)
+    row, plaintext = make_api_key(shop_id)
+    items = [{"description": "x", "price": 10.0, "product_id": str(product), "product_name": "Item", "quantity": 1}]
+    body = _order_body(shop_id, items)
+
+    assert test_client.post("/orders/", json=body, headers={"X-Order-Api-Key": plaintext}).status_code == 201
+
+    api_key_crud.revoke(shop_id=shop_id, key_id=row.id)
+    assert test_client.post("/orders/", json=body, headers={"X-Order-Api-Key": plaintext}).status_code == 403
