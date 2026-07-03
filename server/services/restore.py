@@ -65,6 +65,10 @@ from server.services.revisions import (
     record_category_revision,
     record_product_revision,
     record_tag_revision,
+    snapshot_attribute,
+    snapshot_category,
+    snapshot_product,
+    snapshot_tag,
 )
 
 logger = structlog.get_logger(__name__)
@@ -137,6 +141,20 @@ def _get_revision(shop_id: uuid.UUID, entity_type: str, entity_id: uuid.UUID, re
     if revision is None:
         raise HTTPException(status_code=404, detail=f"Revision {revision_no} not found for {entity_type} {entity_id}")
     return revision
+
+
+_NOOP_WARNING = "Restore was a no-op: the revision matches the current state; no new revision was recorded."
+
+
+def _is_noop(before: Optional[dict], entity: Any, snapshot_fn: Callable[[Any], dict], report: RestoreReport) -> bool:
+    """True when the restore changed nothing: nothing was resurrected or recreated and
+    the entity's snapshot is identical to the pre-restore one. Callers then skip
+    recording a restore revision so the history doesn't fill up with no-ops."""
+    if before is None or report.resurrected or report.warnings:
+        return False
+    db.session.flush()
+    db.session.expire(entity)
+    return snapshot_fn(entity) == before
 
 
 def _resolve_category(
@@ -333,6 +351,8 @@ def restore_product_revision(
             ),
         )
 
+    before = snapshot_product(product) if product is not None else None
+
     try:
         if product is None:
             product = ProductTable(id=product_id, shop_id=shop_id)
@@ -347,7 +367,6 @@ def restore_product_revision(
         # category_id is deliberately skipped here: it may point at a purged category,
         # so it is resolved (and possibly resurrected) by _resolve_category below.
         _apply_columns(product, data.get("product") or {}, "product", report, skip={"category_id"})
-        product.modified_at = datetime.now(timezone.utc)
 
         translation_data = data.get("translation")
         if translation_data:
@@ -371,8 +390,12 @@ def restore_product_revision(
         _resolve_tags(shop_id, data.get("tags") or [], product, report)
         _resolve_attribute_values(shop_id, data.get("attribute_values") or [], product, report)
 
-        new_revision = record_product_revision(product, action="restore", created_by=created_by, source=source)
-        report.new_revision_no = new_revision.revision_no
+        if _is_noop(before, product, snapshot_product, report):
+            report.warnings.append(_NOOP_WARNING)
+        else:
+            product.modified_at = datetime.now(timezone.utc)
+            new_revision = record_product_revision(product, action="restore", created_by=created_by, source=source)
+            report.new_revision_no = new_revision.revision_no
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -471,6 +494,8 @@ def restore_tag_revision(
             ),
         )
 
+    before = snapshot_tag(tag) if tag is not None else None
+
     try:
         if tag is None:
             tag = TagTable(id=tag_id, shop_id=shop_id)
@@ -491,8 +516,11 @@ def restore_tag_revision(
                 db.session.add(translation)
             _apply_columns(translation, translation_data, "translation", report)
 
-        new_revision = record_tag_revision(tag, action="restore", created_by=created_by, source=source)
-        report.new_revision_no = new_revision.revision_no
+        if _is_noop(before, tag, snapshot_tag, report):
+            report.warnings.append(_NOOP_WARNING)
+        else:
+            new_revision = record_tag_revision(tag, action="restore", created_by=created_by, source=source)
+            report.new_revision_no = new_revision.revision_no
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -624,6 +652,8 @@ def restore_attribute_revision(
             ),
         )
 
+    before = snapshot_attribute(attribute) if attribute is not None else None
+
     try:
         if attribute is None:
             attribute = AttributeTable(id=attribute_id, shop_id=shop_id)
@@ -653,8 +683,11 @@ def restore_attribute_revision(
         db.session.flush()
         _restore_attribute_options(attribute, data.get("options") or [], report)
 
-        new_revision = record_attribute_revision(attribute, action="restore", created_by=created_by, source=source)
-        report.new_revision_no = new_revision.revision_no
+        if _is_noop(before, attribute, snapshot_attribute, report):
+            report.warnings.append(_NOOP_WARNING)
+        else:
+            new_revision = record_attribute_revision(attribute, action="restore", created_by=created_by, source=source)
+            report.new_revision_no = new_revision.revision_no
         db.session.commit()
     except Exception:
         db.session.rollback()
@@ -744,6 +777,8 @@ def restore_category_revision(
             ),
         )
 
+    before = snapshot_category(category) if category is not None else None
+
     try:
         if category is None:
             category = CategoryTable(id=category_id, shop_id=shop_id)
@@ -773,8 +808,11 @@ def restore_category_revision(
                 db.session.add(translation)
             _apply_columns(translation, translation_data, "translation", report)
 
-        new_revision = record_category_revision(category, action="restore", created_by=created_by, source=source)
-        report.new_revision_no = new_revision.revision_no
+        if _is_noop(before, category, snapshot_category, report):
+            report.warnings.append(_NOOP_WARNING)
+        else:
+            new_revision = record_category_revision(category, action="restore", created_by=created_by, source=source)
+            report.new_revision_no = new_revision.revision_no
         db.session.commit()
     except Exception:
         db.session.rollback()
