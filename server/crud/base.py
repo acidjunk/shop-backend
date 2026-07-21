@@ -54,8 +54,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """
         self.model = model
 
-    def get(self, id: UUID | str) -> Optional[ModelType]:
-        obj = db.session.get(self.model, id)
+    def get(self, id: UUID | str, for_update: bool = False) -> Optional[ModelType]:
+        # for_update: row lock that serializes concurrent writers on the same entity
+        # so that revision numbering (max + 1) is race-free.
+        obj = db.session.get(self.model, id, with_for_update=True if for_update else None)
         # Session.get() can bypass the do_orm_execute soft-delete filter (identity map),
         # so re-check deleted_at explicitly for soft-deletable models.
         if obj is not None and getattr(obj, "deleted_at", None) is not None:

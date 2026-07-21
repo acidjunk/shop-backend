@@ -102,8 +102,9 @@ def create_product_attribute_values(
     Validations:
     - Product exists and belongs to the shop
     """
-    # Validate product belongs to shop
-    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=data.product_id)
+    # Validate product belongs to shop; lock it so parallel attribute-value
+    # writes (the shop UI saves them concurrently) serialize on revision numbering
+    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=data.product_id, for_update=True)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product {data.product_id} not found for this shop")
 
@@ -187,8 +188,8 @@ def create_product_attribute_values_for_product(
     if not data.option_ids:
         raise_status(HTTPStatus.BAD_REQUEST, "option_ids must be a non-empty list")
 
-    # Validate product belongs to shop via path param
-    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id)
+    # Validate product belongs to shop via path param; lock for revision numbering
+    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id, for_update=True)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
 
@@ -271,8 +272,8 @@ def put_selected_product_attribute_values_by_product(
     if not data.option_ids:
         raise_status(HTTPStatus.BAD_REQUEST, "option_ids must be a non-empty list")
 
-    # Validate product belongs to shop using path param
-    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id)
+    # Validate product belongs to shop using path param; lock for revision numbering
+    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id, for_update=True)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
 
@@ -363,9 +364,11 @@ def delete_product_attribute_value(
     pav = product_attribute_value_crud.get(id)
     if not pav:
         raise_status(HTTPStatus.NOT_FOUND, f"ProductAttributeValue with id {id} not found")
-    if not pav.product or pav.product.shop_id != shop_id:
+    # Locked fetch instead of pav.product: serializes revision numbering with
+    # the parallel attribute-value writes the shop UI fires on save
+    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=pav.product_id, for_update=True)
+    if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"ProductAttributeValue with id {id} not found for this shop")
-    product = pav.product
     ensure_baseline_product_revision(product)
     db.session.delete(pav)
     created_by, source = actor(principal, request)

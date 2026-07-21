@@ -82,7 +82,9 @@ def get_by_id(id: UUID) -> ProductToTagSchema:
 )
 def create(request: Request, data: ProductToTagCreate = Body(...), principal: Any = Depends(auth_required)) -> None:
     tag = tag_crud.get(data.tag_id)
-    product = product_crud.get(data.product_id)
+    # Lock the product: tag links record a product revision and the shop UI
+    # saves multiple links concurrently
+    product = product_crud.get(data.product_id, for_update=True)
 
     if not tag or not product:
         raise_status(HTTPStatus.NOT_FOUND, "Tag or product not found")
@@ -111,7 +113,7 @@ def update(
     if not product_to_tag:
         raise HTTPException(status_code=404, detail="Shop not found")
 
-    product = product_crud.get(item_in.product_id)
+    product = product_crud.get(item_in.product_id, for_update=True)
     if product is not None:
         ensure_baseline_product_revision(product)
     product_to_tag = product_to_tag_crud.update(
@@ -137,7 +139,7 @@ def delete(product_to_tag_id: UUID, request: Request, principal: Any = Depends(a
     relation = product_to_tag_crud.get(product_to_tag_id)
     if not relation:
         raise_status(HTTPStatus.NOT_FOUND, f"ProductToTag with id {product_to_tag_id} not found")
-    product = relation.product
+    product = product_crud.get(relation.product_id, for_update=True)
     if product is not None:
         ensure_baseline_product_revision(product)
     db.session.delete(relation)
