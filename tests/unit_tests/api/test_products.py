@@ -118,9 +118,7 @@ def test_products_partial_update_without_translation(shop_with_config, product, 
     flag_modified(shop, "config")
     db.session.commit()
 
-    response = test_client.put(
-        f"/shops/{shop_with_config}/products/{product}", content=json_dumps({"stock": 42})
-    )
+    response = test_client.put(f"/shops/{shop_with_config}/products/{product}", content=json_dumps({"stock": 42}))
     assert response.status_code == 201, f"full response: {response.json()}"
     updated = ProductTable.query.filter_by(id=product).first()
     assert updated.stock == 42
