@@ -98,8 +98,9 @@ def create_option(
     Validates that the attribute exists and belongs to the given shop.
     The body must contain value_key; attribute_id from the path will be used.
     """
-    # Ensure the attribute exists under the shop
-    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id)
+    # Ensure the attribute exists under the shop; lock it so concurrent option
+    # writes serialize on attribute revision numbering
+    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id, for_update=True)
     if not attribute:
         raise_status(HTTPStatus.NOT_FOUND, f"Attribute with id {attribute_id} not found for this shop")
 
@@ -140,8 +141,8 @@ def delete_option(
     principal: Any = Depends(auth_required),
 ) -> None:
     """Delete an attribute option."""
-    # Ensure attribute belongs to shop
-    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id)
+    # Ensure attribute belongs to shop; lock for revision numbering
+    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=attribute_id, for_update=True)
     if not attribute:
         raise_status(HTTPStatus.NOT_FOUND, f"Attribute with id {attribute_id} not found for this shop")
 
@@ -213,8 +214,9 @@ def create_option_v2(
 
     Validates that the attribute exists and belongs to the given shop.
     """
-    # Ensure the attribute exists under the shop
-    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=data.attribute_id)
+    # Ensure the attribute exists under the shop; lock it so concurrent option
+    # writes serialize on attribute revision numbering
+    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=data.attribute_id, for_update=True)
     if not attribute:
         raise_status(HTTPStatus.NOT_FOUND, f"Attribute with id {data.attribute_id} not found for this shop")
 
@@ -276,7 +278,9 @@ def update_option_v2(
     if not option:
         raise_status(HTTPStatus.NOT_FOUND, f"Option with id {option_id} not found for this shop")
 
-    attribute = option.attribute
+    # Locked fetch instead of option.attribute: revision numbering must
+    # serialize with concurrent option writes
+    attribute = attribute_crud.get_id_by_shop_id(shop_id=shop_id, id=option.attribute_id, for_update=True)
     created_by, source = actor(principal, request)
     ensure_baseline_attribute_revision(attribute)
     try:
@@ -314,4 +318,9 @@ def delete_option_v2(
     if not option:
         raise_status(HTTPStatus.NOT_FOUND, f"Option with id {option_id} not found for this shop")
 
-    return _delete_option(option.attribute, option, force, principal, request)
+    # Locked fetch instead of option.attribute: revision numbering must
+    # serialize with concurrent option writes
+    attribute = attribute_crud.get_id_by_shop_id(
+        shop_id=shop_id, id=option.attribute_id, for_update=True, include_deleted=force
+    )
+    return _delete_option(attribute, option, force, principal, request)

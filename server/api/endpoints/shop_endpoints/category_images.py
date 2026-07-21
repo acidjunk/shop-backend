@@ -46,7 +46,8 @@ def get_by_id(id: UUID):
 
 @router.put("/{id}", status_code=HTTPStatus.CREATED)
 def put(*, id: UUID, item_in: CategoryUpdate, request: Request, principal: Any = Depends(auth_required)):
-    item = category_crud.get(id=id)
+    # Locked fetch: image updates record a category revision
+    item = category_crud.get(id=id, for_update=True)
     # todo: raise 404 o abort
 
     data = dict(item_in)
@@ -76,7 +77,8 @@ def put(*, id: UUID, item_in: CategoryUpdate, request: Request, principal: Any =
 
 @router.put("/delete/{id}", status_code=HTTPStatus.CREATED)
 def delete_image(*, id: UUID, col: CategoryImageDelete, request: Request, principal: Any = Depends(auth_required)):
-    item = category_crud.get(id=id)
+    # Locked fetch: image deletes record a category revision
+    item = category_crud.get(id=id, for_update=True)
 
     if not item:
         raise_status(HTTPStatus.NOT_FOUND, f"Category with id {id} not found")
