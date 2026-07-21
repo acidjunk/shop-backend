@@ -349,7 +349,11 @@ def update(
     shop = get_shop(shop_id)
     raw = json.loads(shop.config) if isinstance(shop.config, str) else (shop.config or {})
     toggles = Toggles.model_validate(raw.get("toggles", {}) if isinstance(raw, dict) else {})
-    if toggles.force_unique_product_names and item_in.translation is not None and item_in.translation.main_name is not None:
+    if (
+        toggles.force_unique_product_names
+        and item_in.translation is not None
+        and item_in.translation.main_name is not None
+    ):
         _assert_unique_name(shop_id, item_in.translation.main_name, exclude_product_id=product_id)
 
     item_in.modified_at = datetime.now(timezone.utc)
