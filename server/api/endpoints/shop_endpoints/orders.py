@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
+from server.agent_tags import AgentTag
 from server.api import deps
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
@@ -28,7 +29,7 @@ from server.schemas.account import AccountCreate
 from server.schemas.base import quantize_money
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.schemas.product import ProductTranslationBase
-from server.security import CustomCognitoToken, auth_required
+from server.security import CustomCognitoToken, auth_required, auth_required_any
 from server.services import stripe_client
 from server.services.shipping import compute_shipping_for_cart
 from server.services.stripe_client import StripeNotConfigured
@@ -104,14 +105,21 @@ def get_multi(
 @router.get(
     "/shop/{shop_id}/pending",
     response_model=List[OrderSchema],
+    tags=[AgentTag.EXPOSED, AgentTag.LARGE],
+    operation_id="list_pending_orders",
     summary="List pending orders for a shop",
-    description="Returns all orders with status `pending` for the given shop. These are orders awaiting fulfilment.",
+    description=(
+        "Read-only. Returns the shop's orders with status `pending` - orders awaiting fulfilment. "
+        "Scoped to the shop in the path; you cannot read other shops' orders. Results include "
+        "customer names and totals, so treat them as personal data. Supports pagination (`skip`/`limit`), "
+        "filtering and sorting via the common query parameters; narrow before calling on busy shops."
+    ),
 )
 def show_all_pending_orders_per_shop(
     shop_id: UUID,
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: CustomCognitoToken = Depends(auth_required),
+    principal: Any = Depends(auth_required_any),
 ) -> List[OrderSchema]:
     query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(OrderTable.status == "pending")
     orders, header_range = order_crud.get_multi(
@@ -135,14 +143,21 @@ def show_all_pending_orders_per_shop(
 @router.get(
     "/shop/{shop_id}/complete",
     response_model=List[OrderSchema],
+    tags=[AgentTag.EXPOSED, AgentTag.LARGE],
+    operation_id="list_complete_orders",
     summary="List completed orders for a shop",
-    description="Returns all orders with status `complete` or `cancelled` for the given shop. Used for order history and reporting.",
+    description=(
+        "Read-only. Returns the shop's orders with status `complete` or `cancelled` - the order history, "
+        "useful for reporting. Scoped to the shop in the path; you cannot read other shops' orders. "
+        "Results include customer names and totals, so treat them as personal data. Supports pagination "
+        "(`skip`/`limit`), filtering and sorting via the common query parameters; narrow before calling."
+    ),
 )
 def show_all_complete_orders_per_shop(
     shop_id: UUID,
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: CustomCognitoToken = Depends(auth_required),
+    principal: Any = Depends(auth_required_any),
 ) -> List[OrderSchema]:
     query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(
         or_(OrderTable.status == "complete", OrderTable.status == "cancelled")

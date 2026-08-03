@@ -1,5 +1,10 @@
-import pytest
+from uuid import uuid4
 
+import pytest
+from fastapi.testclient import TestClient
+
+from server.security import auth_required_any
+from tests.unit_tests.factories.api_key import make_api_key
 from tests.unit_tests.factories.categories import make_category
 from tests.unit_tests.factories.product import make_product
 from tests.unit_tests.factories.shop import make_shop_with_shipping
@@ -18,6 +23,50 @@ def test_orders_get_multi(shop, pending_order, test_client):
         info_total += order.get("shipping_fee_inc_btw") or 0
         # Total matches info total
         assert order["total"] == info_total
+
+
+# --- Read-only order tools exposed to MCP (list_pending_orders / list_complete_orders) ---
+
+
+def test_list_pending_orders_endpoint(shop, pending_order, test_client):
+    resp = test_client.get(f"/orders/shop/{shop}/pending")
+    assert resp.status_code == 200
+    orders = resp.json()
+    assert len(orders) == 1
+    assert orders[0]["status"] == "pending"
+
+
+def test_list_complete_orders_excludes_pending(shop, pending_order, test_client):
+    """A pending order must not appear in the complete/cancelled history feed."""
+    resp = test_client.get(f"/orders/shop/{shop}/complete")
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_list_pending_orders_scoped_to_shop(shop, pending_order, test_client):
+    """A different shop_id in the path must not surface this shop's orders (no cross-tenant leak)."""
+    other_shop = uuid4()
+    resp = test_client.get(f"/orders/shop/{other_shop}/pending")
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_list_pending_orders_opens_with_api_key(shop, pending_order, fastapi_app, monkeypatch):
+    """The read-only order tool is reachable with a per-shop API key (auth_required_any)."""
+    from server.settings import app_settings
+
+    # Force the dual-auth key path on regardless of the local .env dev toggle.
+    monkeypatch.setattr(app_settings, "API_KEYS_ENABLED", True)
+    override = fastapi_app.dependency_overrides.pop(auth_required_any, None)
+    try:
+        client = TestClient(fastapi_app)
+        _, plaintext = make_api_key(shop, name="orders-reader")
+        resp = client.get(f"/orders/shop/{shop}/pending", headers={"X-API-Key": plaintext})
+        assert resp.status_code == 200, resp.text
+        assert len(resp.json()) == 1
+    finally:
+        if override is not None:
+            fastapi_app.dependency_overrides[auth_required_any] = override
 
 
 @pytest.fixture()

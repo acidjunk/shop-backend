@@ -7835,8 +7835,8 @@
     },
     "/orders/shop/{shop_id}/complete": {
       "get": {
-        "description": "Returns all orders with status `complete` or `cancelled` for the given shop. Used for order history and reporting.",
-        "operationId": "show_all_complete_orders_per_shop_orders_shop__shop_id__complete_get",
+        "description": "Read-only. Returns the shop's orders with status `complete` or `cancelled` - the order history, useful for reporting. Scoped to the shop in the path; you cannot read other shops' orders. Results include customer names and totals, so treat them as personal data. Supports pagination (`skip`/`limit`), filtering and sorting via the common query parameters; narrow before calling.",
+        "operationId": "list_complete_orders",
         "parameters": [
           {
             "in": "path",
@@ -7895,6 +7895,22 @@
               "title": "Sort",
               "type": "array"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-API-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
           }
         ],
         "responses": {
@@ -7905,7 +7921,7 @@
                   "items": {
                     "$ref": "#/components/schemas/OrderSchema"
                   },
-                  "title": "Response Show All Complete Orders Per Shop Orders Shop  Shop Id  Complete Get",
+                  "title": "Response List Complete Orders",
                   "type": "array"
                 }
               }
@@ -7923,21 +7939,18 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "List completed orders for a shop",
         "tags": [
-          "orders"
+          "orders",
+          "agent-exposed",
+          "agent-large"
         ]
       }
     },
     "/orders/shop/{shop_id}/pending": {
       "get": {
-        "description": "Returns all orders with status `pending` for the given shop. These are orders awaiting fulfilment.",
-        "operationId": "show_all_pending_orders_per_shop_orders_shop__shop_id__pending_get",
+        "description": "Read-only. Returns the shop's orders with status `pending` - orders awaiting fulfilment. Scoped to the shop in the path; you cannot read other shops' orders. Results include customer names and totals, so treat them as personal data. Supports pagination (`skip`/`limit`), filtering and sorting via the common query parameters; narrow before calling on busy shops.",
+        "operationId": "list_pending_orders",
         "parameters": [
           {
             "in": "path",
@@ -7996,6 +8009,22 @@
               "title": "Sort",
               "type": "array"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-API-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
           }
         ],
         "responses": {
@@ -8006,7 +8035,7 @@
                   "items": {
                     "$ref": "#/components/schemas/OrderSchema"
                   },
-                  "title": "Response Show All Pending Orders Per Shop Orders Shop  Shop Id  Pending Get",
+                  "title": "Response List Pending Orders",
                   "type": "array"
                 }
               }
@@ -8024,14 +8053,11 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "List pending orders for a shop",
         "tags": [
-          "orders"
+          "orders",
+          "agent-exposed",
+          "agent-large"
         ]
       }
     },
