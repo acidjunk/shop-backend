@@ -29,7 +29,7 @@ from server.schemas.account import AccountCreate
 from server.schemas.base import quantize_money
 from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.schemas.product import ProductTranslationBase
-from server.security import CustomCognitoToken, auth_required, auth_required_any
+from server.security import CustomCognitoToken, auth_required, auth_required_any, auth_required_any_for_shop
 from server.services import stripe_client
 from server.services.shipping import compute_shipping_for_cart
 from server.services.stripe_client import StripeNotConfigured
@@ -81,7 +81,7 @@ def show_all_pending_orders_per_shop(
     shop_id: UUID,
     response: Response,
     common: dict = Depends(common_parameters),
-    principal: Any = Depends(auth_required_any),
+    principal: Any = Depends(auth_required_any_for_shop),
 ) -> List[OrderSchema]:
     query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(OrderTable.status == "pending")
     orders, header_range = order_crud.get_multi(
@@ -119,7 +119,7 @@ def show_all_complete_orders_per_shop(
     shop_id: UUID,
     response: Response,
     common: dict = Depends(common_parameters),
-    principal: Any = Depends(auth_required_any),
+    principal: Any = Depends(auth_required_any_for_shop),
 ) -> List[OrderSchema]:
     query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(
         or_(OrderTable.status == "complete", OrderTable.status == "cancelled")

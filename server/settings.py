@@ -46,7 +46,8 @@ class AppSettings(BaseSettings):
     # Deprecated — no longer read by order logic. Kept so existing .env files
     # that still set it don't fail settings validation on startup.
     ORDER_API_KEY: Optional[str] = None
-    # Set to False to bypass all API key auth (X-Order-Api-Key on orders + sv_ keys on CRUD).
+    # Set to False to bypass sv_ API-key auth on auth_required_any routes
+    # (falls back to Cognito). Intended for local development only.
     API_KEYS_ENABLED: bool = True
     # SESSION_SECRET: str = "".join(secrets.choice(string.ascii_letters) for i in range(16))  # noqa: S311
     SESSION_SECRET: str = "CHANGEME"
@@ -85,6 +86,9 @@ class AppSettings(BaseSettings):
         "OPTIONS",
         "HEAD",
     ]
+    # "*" is acceptable only while allow_credentials is unset (defaults False) in
+    # main.py — with credentials enabled, wildcard headers/origins become unsafe.
+    # NOTE: CORS_ORIGINS also defaults to "*"; production must override it.
     CORS_ALLOW_HEADERS: List[str] = ["*"]
 
     CORS_EXPOSE_HEADERS: List[str] = [
