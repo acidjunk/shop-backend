@@ -10,7 +10,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterable, List, Optional
+from typing import Any, Iterable, List, Optional
+from uuid import UUID
 
 from fastapi import Header, HTTPException, Request, Security
 from fastapi.param_functions import Depends
@@ -109,6 +110,26 @@ async def auth_required_any(
     # No API key supplied (or API keys disabled) — defer to Cognito.
     token = await cognito_eu.auth_required(request)
     return auth_required(token)
+
+
+async def auth_required_any_for_shop(shop_id: UUID, principal: Any = Depends(auth_required_any)) -> Any:
+    """Like :func:`auth_required_any`, but binds an API-key principal to the shop in the path.
+
+    A per-shop ``sv_`` key is minted for exactly one shop, yet nothing else ties
+    it to the ``shop_id`` path param — so without this check a key for shop A
+    could read shop B's data by changing the path. Here we reject that (403).
+
+    Cognito principals are unaffected (shop access is resolved via group
+    membership elsewhere). Use this on ``auth_required_any`` routes that return
+    shop-scoped data — currently the read-only order tools. The broader CRUD
+    surface still relies on the path param alone; see acidjunk/shop-poc#135.
+    """
+    # Lazy import — avoids a models<->security import cycle.
+    from server.db.models import ApiKeyTable
+
+    if isinstance(principal, ApiKeyTable) and principal.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="API key is not valid for this shop")
+    return principal
 
 
 def admin_required(token: CognitoToken = Depends(auth_required)):

@@ -56,17 +56,12 @@ def test_list_pending_orders_filters_by_path_shop(shop, pending_order, test_clie
     assert resp.json() == []
 
 
-@pytest.mark.xfail(
-    reason="acidjunk/shop-poc#135: auth_required_any does not bind the API key's shop_id "
-    "to the path shop_id, so a foreign key can read another shop's orders (PII). "
-    "Remove this marker once the dependency enforces the match.",
-    strict=True,
-)
 def test_list_pending_orders_rejects_foreign_api_key(shop, pending_order, fastapi_app, monkeypatch):
     """An API key minted for shop A must NOT read shop B's orders (cross-tenant PII).
 
-    The assertion below is the target contract; it currently fails because the
-    key is not scoped to the path shop. Tracked in acidjunk/shop-poc#135.
+    Enforced by ``auth_required_any_for_shop``, which binds an API-key principal
+    to the shop in the path. (The broader CRUD surface is still tracked in
+    acidjunk/shop-poc#135.)
     """
     from server.settings import app_settings
 
