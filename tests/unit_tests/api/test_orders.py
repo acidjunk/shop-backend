@@ -43,12 +43,44 @@ def test_list_complete_orders_excludes_pending(shop, pending_order, test_client)
     assert resp.json() == []
 
 
-def test_list_pending_orders_scoped_to_shop(shop, pending_order, test_client):
-    """A different shop_id in the path must not surface this shop's orders (no cross-tenant leak)."""
+def test_list_pending_orders_filters_by_path_shop(shop, pending_order, test_client):
+    """Results are filtered by the path shop_id: another shop's path returns no rows.
+
+    NOTE: this only proves the query filter, not caller authorization. Whether a
+    caller is *allowed* to read the shop in the path is covered by
+    ``test_list_pending_orders_rejects_foreign_api_key`` below.
+    """
     other_shop = uuid4()
     resp = test_client.get(f"/orders/shop/{other_shop}/pending")
     assert resp.status_code == 200
     assert resp.json() == []
+
+
+@pytest.mark.xfail(
+    reason="acidjunk/shop-poc#135: auth_required_any does not bind the API key's shop_id "
+    "to the path shop_id, so a foreign key can read another shop's orders (PII). "
+    "Remove this marker once the dependency enforces the match.",
+    strict=True,
+)
+def test_list_pending_orders_rejects_foreign_api_key(shop, pending_order, fastapi_app, monkeypatch):
+    """An API key minted for shop A must NOT read shop B's orders (cross-tenant PII).
+
+    The assertion below is the target contract; it currently fails because the
+    key is not scoped to the path shop. Tracked in acidjunk/shop-poc#135.
+    """
+    from server.settings import app_settings
+
+    monkeypatch.setattr(app_settings, "API_KEYS_ENABLED", True)
+    other_shop = make_shop_with_shipping()
+    override = fastapi_app.dependency_overrides.pop(auth_required_any, None)
+    try:
+        client = TestClient(fastapi_app)
+        _, plaintext = make_api_key(other_shop, name="foreign-reader")
+        resp = client.get(f"/orders/shop/{shop}/pending", headers={"X-API-Key": plaintext})
+        assert resp.status_code == 403, resp.text
+    finally:
+        if override is not None:
+            fastapi_app.dependency_overrides[auth_required_any] = override
 
 
 def test_list_pending_orders_opens_with_api_key(shop, pending_order, fastapi_app, monkeypatch):
