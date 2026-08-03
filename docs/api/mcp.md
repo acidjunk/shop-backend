@@ -17,7 +17,17 @@ Twenty tools, one per shop CRUD operation. Tool names match the route's `operati
 
 List tools also carry `AgentTag.LARGE`, signalling to well-behaved clients that they should filter before calling.
 
-Any route *not* tagged with `AgentTag.EXPOSED` is invisible to MCP — even though it's still served by the same REST API. Orders, accounts, prices, Stripe, shop config etc. are intentionally REST-only.
+### Read-only order tools
+
+Orders are exposed **read-only** — an agent can review a shop's orders but cannot create, change, or delete them (those stay REST-only). Both tools are shop-scoped by their path (`/orders/shop/{shop_id}/...`), so a caller can only read the orders of the shop in the path, and both carry `AgentTag.LARGE`:
+
+| Resource | Pending | Complete |
+|----------|---------|----------|
+| Orders | `list_pending_orders` | `list_complete_orders` |
+
+Order records include customer names and totals, so clients should treat the results as personal data.
+
+Any route *not* tagged with `AgentTag.EXPOSED` is invisible to MCP — even though it's still served by the same REST API. Order writes (create/update/patch/delete), accounts, prices, Stripe, shop config etc. are intentionally REST-only.
 
 ## Enabling the endpoint
 

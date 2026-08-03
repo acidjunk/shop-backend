@@ -67,6 +67,9 @@ EXPECTED_TOOL_NAMES = {
     "restore_attribute",
     # shops
     "list_my_shops",
+    # orders (read-only)
+    "list_pending_orders",
+    "list_complete_orders",
 }
 
 
