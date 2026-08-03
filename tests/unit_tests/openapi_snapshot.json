@@ -741,10 +741,7 @@
         "required": [
           "shop_id",
           "color",
-          "translation",
-          "main_image",
-          "alt1_image",
-          "alt2_image"
+          "translation"
         ],
         "title": "CategoryCreate",
         "type": "object"
@@ -853,9 +850,6 @@
           "shop_id",
           "color",
           "translation",
-          "main_image",
-          "alt1_image",
-          "alt2_image",
           "id"
         ],
         "title": "CategorySchema",
@@ -923,6 +917,78 @@
         "title": "CategoryTranslationBase",
         "type": "object"
       },
+      "CategoryTranslationUpdate": {
+        "properties": {
+          "alt1_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt1 Description"
+          },
+          "alt1_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt1 Name"
+          },
+          "alt2_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt2 Description"
+          },
+          "alt2_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt2 Name"
+          },
+          "main_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Main Description"
+          },
+          "main_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Main Name"
+          }
+        },
+        "title": "CategoryTranslationUpdate",
+        "type": "object"
+      },
       "CategoryUpdate": {
         "properties": {
           "alt1_image": {
@@ -956,8 +1022,15 @@
             "title": "Alt2 Image"
           },
           "color": {
-            "title": "Color",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
           },
           "icon": {
             "anyOf": [
@@ -997,22 +1070,28 @@
             "title": "Order Number"
           },
           "shop_id": {
-            "format": "uuid",
-            "title": "Shop Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shop Id"
           },
           "translation": {
-            "$ref": "#/components/schemas/CategoryTranslationBase"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CategoryTranslationUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
-        "required": [
-          "shop_id",
-          "color",
-          "translation",
-          "main_image",
-          "alt1_image",
-          "alt2_image"
-        ],
         "title": "CategoryUpdate",
         "type": "object"
       },
@@ -11678,7 +11757,7 @@
         ]
       },
       "put": {
-        "description": "Update an existing category's details and translations.",
+        "description": "Partially update a category. Send ONLY the fields you want to change; omitted fields are left untouched. Names and descriptions live in the nested `translation` object and can also be sent partially. `main_image`, `alt1_image` and `alt2_image` are S3 object filenames managed by the image-upload flow - do not set them unless explicitly given a filename.",
         "operationId": "update_category",
         "parameters": [
           {
