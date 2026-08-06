@@ -112,6 +112,7 @@ async def auth_required_any(
     return auth_required(token)
 
 
+# TODO replace all auth_required_any where possible with this
 async def auth_required_any_for_shop(shop_id: UUID, principal: Any = Depends(auth_required_any)) -> Any:
     """Like :func:`auth_required_any`, but binds an API-key principal to the shop in the path.
 
