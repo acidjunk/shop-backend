@@ -83,10 +83,16 @@ class AppSettings(BaseSettings):
         "OPTIONS",
         "HEAD",
     ]
-    # "*" is acceptable only while allow_credentials is unset (defaults False) in
-    # main.py — with credentials enabled, wildcard headers/origins become unsafe.
-    # NOTE: CORS_ORIGINS also defaults to "*"; production must override it.
-    CORS_ALLOW_HEADERS: List[str] = ["*"]
+    # Todo: find correct header settings for upload of file with:
+    #  No 'Access-Control-Allow-Origin' header is present on the requested resource.
+    CORS_ALLOW_HEADERS: List[str] = [
+        "If-None-Match",
+        "Authorization",
+        "If-Match",
+        "Content-Type",
+        "Access-Control-Allow-Origin",
+    ]
+    # CORS_ALLOW_HEADERS: List[str] = ["*"]
 
     CORS_EXPOSE_HEADERS: List[str] = [
         "Cache-Control",
