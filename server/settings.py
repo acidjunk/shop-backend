@@ -43,9 +43,6 @@ class AppSettings(BaseSettings):
     # How many revisions to keep per entity (product/category). Pruned on write.
     # The PIM undo story assumes at least 10; values below that are ignored.
     REVISION_RETENTION: int = 25
-    # Deprecated — no longer read by order logic. Kept so existing .env files
-    # that still set it don't fail settings validation on startup.
-    ORDER_API_KEY: Optional[str] = None
     # Set to False to bypass sv_ API-key auth on auth_required_any routes
     # (falls back to Cognito). Intended for local development only.
     API_KEYS_ENABLED: bool = True
