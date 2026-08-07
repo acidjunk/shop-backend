@@ -100,11 +100,7 @@ def test_fastmcp_introspects_all_expected_tools(fastapi_app: FastAPI) -> None:
     from fastmcp import FastMCP
 
     from server.mcp.server import mount_mcp  # noqa: F401 — sanity import
-
-    try:
-        from fastmcp.server.openapi import MCPType, RouteMap
-    except ImportError:  # pragma: no cover — older fastmcp module path
-        from fastmcp.server.providers.openapi import MCPType, RouteMap  # type: ignore[no-redef]
+    from fastmcp.server.openapi import MCPType, RouteMap
 
     mcp = FastMCP.from_fastapi(
         app=fastapi_app,
@@ -131,11 +127,7 @@ def test_update_product_tool_has_no_required_body_fields(fastapi_app: FastAPI) -
     """
     pytest.importorskip("fastmcp")
     from fastmcp import FastMCP
-
-    try:
-        from fastmcp.server.openapi import MCPType, RouteMap
-    except ImportError:  # pragma: no cover — older fastmcp module path
-        from fastmcp.server.providers.openapi import MCPType, RouteMap  # type: ignore[no-redef]
+    from fastmcp.server.openapi import MCPType, RouteMap
 
     mcp = FastMCP.from_fastapi(
         app=fastapi_app,
@@ -163,11 +155,7 @@ def test_update_category_tool_has_no_required_body_fields(fastapi_app: FastAPI) 
     """
     pytest.importorskip("fastmcp")
     from fastmcp import FastMCP
-
-    try:
-        from fastmcp.server.openapi import MCPType, RouteMap
-    except ImportError:  # pragma: no cover — older fastmcp module path
-        from fastmcp.server.providers.openapi import MCPType, RouteMap  # type: ignore[no-redef]
+    from fastmcp.server.openapi import MCPType, RouteMap
 
     mcp = FastMCP.from_fastapi(
         app=fastapi_app,
