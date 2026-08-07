@@ -98,9 +98,9 @@ def test_fastmcp_introspects_all_expected_tools(fastapi_app: FastAPI) -> None:
     """``FastMCP.from_fastapi`` produces exactly the expected tools from the tagged routes."""
     pytest.importorskip("fastmcp")
     from fastmcp import FastMCP
+    from fastmcp.server.openapi import MCPType, RouteMap
 
     from server.mcp.server import mount_mcp  # noqa: F401 — sanity import
-    from fastmcp.server.openapi import MCPType, RouteMap
 
     mcp = FastMCP.from_fastapi(
         app=fastapi_app,
