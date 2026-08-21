@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 COPY ./requirements /tmp/requirements
-RUN pip install -r /tmp/requirements/deploy.txt
+RUN pip install -r /tmp/requirements/base.txt
 
 EXPOSE 8080
 
