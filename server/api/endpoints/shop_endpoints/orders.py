@@ -112,7 +112,9 @@ def get_multi(
         "Read-only. Returns the shop's orders with status `pending` - orders awaiting fulfilment. "
         "Scoped to the shop in the path; you cannot read other shops' orders. Results include "
         "customer names and totals, so treat them as personal data. Supports pagination (`skip`/`limit`), "
-        "filtering and sorting via the common query parameters; narrow before calling on busy shops."
+        "filtering and sorting via the common query parameters. `filter` matches order fields only "
+        "(status, dates, totals, etc.) and does NOT match customer name or email - to find a customer's "
+        "orders, list the shop's orders and match on `account_name` client-side."
     ),
 )
 def show_all_pending_orders_per_shop(
@@ -150,7 +152,9 @@ def show_all_pending_orders_per_shop(
         "Read-only. Returns the shop's orders with status `complete` or `cancelled` - the order history, "
         "useful for reporting. Scoped to the shop in the path; you cannot read other shops' orders. "
         "Results include customer names and totals, so treat them as personal data. Supports pagination "
-        "(`skip`/`limit`), filtering and sorting via the common query parameters; narrow before calling."
+        "(`skip`/`limit`), filtering and sorting via the common query parameters. `filter` matches order "
+        "fields only (status, dates, totals, etc.) and does NOT match customer name or email - to find a "
+        "customer's orders, list the shop's orders and match on `account_name` client-side."
     ),
 )
 def show_all_complete_orders_per_shop(
