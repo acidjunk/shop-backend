@@ -2495,6 +2495,16 @@
             ],
             "title": "Description"
           },
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaymentPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "price": {
             "anyOf": [
               {
@@ -2543,6 +2553,16 @@
               }
             ],
             "title": "Description"
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaymentPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "price": {
             "title": "Price",
@@ -2912,6 +2932,16 @@
         ],
         "title": "OrderUpdated",
         "type": "object"
+      },
+      "PaymentPlan": {
+        "description": "Payment interval chosen for a cart line.\n\nDetermines which product price the backend treats as authoritative:\n``onetime`` -> ``price`` (with active discount), ``monthly`` ->\n``recurring_price_monthly``, ``yearly`` -> ``recurring_price_yearly``.",
+        "enum": [
+          "onetime",
+          "monthly",
+          "yearly"
+        ],
+        "title": "PaymentPlan",
+        "type": "string"
       },
       "ProductAttributeItem": {
         "description": "Lightweight representation of a product's attribute value used in responses.\n\n- attribute_id: the AttributeTable id\n- attribute_name: translated main_name for display (optional, may be omitted in some endpoints)\n- option_id: the AttributeOptionTable id when the value is an enum option\n- option_value_key: the option key (e.g., \"XS\", \"M\") when applicable",
@@ -6084,7 +6114,7 @@
   "info": {
     "description": "Backend for ShopVirge Shops.",
     "title": "ShopVirge API",
-    "version": "0.4.4"
+    "version": "0.4.5"
   },
   "openapi": "3.1.0",
   "paths": {
