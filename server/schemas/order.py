@@ -12,22 +12,40 @@
 # limitations under the License.
 import uuid
 from datetime import datetime
+from enum import Enum
 from typing import Any, List, Optional
 from uuid import UUID
 
 from server.schemas.base import BoilerplateBaseModel, Money
 
 
+class PaymentPlan(str, Enum):
+    """Payment interval chosen for a cart line.
+
+    Determines which product price the backend treats as authoritative:
+    ``onetime`` -> ``price`` (with active discount), ``monthly`` ->
+    ``recurring_price_monthly``, ``yearly`` -> ``recurring_price_yearly``.
+    """
+
+    onetime = "onetime"
+    monthly = "monthly"
+    yearly = "yearly"
+
+
 # Made them optional for now because there are some empty order_info fields in DB
 class OrderItem(BoilerplateBaseModel):
     description: Optional[str]
-    price: Money  # Was optional
+    price: Money  # Was optionaladditionalProperties
     # kind_id: Optional[str]
     # kind_name: Optional[str]
     product_id: UUID  # Was optional
     product_name: str  # Was optional
     # internal_product_id: Optional[str]
     quantity: int  # Was optional
+    # Payment interval for this line. Optional for backward compatibility with
+    # clients that predate server-side pricing; absent -> resolved to onetime
+    # (or the cart-level "yearly" note). Used to pick the authoritative price.
+    plan: Optional[PaymentPlan] = None
 
     # @root_validator
     # def check_order_item_if_has_both(cls, values):
