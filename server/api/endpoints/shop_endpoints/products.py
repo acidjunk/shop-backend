@@ -313,9 +313,12 @@ def create(
         record_product_revision(product, action="create", created_by=created_by, source=source)
         db.session.commit()
         db.session.refresh(product)
-    except IntegrityError:
+    except IntegrityError as e:
         db.session.rollback()
-        raise_status(HTTPStatus.CONFLICT, f"A product with SKU '{data.sku}' already exists in this shop")
+        if "uq_products_shop_sku" in str(e.orig):
+            raise_status(HTTPStatus.CONFLICT, f"A product with SKU '{data.sku}' already exists in this shop")
+        logger.error("Integrity error while creating product", error=str(e.orig))
+        raise_status(HTTPStatus.BAD_REQUEST, "Could not create product: invalid or conflicting data")
     return product
 
 
