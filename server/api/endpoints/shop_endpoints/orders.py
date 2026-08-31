@@ -147,6 +147,36 @@ def show_all_complete_orders_per_shop(
 
 
 @router.get(
+    "/shop/{shop_id}/order/{id}",
+    response_model=OrderSchema,
+    tags=[AgentTag.EXPOSED],
+    operation_id="get_order",
+    summary="Get a single order for a shop",
+    description=(
+        "Read-only. Retrieve a single order by its UUID, scoped to the shop in the path - "
+        "you cannot read another shop's order this way even if you know its UUID. Includes "
+        "line items, account name, and shop name. Use after `list_pending_orders` or "
+        "`list_complete_orders` to drill into a specific order."
+    ),
+)
+def get_order(
+    shop_id: UUID,
+    id: UUID,
+    principal: Any = Depends(auth_required_any_for_shop),
+) -> OrderSchema:
+    order = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(OrderTable.id == id).first()
+    if not order:
+        raise_status(HTTPStatus.NOT_FOUND, f"Order with id {id} not found for shop {shop_id}")
+
+    if order.account_id:
+        order.account_name = order.account.name
+    if order.shop_id:
+        order.shop_name = order.shop.name
+
+    return order
+
+
+@router.get(
     "/{id}",
     summary="Get order",
     description="Retrieve a single order by its UUID, including line items, account name, and shop name.",

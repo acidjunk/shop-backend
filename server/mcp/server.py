@@ -46,7 +46,9 @@ def mount_mcp(app: FastAPI) -> "Starlette":
 
     Only routes tagged with ``AgentTag.EXPOSED`` are surfaced; all other
     routes are excluded (otherwise fastmcp's default would expose every
-    route in the app as a tool).
+    route in the app as a tool). ``register_ui_tools`` then adds the
+    hand-written mcp-ui tools on top — those are not route-derived, see
+    ``server/mcp/ui_tools.py``.
 
     The returned sub-app carries its own ASGI lifespan that the parent must
     enter — Starlette does not invoke a mounted sub-app's lifespan. Use
@@ -56,6 +58,8 @@ def mount_mcp(app: FastAPI) -> "Starlette":
     from fastmcp import FastMCP
     from fastmcp.server.openapi import MCPType, RouteMap
 
+    from server.mcp.ui_tools import register_ui_tools
+
     mcp = FastMCP.from_fastapi(
         app=app,
         name="shopvirge-mcp",
@@ -64,6 +68,8 @@ def mount_mcp(app: FastAPI) -> "Starlette":
             RouteMap(mcp_type=MCPType.EXCLUDE),
         ],
     )
+
+    register_ui_tools(mcp, app)
 
     mcp_app = mcp.http_app(path="/", transport="http")
     app.mount(MCP_MOUNT_PATH, mcp_app)

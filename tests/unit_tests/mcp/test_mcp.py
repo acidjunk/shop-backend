@@ -20,6 +20,7 @@ Pattern adapted from ``workfloworchestrator/orchestrator-core`` PR #1620.
 from __future__ import annotations
 
 import asyncio
+from uuid import UUID
 
 import pytest
 from fastapi import FastAPI
@@ -70,7 +71,12 @@ EXPECTED_TOOL_NAMES = {
     # orders (read-only)
     "list_pending_orders",
     "list_complete_orders",
+    "get_order",
 }
+
+# Hand-written tools added by ``register_ui_tools`` — deliberately NOT in
+# EXPECTED_TOOL_NAMES, which is also asserted against the FastAPI route table.
+EXPECTED_CUSTOM_TOOL_NAMES = {"orders_table_ui"}
 
 
 def _agent_tagged_routes(app: FastAPI) -> dict[str, str]:
@@ -171,6 +177,78 @@ def test_update_category_tool_has_no_required_body_fields(fastapi_app: FastAPI) 
     required = set(schema.get("required", []))
     assert not any(r.endswith("_image") for r in required), f"image fields still required: {required}"
     assert "translation" not in required, f"translation still required: {required}"
+
+
+def _mcp_with_ui_tools(fastapi_app: FastAPI):
+    from fastmcp import FastMCP
+    from fastmcp.server.openapi import MCPType, RouteMap
+
+    from server.mcp.ui_tools import register_ui_tools
+
+    mcp = FastMCP.from_fastapi(
+        app=fastapi_app,
+        name="shopvirge-mcp-test",
+        route_maps=[
+            RouteMap(tags={AgentTag.EXPOSED.value}, mcp_type=MCPType.TOOL),
+            RouteMap(mcp_type=MCPType.EXCLUDE),
+        ],
+    )
+    register_ui_tools(mcp, fastapi_app)
+    return mcp
+
+
+def test_register_ui_tools_adds_custom_tools(fastapi_app: FastAPI) -> None:
+    """``register_ui_tools`` adds the hand-written tools on top of the route-derived ones."""
+    pytest.importorskip("fastmcp")
+
+    tools = asyncio.run(_mcp_with_ui_tools(fastapi_app).get_tools())
+    expected = EXPECTED_TOOL_NAMES | EXPECTED_CUSTOM_TOOL_NAMES
+    assert set(tools) == expected, f"missing: {expected - set(tools)}, extra: {set(tools) - expected}"
+
+
+def test_orders_table_ui_returns_a_ui_resource(fastapi_app: FastAPI, shop, pending_order) -> None:
+    """The tool returns exactly one ``ui://`` text/html resource containing the order.
+
+    That URI scheme + mimeType combination is the exact contract LibreChat's
+    ``formatToolContent`` keys on to render an iframe instead of raw text.
+    Called through a fastmcp ``Client`` so the real tool-call path (and the
+    tool's in-process HTTP call back into the app) is exercised.
+    """
+    pytest.importorskip("fastmcp")
+    from fastmcp import Client
+    from mcp.types import EmbeddedResource
+
+    mcp = _mcp_with_ui_tools(fastapi_app)
+
+    async def call():
+        async with Client(mcp) as client:
+            return await client.call_tool("orders_table_ui", {"shop_id": str(shop), "status": "pending"})
+
+    result = asyncio.run(call())
+
+    resources = [block for block in result.content if isinstance(block, EmbeddedResource)]
+    assert len(resources) == 1, f"expected exactly one embedded resource, got {result.content}"
+
+    resource = resources[0].resource
+    assert str(resource.uri).startswith("ui://"), resource.uri
+    assert resource.mimeType == "text/html"
+    assert str(pending_order) in resource.text, "rendered table does not reference the pending order"
+    assert "postMessage" in resource.text and "get_order" in resource.text
+
+
+def test_orders_table_ui_escapes_order_data(fastapi_app: FastAPI) -> None:
+    """Order data is user-controlled and lands in a scripted iframe — it must be escaped."""
+    from server.mcp.ui_tools import _orders_table_html
+
+    rendered = _orders_table_html(
+        UUID("00000000-0000-0000-0000-000000000001"),
+        "pending",
+        [{"id": "00000000-0000-0000-0000-000000000002", "account_name": "<script>alert(1)</script>"}],
+    )
+    assert "<script>alert(1)</script>" not in rendered
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in rendered
+    assert "color-scheme: dark" in rendered
+    assert "background: #111827" in rendered
 
 
 def test_mount_mcp_is_importable() -> None:

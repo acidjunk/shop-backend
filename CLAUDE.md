@@ -120,11 +120,12 @@ Any route not tagged `AgentTag.EXPOSED` is excluded from MCP by default.
 
 When adding or removing MCP-exposed routes, also:
 - Bump `APP_VERSION` in `server/main.py`.
-- Regenerate `tests/unit_tests/openapi_snapshot.json` (the drift guard test will fail otherwise):
-  ```bash
-  PYTHONPATH=. pytest tests/unit_tests/test_openapi_snapshot.py --snapshot-update
-  ```
-- Update `EXPECTED_TOOL_NAMES` in `tests/unit_tests/mcp/test_mcp.py`.
+- Regenerate `tests/unit_tests/openapi_snapshot.json` (the drift guard is
+  `tests/unit_tests/test_openapi_version.py`; there is no `--snapshot-update` flag).
+  Use the `python -c` one-liner documented in that test module's docstring — it needs
+  `MAIL_TEST_ENDPOINT_ENABLED=false` and the new `APP_VERSION`.
+- Update `EXPECTED_TOOL_NAMES` in `tests/unit_tests/mcp/test_mcp.py` (route-derived tools),
+  or `EXPECTED_CUSTOM_TOOL_NAMES` for hand-written tools added in `server/mcp/ui_tools.py`.
 
 ## Testing
 

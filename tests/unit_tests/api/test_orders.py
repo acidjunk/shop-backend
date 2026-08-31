@@ -96,6 +96,38 @@ def test_list_pending_orders_opens_with_api_key(shop, pending_order, fastapi_app
             fastapi_app.dependency_overrides[auth_required_any] = override
 
 
+def test_get_order_endpoint(shop, pending_order, test_client):
+    resp = test_client.get(f"/orders/shop/{shop}/order/{pending_order}")
+    assert resp.status_code == 200, resp.text
+    order = resp.json()
+    assert order["id"] == str(pending_order)
+    assert len(order["order_info"]) == 2
+    assert order["shop_name"]
+
+
+def test_get_order_is_scoped_to_path_shop(shop, pending_order, test_client):
+    """Knowing an order UUID must not be enough to read it under another shop's path."""
+    resp = test_client.get(f"/orders/shop/{uuid4()}/order/{pending_order}")
+    assert resp.status_code == 404, resp.text
+
+
+def test_get_order_rejects_foreign_api_key(shop, pending_order, fastapi_app, monkeypatch):
+    """An API key minted for shop A must NOT read shop B's order detail (cross-tenant PII)."""
+    from server.settings import app_settings
+
+    monkeypatch.setattr(app_settings, "API_KEYS_ENABLED", True)
+    other_shop = make_shop_with_shipping()
+    override = fastapi_app.dependency_overrides.pop(auth_required_any, None)
+    try:
+        client = TestClient(fastapi_app)
+        _, plaintext = make_api_key(other_shop, name="foreign-detail-reader")
+        resp = client.get(f"/orders/shop/{shop}/order/{pending_order}", headers={"X-API-Key": plaintext})
+        assert resp.status_code == 403, resp.text
+    finally:
+        if override is not None:
+            fastapi_app.dependency_overrides[auth_required_any] = override
+
+
 @pytest.fixture()
 def shop_no_shipping_with_products():
     shop_id = make_shop_with_shipping(enabled=False)

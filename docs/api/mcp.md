@@ -6,7 +6,7 @@ The integration follows the pattern from [`workfloworchestrator/orchestrator-cor
 
 ## What gets exposed
 
-Twenty tools, one per shop CRUD operation. Tool names match the route's `operation_id`:
+One tool per shop CRUD operation. Tool names match the route's `operation_id`:
 
 | Resource | List | Get | Create | Update | Delete |
 |----------|------|-----|--------|--------|--------|
@@ -21,11 +21,23 @@ List tools also carry `AgentTag.LARGE`, signalling to well-behaved clients that 
 
 Orders are exposed **read-only** — an agent can review a shop's orders but cannot create, change, or delete them (those stay REST-only). Both tools are shop-scoped by their path (`/orders/shop/{shop_id}/...`), so a caller can only read the orders of the shop in the path, and both carry `AgentTag.LARGE`:
 
-| Resource | Pending | Complete |
-|----------|---------|----------|
-| Orders | `list_pending_orders` | `list_complete_orders` |
+| Resource | Pending | Complete | Detail |
+|----------|---------|----------|--------|
+| Orders | `list_pending_orders` | `list_complete_orders` | `get_order` |
+
+`get_order` (`GET /orders/shop/{shop_id}/order/{id}`) is shop-scoped the same way: it filters on the `shop_id` in the path, so knowing an order's UUID is not enough to read another shop's order. It is a *separate* route from the public `GET /orders/{id}` — that one is unauthenticated and deliberately left untouched.
 
 Order records include customer names and totals, so clients should treat the results as personal data.
+
+### Interactive UI tools (mcp-ui)
+
+| Tool | Returns |
+|------|---------|
+| `orders_table_ui` | A `ui://` HTML resource rendering the shop's orders as a clickable table |
+
+`orders_table_ui` is the first tool that is **not** derived from a FastAPI route — it lives in `server/mcp/ui_tools.py` and is registered directly on the `FastMCP` instance by `register_ui_tools(mcp, app)`. That means the "how auth flows through `from_fastapi`" explanation below does **not** automatically cover it. It stays authenticated and shop-scoped by deliberately re-using the same mechanism by hand: it calls the existing `list_pending_orders` / `list_complete_orders` route in-process over `httpx.ASGITransport`, forwarding the incoming MCP request's `authorization` / `x-api-key` headers via `fastmcp.server.dependencies.get_http_headers()`. Any future hand-written tool must do the same (or re-implement `auth_required_any_for_shop`), because the `/mcp` mount itself has no auth of its own.
+
+It returns an [mcp-ui](https://github.com/idosal/mcp-ui) resource — a content block with a `ui://` URI and `mimeType: text/html`. Clients that don't understand mcp-ui (Claude Desktop, MCP Inspector) just see the resource; clients that do (LibreChat ≥ 0.8.7) render it as a sandboxed iframe. Clicking a row posts `{type: 'tool', payload: {toolName: 'get_order', params: {shop_id, id}}}` to the host, which turns it into a new turn asking the model to call `get_order`. The click is therefore fire-and-forget: the result arrives as a new assistant message, not patched back into the table. This is mcp-ui, *not* the newer "MCP Apps" proposal.
 
 Any route *not* tagged with `AgentTag.EXPOSED` is invisible to MCP — even though it's still served by the same REST API. Order writes (create/update/patch/delete), accounts, prices, Stripe, shop config etc. are intentionally REST-only.
 
@@ -140,7 +152,7 @@ curl -X POST https://api.example.com/mcp/ \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-You should see all 20 tool definitions in the response.
+You should see every tool definition in the response — the route-derived ones plus the hand-written `orders_table_ui`.
 
 ## How auth flows through `from_fastapi`
 
