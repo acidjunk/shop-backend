@@ -40,15 +40,6 @@ class ProductTranslationBase(BoilerplateBaseModel):
     alt2_description: Optional[str] = None
     alt2_description_short: Optional[str] = None
 
-    @field_validator("main_name", "main_description", "main_description_short")
-    @classmethod
-    def required_translation_fields_must_not_be_blank(cls, value: str) -> str:
-        # These columns are NOT NULL in the DB, and CRUDBase.create_by_shop_id turns "" into
-        # None before insert — reject blanks here so it's a 422, not a DB IntegrityError.
-        if not value.strip():
-            raise ValueError("must not be empty")
-        return value
-
 
 class ProductBase(BoilerplateBaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -81,9 +72,29 @@ class ProductBase(BoilerplateBaseModel):
     translation: ProductTranslationBase
 
 
+class ProductTranslationCreate(ProductTranslationBase):
+    @field_validator("main_name", "main_description", "main_description_short")
+    @classmethod
+    def required_translation_fields_must_not_be_blank(cls, value: str) -> str:
+        # These columns are NOT NULL in the DB, and CRUDBase.create_by_shop_id turns "" into
+        # None before insert — reject blanks here so it's a 422, not a DB IntegrityError.
+        if not value.strip():
+            raise ValueError("must not be empty")
+        return value
+
+
 # Properties to receive via API on creation
 class ProductCreate(ProductBase):
-    pass
+    translation: ProductTranslationCreate
+
+    @field_validator("tax_category")
+    @classmethod
+    def tax_category_must_not_be_blank(cls, value: str) -> str:
+        # NOT NULL in the DB, and CRUDBase.create_by_shop_id turns "" into None before
+        # insert — reject blanks here so it's a 422, not a DB IntegrityError.
+        if not value.strip():
+            raise ValueError("must not be empty")
+        return value
 
 
 # Properties to receive via API on update

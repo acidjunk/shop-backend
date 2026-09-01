@@ -58,6 +58,16 @@ def _assert_unique_name(shop_id: UUID, main_name: str, exclude_product_id: UUID 
         raise_status(HTTPStatus.CONFLICT, f"A product named '{main_name}' already exists in this shop")
 
 
+def _assert_unique_sku(shop_id: UUID, sku: str | None, exclude_product_id: UUID | None = None) -> None:
+    if not sku:
+        return
+    query = ProductTable.query.filter_by(shop_id=shop_id, sku=sku)
+    if exclude_product_id:
+        query = query.filter(ProductTable.id != exclude_product_id)
+    if query.first():
+        raise_status(HTTPStatus.CONFLICT, f"A product with SKU '{sku}' already exists in this shop")
+
+
 @router.get(
     "/",
     response_model=List[ProductWithDefaultPrice],
@@ -296,6 +306,7 @@ def create(
     toggles = Toggles.model_validate(raw.get("toggles", {}) if isinstance(raw, dict) else {})
     if toggles.force_unique_product_names:
         _assert_unique_name(shop_id, data.translation.main_name)
+    _assert_unique_sku(shop_id, data.sku)
 
     product = (
         ProductTable.query.filter_by(shop_id=shop_id)
