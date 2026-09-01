@@ -167,21 +167,21 @@ class AppSettings(BaseSettings):
 
     # TODO: think of better naming convention
     # Production S3 bucket
-    S3_BUCKET_IMAGES_ACCESS_KEY_ID: str = "CHANGEME"
-    S3_BUCKET_IMAGES_SECRET_ACCESS_KEY: str = "CHANGEME"
+    S3_BUCKET_IMAGES_ACCESS_KEY_ID: Optional[str] = None
+    S3_BUCKET_IMAGES_SECRET_ACCESS_KEY: Optional[str] = None
     S3_BUCKET_IMAGES_NAME: str = "CHANGE_THIS_FOR_UPLOAD"  # used to store images and to generate signed URI's
 
     S3_BUCKET_DOWNLOADS_NAME: str = "CHANGE_THIS_FOR_UPLOAD"
-    S3_BUCKET_DOWNLOADS_ACCESS_KEY_ID: str = "CHANGEME"
-    S3_BUCKET_DOWNLOADS_SECRET_ACCESS_KEY: str = "CHANGEME"
+    S3_BUCKET_DOWNLOADS_ACCESS_KEY_ID: Optional[str] = None
+    S3_BUCKET_DOWNLOADS_SECRET_ACCESS_KEY: Optional[str] = None
 
     # Temporary S3 where images go before they are moved to the production bucket
     S3_BUCKET_TEMPORARY_NAME: str = "CHANGEME"
     S3_TEMPORARY_ACCESS_KEY_ID: str = "CHANGEME"
     S3_TEMPORARY_ACCESS_KEY: str = "CHANGEME"
 
-    S3_BUCKET_UPLOAD_ACCESS_KEY_ID: str = "CHANGEME"
-    S3_BUCKET_UPLOAD_SECRET_ACCESS_KEY: str = "CHANGEME"
+    S3_BUCKET_UPLOAD_ACCESS_KEY_ID: Optional[str] = None
+    S3_BUCKET_UPLOAD_SECRET_ACCESS_KEY: Optional[str] = None
     S3_BUCKET_UPLOAD_IMAGES_NAME: str = "CHANGE_THIS_FOR_IMAGE_UPLOAD"  # used to store images
     S3_BUCKET_UPLOAD_DOWNLOADS_NAME: str = "CHANGE_THIS_FOR_ASSET_UPLOAD"  # used to store downloads
 
