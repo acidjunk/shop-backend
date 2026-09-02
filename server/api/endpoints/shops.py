@@ -29,7 +29,7 @@ from server.schemas.shop import (
     ShopUpdate,
     ShopWithPrices,
 )
-from server.security import ADMIN_GROUP, CustomCognitoToken, auth_required
+from server.security import CustomCognitoToken, auth_required, has_admin_group
 
 router = APIRouter()
 logger = structlog.get_logger(__name__)
@@ -75,7 +75,7 @@ def get_my_shops(
     token: CustomCognitoToken = Depends(auth_required),
 ) -> MyShopsResponse:
     shops, _ = shop_crud.get_multi(skip=0, limit=1000, filter_parameters=[], sort_parameters=[])
-    is_admin = ADMIN_GROUP in token.cognito_groups
+    is_admin = has_admin_group(token.cognito_groups)
     if is_admin:
         accessible = shops
     else:

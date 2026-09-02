@@ -10,7 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 from fastapi import Header, HTTPException, Request, Security
 from fastapi.param_functions import Depends
@@ -23,7 +23,11 @@ from server.settings import app_settings, auth_settings
 
 logger = get_logger(__name__)
 
-ADMIN_GROUP = "Admins"
+ADMIN_GROUPS = ("Admins", "admins")
+
+
+def has_admin_group(groups: Iterable[str]) -> bool:
+    return any(group in ADMIN_GROUPS for group in groups)
 
 
 class CustomCognitoToken(BaseModel):
@@ -112,7 +116,7 @@ def admin_required(token: CognitoToken = Depends(auth_required)):
     if token.client_id != app_settings.AWS_COGNITO_CLIENT_ID:
         return token
 
-    if ADMIN_GROUP in getattr(token, "cognito_groups", []):
+    if has_admin_group(getattr(token, "cognito_groups", [])):
         return token
 
-    raise HTTPException(status_code=403, detail=f"User is not a member of the '{ADMIN_GROUP}' group")
+    raise HTTPException(status_code=403, detail="User is not a member of the 'Admins' group")
