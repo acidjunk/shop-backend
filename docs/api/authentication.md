@@ -53,7 +53,7 @@ def protected_route(token = Depends(auth_required)):
 
 `auth_required` accepts both user and M2M tokens. For M2M-only endpoints, the handler can assert on `token.scope` inside the body.
 
-For endpoints that require membership of the Cognito `Admins` group, use `admin_required` instead:
+For endpoints that require membership of the Cognito `admins` group (or the legacy `Admins` casing), use `admin_required` instead:
 
 ```python
 from server.security import admin_required
@@ -80,7 +80,7 @@ def protected_route(principal = Depends(auth_required_any)):
 
 Authentication proves *who* is calling. Which shops they can touch is determined by their **Cognito group membership**:
 
-- Members of the `Admins` group can access every shop.
+- Members of the `admins` group, or the legacy `Admins` group, can access every shop.
 - All other users can only access shops whose UUID matches one of their Cognito group names. A user is given access to a shop by adding them to a Cognito group named after that shop's UUID.
 
 `GET /shops/my-shops` (also exposed as the `list_my_shops` MCP tool) returns the list of accessible shops and a `can_write` flag. MCP agents are expected to call this first. The individual shop-scoped endpoints do not re-enforce this check on every request — they rely on the caller having already resolved their shop access via `my-shops`.
@@ -88,4 +88,4 @@ Authentication proves *who* is calling. Which shops they can touch is determined
 ## Troubleshooting
 
 - **401 on every Cognito-protected route:** verify `AWS_COGNITO_USERPOOL_ID`, region, and client IDs in the environment. Placeholder defaults in `server/settings.py` will not work against real tokens.
-- **403 on an admin route:** the user authenticated successfully but is not a member of the Cognito `Admins` group.
+- **403 on an admin route:** the user authenticated successfully but is not a member of the Cognito `admins` or legacy `Admins` group.

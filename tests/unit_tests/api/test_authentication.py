@@ -1,8 +1,11 @@
 import re
 import uuid
 
+import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
+
+from server.security import has_admin_group
 
 EXCLUDED_ENDPOINTS = [
     {"path": "/health/", "name": "get_health", "method": "GET"},
@@ -24,6 +27,15 @@ EXCLUDED_ENDPOINTS = [
     # TODO fix this endpoint so it no longer needs the shop_id or fix this bug by fixing the UT below
     {"path": "/shops/{shop_id}/attributes/{attribute_id}/options/", "name": "list_options", "method": "GET"},
 ]
+
+
+@pytest.mark.parametrize("group", ["Admins", "admins"])
+def test_has_admin_group_accepts_supported_casing(group):
+    assert has_admin_group([group]) is True
+
+
+def test_has_admin_group_rejects_other_groups():
+    assert has_admin_group(["users"]) is False
 
 
 def get_endpoints(fastapi_app):

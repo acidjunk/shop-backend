@@ -208,7 +208,7 @@ def fastapi_app(database, db_uri):
     app.add_exception_handler(ProblemDetailException, problem_detail_handler)
 
     def get_current_active_superuser_override() -> CustomCognitoToken:
-        # Return a token with the ``Admins`` Cognito group so the
+        # Return a token with the ``admins`` Cognito group so the
         # ``admin_required`` dependency lets requests through in tests.
         # Use the configured client id so it's treated as a user token,
         # not M2M, by ``admin_required``.
@@ -223,7 +223,7 @@ def fastapi_app(database, db_uri):
             iat=9727169594,
             jti="jti",
             username="5678",
-            **{"cognito:groups": ["Admins"]},
+            **{"cognito:groups": ["admins"]},
         )
 
     app.dependency_overrides[auth_required] = get_current_active_superuser_override

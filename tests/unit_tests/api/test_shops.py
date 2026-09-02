@@ -15,6 +15,16 @@ def test_shops_get_multi(test_client, shop):
     assert "Test Shop" in [shop["name"] for shop in shops]
 
 
+def test_my_shops_admin_gets_all_shops(test_client, shop):
+    response = test_client.get("/shops/my-shops")
+
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+    assert data["is_admin"] is True
+    assert data["can_write"] is True
+    assert len(data["shops"]) == 2
+
+
 def test_shop_get_by_id(shop, test_client):
     response = test_client.get(f"/shops/{shop}")
     assert HTTPStatus.OK == response.status_code

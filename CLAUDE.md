@@ -97,7 +97,7 @@ Three auth dependencies in `server/security.py`:
 
 - `auth_required` — Cognito JWT only (user tokens or M2M tokens with `/api` scope). Used on management routes.
 - `auth_required_any` — API key **or** Cognito JWT. Used on MCP-exposed CRUD routes (products, categories, tags, attributes).
-- `admin_required` — wraps `auth_required`; additionally asserts membership in the Cognito `Admins` group.
+- `admin_required` — wraps `auth_required`; additionally asserts membership in the Cognito `admins` group or its legacy `Admins` casing.
 
 API keys have the prefix `sv_` and are issued per shop via `POST /shops/{shop_id}/api-keys/` (Cognito-only). They only reach routes using `auth_required_any` — the full REST surface requires Cognito.
 
