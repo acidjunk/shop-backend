@@ -26,15 +26,7 @@ from server.mail import send_order_confirmation_emails
 from server.schemas import ProductUpdate
 from server.schemas.account import AccountCreate
 from server.schemas.base import quantize_money
-from server.schemas.order import (
-    OrderBase,
-    OrderCreate,
-    OrderCreated,
-    OrderSchema,
-    OrderUpdate,
-    OrderUpdated,
-    PaymentPlan,
-)
+from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
 from server.schemas.product import ProductTranslationBase
 from server.security import CustomCognitoToken, auth_required
 from server.services import stripe_client
@@ -64,26 +56,20 @@ def _discount_active(product: Any) -> bool:
     return True
 
 
-def _authoritative_unit_price_inc(product: Any, plan: Optional[PaymentPlan], shop: Any) -> Optional[Decimal]:
+def _authoritative_unit_price_inc(product: Any, shop: Any) -> Optional[Decimal]:
     """Resolve the tax-inclusive unit price for an order line from the DB product.
 
     Product prices are stored ex-VAT (net); this grosses them up with the
     product's VAT rate. Returns ``None`` when no authoritative price can be
-    derived (product missing, or the selected plan has no price configured), so
-    the caller can fall back to the client-supplied value.
+    derived (product missing), so the caller can fall back to the
+    client-supplied value.
     """
     if product is None:
         return None
 
-    plan_value = plan.value if isinstance(plan, PaymentPlan) else (plan or PaymentPlan.onetime.value)
-    if plan_value == PaymentPlan.monthly.value:
-        net = product.recurring_price_monthly
-    elif plan_value == PaymentPlan.yearly.value:
-        net = product.recurring_price_yearly
-    else:  # onetime (default)
-        net = product.price
-        if product.discounted_price is not None and _discount_active(product):
-            net = product.discounted_price
+    net = product.price
+    if product.discounted_price is not None and _discount_active(product):
+        net = product.discounted_price
 
     if net is None:
         return None
@@ -323,24 +309,15 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
         data.status = "complete"
         data.completed_at = datetime.now()
 
-    # Derive each line's price from the product in the DB (by product_id)
-    # instead of trusting the client. This is the authoritative price the
-    # customer is charged; a client-supplied price that disagrees is logged and
-    # overridden so prices can't be manipulated from the front-end.
-    # Fallback plan for clients that don't send a per-line plan yet: honour the
-    # cart-level "yearly" note, otherwise assume a one-time payment.
-    default_plan = PaymentPlan.yearly if data.notes == "yearly" else PaymentPlan.onetime
     for order_product in data.order_info:
         product = product_crud.get_id_by_shop_id(shop_id, order_product.product_id)
-        plan = order_product.plan or default_plan
-        server_unit_inc = _authoritative_unit_price_inc(product, plan, shop)
+        server_unit_inc = _authoritative_unit_price_inc(product, shop)
         if server_unit_inc is None:
             logger.warning(
                 "Could not derive authoritative price for order line; keeping client price",
                 shop_id=str(shop_id),
                 product_id=str(order_product.product_id),
                 product_name=order_product.product_name,
-                plan=plan.value if isinstance(plan, PaymentPlan) else plan,
                 client_price=str(order_product.price),
             )
             continue
@@ -350,7 +327,6 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
                 shop_id=str(shop_id),
                 product_id=str(order_product.product_id),
                 product_name=order_product.product_name,
-                plan=plan.value if isinstance(plan, PaymentPlan) else plan,
                 client_price=str(order_product.price),
                 server_price=str(server_unit_inc),
             )
