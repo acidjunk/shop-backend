@@ -40,6 +40,44 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
+def _discount_active(product: Any) -> bool:
+    """True if the product's discount window is currently open.
+
+    A missing ``discounted_from``/``discounted_to`` bound is treated as open on
+    that side (an ongoing discount).
+    """
+    now = datetime.now()
+    start = getattr(product, "discounted_from", None)
+    end = getattr(product, "discounted_to", None)
+    if start is not None and now < start:
+        return False
+    if end is not None and now > end:
+        return False
+    return True
+
+
+def _authoritative_unit_price_inc(product: Any) -> Optional[Decimal]:
+    """Resolve the tax-inclusive unit price for an order line from the DB product.
+
+    ``product.price`` (and ``discounted_price``) are already tax-inclusive, in
+    line with how the rest of the order/shipping pipeline treats cart line
+    prices. Returns ``None`` when no authoritative price can be derived
+    (product missing), so the caller can fall back to the client-supplied
+    value.
+    """
+    if product is None:
+        return None
+
+    price = product.price
+    if product.discounted_price is not None and _discount_active(product):
+        price = product.discounted_price
+
+    if price is None:
+        return None
+
+    return quantize_money(price)
+
+
 @router.get(
     "/",
     response_model=List[OrderSchema],
@@ -270,8 +308,32 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
         data.status = "complete"
         data.completed_at = datetime.now()
 
+    for order_product in data.order_info:
+        product = product_crud.get_id_by_shop_id(shop_id, order_product.product_id)
+        server_unit_inc = _authoritative_unit_price_inc(product)
+        if server_unit_inc is None:
+            logger.warning(
+                "Could not derive authoritative price for order line; keeping client price",
+                shop_id=str(shop_id),
+                product_id=str(order_product.product_id),
+                product_name=order_product.product_name,
+                client_price=str(order_product.price),
+            )
+            continue
+        if quantize_money(order_product.price) != server_unit_inc:
+            logger.warning(
+                "Order line price mismatch; overriding client price with server price",
+                shop_id=str(shop_id),
+                product_id=str(order_product.product_id),
+                product_name=order_product.product_name,
+                client_price=str(order_product.price),
+                server_price=str(server_unit_inc),
+            )
+        order_product.price = server_unit_inc
+
     # Compute shipping fee from shop config and recompute the persisted total
-    # server-side so it can't be manipulated by the client.
+    # server-side from the authoritative line prices so it can't be manipulated
+    # by the client.
     shipping_calc = compute_shipping_for_cart(data.order_info, shop)
     data.shipping_fee_inc_btw = shipping_calc.fee_inc_btw if shipping_calc is not None else None
     items_total = sum((item.price * item.quantity for item in data.order_info), Decimal("0"))

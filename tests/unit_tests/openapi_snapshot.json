@@ -3329,7 +3329,7 @@
             "type": "string"
           },
           "translation": {
-            "$ref": "#/components/schemas/ProductTranslationBase"
+            "$ref": "#/components/schemas/ProductTranslationCreate"
           }
         },
         "required": [
@@ -3799,6 +3799,95 @@
           "main_description_short"
         ],
         "title": "ProductTranslationBase",
+        "type": "object"
+      },
+      "ProductTranslationCreate": {
+        "properties": {
+          "alt1_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt1 Description"
+          },
+          "alt1_description_short": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt1 Description Short"
+          },
+          "alt1_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt1 Name"
+          },
+          "alt2_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt2 Description"
+          },
+          "alt2_description_short": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt2 Description Short"
+          },
+          "alt2_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt2 Name"
+          },
+          "main_description": {
+            "title": "Main Description",
+            "type": "string"
+          },
+          "main_description_short": {
+            "title": "Main Description Short",
+            "type": "string"
+          },
+          "main_name": {
+            "title": "Main Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "main_name",
+          "main_description",
+          "main_description_short"
+        ],
+        "title": "ProductTranslationCreate",
         "type": "object"
       },
       "ProductUpdate": {
@@ -6084,7 +6173,7 @@
   "info": {
     "description": "Backend for ShopVirge Shops.",
     "title": "ShopVirge API",
-    "version": "0.4.4"
+    "version": "0.4.6"
   },
   "openapi": "3.1.0",
   "paths": {
