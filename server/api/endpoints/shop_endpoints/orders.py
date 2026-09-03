@@ -30,7 +30,7 @@ from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSche
 from server.schemas.product import ProductTranslationBase
 from server.security import CustomCognitoToken, auth_required
 from server.services import stripe_client
-from server.services.shipping import compute_shipping_for_cart, resolve_vat_rate
+from server.services.shipping import compute_shipping_for_cart
 from server.services.stripe_client import StripeNotConfigured
 from server.settings import mail_settings
 from server.utils.discord.discord import post_discord_order_complete
@@ -56,27 +56,26 @@ def _discount_active(product: Any) -> bool:
     return True
 
 
-def _authoritative_unit_price_inc(product: Any, shop: Any) -> Optional[Decimal]:
+def _authoritative_unit_price_inc(product: Any) -> Optional[Decimal]:
     """Resolve the tax-inclusive unit price for an order line from the DB product.
 
-    Product prices are stored ex-VAT (net); this grosses them up with the
-    product's VAT rate. Returns ``None`` when no authoritative price can be
-    derived (product missing), so the caller can fall back to the
-    client-supplied value.
+    ``product.price`` (and ``discounted_price``) are already tax-inclusive, in
+    line with how the rest of the order/shipping pipeline treats cart line
+    prices. Returns ``None`` when no authoritative price can be derived
+    (product missing), so the caller can fall back to the client-supplied
+    value.
     """
     if product is None:
         return None
 
-    net = product.price
+    price = product.price
     if product.discounted_price is not None and _discount_active(product):
-        net = product.discounted_price
+        price = product.discounted_price
 
-    if net is None:
+    if price is None:
         return None
 
-    rate = resolve_vat_rate(product, shop)
-    gross = Decimal(str(net)) * (Decimal("1") + rate / Decimal("100"))
-    return quantize_money(gross)
+    return quantize_money(price)
 
 
 @router.get(
@@ -311,7 +310,7 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
 
     for order_product in data.order_info:
         product = product_crud.get_id_by_shop_id(shop_id, order_product.product_id)
-        server_unit_inc = _authoritative_unit_price_inc(product, shop)
+        server_unit_inc = _authoritative_unit_price_inc(product)
         if server_unit_inc is None:
             logger.warning(
                 "Could not derive authoritative price for order line; keeping client price",
