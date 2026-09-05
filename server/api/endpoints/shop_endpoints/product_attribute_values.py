@@ -244,6 +244,7 @@ def _create_product_attribute_values(
     "/{product_id}",
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
+    tags=[AgentTag.EXPOSED],
     summary="Replace product attribute values for product",
     operation_id="product_attribute_values_replace_for_product",
 )
@@ -252,7 +253,7 @@ def put_selected_product_attribute_values_by_product(
     product_id: UUID,
     request: Request,
     data: ProductAttributeOptionSelectionReplace = Body(...),
-    principal: Any = Depends(auth_required),
+    principal: Any = Depends(auth_required_any),
 ) -> None:
     """New version of selected options endpoint addressed by product_id in the path.
 
@@ -351,11 +352,12 @@ def put_selected_product_attribute_values_by_product(
     "/{id}",
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
+    tags=[AgentTag.EXPOSED],
     summary="Delete product attribute value",
     operation_id="product_attribute_values_delete",
 )
 def delete_product_attribute_value(
-    shop_id: UUID, id: UUID, request: Request, principal: Any = Depends(auth_required)
+    shop_id: UUID, id: UUID, request: Request, principal: Any = Depends(auth_required_any)
 ) -> None:
     """Delete a product attribute value if it belongs to the given shop."""
     pav = product_attribute_value_crud.get(id)
