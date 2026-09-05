@@ -25,119 +25,11 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 @router.get(
-    "/{product_id}/tags",
-    response_model=List[TagSchema],
-    tags=[AgentTag.EXPOSED],
-    operation_id="list_product_tags",
-    summary="List a product's tags",
-)
-def list_product_tags(shop_id: UUID, product_id: UUID) -> List[TagSchema]:
-    """Retrieve every tag currently assigned to one product in the specified shop."""
-    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id)
-    if not product:
-        raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
-
-    return (
-        db.session.query(TagTable)
-        .join(ProductToTagTable, ProductToTagTable.tag_id == TagTable.id)
-        .filter(ProductToTagTable.shop_id == shop_id, ProductToTagTable.product_id == product_id)
-        .all()
-    )
-
-
-@router.post(
-    "/{product_id}/tags/{tag_id}",
-    response_model=None,
-    status_code=HTTPStatus.NO_CONTENT,
-    tags=[AgentTag.EXPOSED],
-    operation_id="add_tag_to_product",
-    summary="Assign a tag to a product",
-)
-def add_tag_to_product(
-    shop_id: UUID,
-    product_id: UUID,
-    tag_id: UUID,
-    request: Request,
-    principal: Any = Depends(auth_required_any),
-) -> None:
-    """Assign an existing tag to an existing product in the same shop.
-
-    The operation is idempotent: when the tag is already assigned, it succeeds
-    without creating another link or product revision.
-    """
-    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id, for_update=True)
-    if not product:
-        raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
-
-    tag = tag_crud.get_id_by_shop_id(shop_id=shop_id, id=tag_id)
-    if not tag:
-        raise_status(HTTPStatus.NOT_FOUND, f"Tag {tag_id} not found for this shop")
-
-    existing = (
-        db.session.query(ProductToTagTable)
-        .filter(
-            ProductToTagTable.shop_id == shop_id,
-            ProductToTagTable.product_id == product_id,
-            ProductToTagTable.tag_id == tag_id,
-        )
-        .first()
-    )
-    if existing:
-        return None
-
-    ensure_baseline_product_revision(product)
-    db.session.add(ProductToTagTable(shop_id=shop_id, product_id=product_id, tag_id=tag_id))
-    created_by, source = actor(principal, request)
-    record_product_revision(product, action="update", created_by=created_by, source=source)
-    db.session.commit()
-    return None
-
-
-@router.delete(
-    "/{product_id}/tags/{tag_id}",
-    response_model=None,
-    status_code=HTTPStatus.NO_CONTENT,
-    tags=[AgentTag.EXPOSED],
-    operation_id="remove_tag_from_product",
-    summary="Remove a tag from a product",
-)
-def remove_tag_from_product(
-    shop_id: UUID,
-    product_id: UUID,
-    tag_id: UUID,
-    request: Request,
-    principal: Any = Depends(auth_required_any),
-) -> None:
-    """Remove a tag assignment from a product in the specified shop."""
-    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id, for_update=True)
-    if not product:
-        raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
-
-    link = (
-        db.session.query(ProductToTagTable)
-        .filter(
-            ProductToTagTable.shop_id == shop_id,
-            ProductToTagTable.product_id == product_id,
-            ProductToTagTable.tag_id == tag_id,
-        )
-        .first()
-    )
-    if not link:
-        raise_status(HTTPStatus.NOT_FOUND, "Tag is not assigned to this product")
-
-    ensure_baseline_product_revision(product)
-    db.session.delete(link)
-    created_by, source = actor(principal, request)
-    record_product_revision(product, action="update", created_by=created_by, source=source)
-    db.session.commit()
-    return None
-
-
-@router.get(
     "/",
     response_model=List[ProductToTagSchema],
     summary="List product-tag associations",
     description="Returns all product-to-tag relationship records for a shop.",
+    AGENT_TAGS=[AgentTag.EXPOSED, AgentTag.LARGE],
 )
 def get_multi(response: Response, common: dict = Depends(common_parameters)) -> List[ProductToTagSchema]:
     query_result, content_range = product_to_tag_crud.get_multi(
@@ -154,6 +46,7 @@ def get_multi(response: Response, common: dict = Depends(common_parameters)) -> 
     "/get_relation_id",
     summary="Get product-tag relation ID",
     description="Find the UUID of the association record between a specific product and tag. Returns 400 if the relation does not exist.",
+    AGENT_TAGS=[AgentTag.EXPOSED],
 )
 def get_relation_id(tag_id: UUID, product_id: UUID) -> None:
     tag = tag_crud.get(tag_id)
@@ -175,6 +68,7 @@ def get_relation_id(tag_id: UUID, product_id: UUID) -> None:
     response_model=ProductToTagSchema,
     summary="Get product-tag association",
     description="Retrieve a single product-to-tag association by its UUID.",
+    AGENT_TAGS=[AgentTag.EXPOSED],
 )
 def get_by_id(id: UUID) -> ProductToTagSchema:
     product_to_tag = product_to_tag_crud.get(id)
@@ -188,6 +82,7 @@ def get_by_id(id: UUID) -> ProductToTagSchema:
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
     summary="Add tag to product",
+    AGENT_TAGS=[AgentTag.EXPOSED],
     description="Create an association between a product and a tag. Both must exist within the shop.",
 )
 def create(request: Request, data: ProductToTagCreate = Body(...), principal: Any = Depends(auth_required)) -> None:
@@ -213,10 +108,11 @@ def create(request: Request, data: ProductToTagCreate = Body(...), principal: An
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
     summary="Update product-tag association",
+    AGENT_TAGS=[AgentTag.EXPOSED],
     description="Update an existing product-tag association record.",
 )
 def update(
-    *, product_to_tag_id: UUID, item_in: ProductToTagUpdate, request: Request, principal: Any = Depends(auth_required)
+    *, product_to_tag_id: UUID, item_in: ProductToTagUpdate, request: Request, principal: Any = Depends(auth_required_any)
 ) -> Any:
     product_to_tag = product_to_tag_crud.get(id=product_to_tag_id)
     logger.info("Updating product_to_tag", data=product_to_tag)
@@ -244,8 +140,9 @@ def update(
     status_code=HTTPStatus.NO_CONTENT,
     summary="Remove tag from product",
     description="Delete the association between a product and a tag.",
+    AGENT_TAGS=[AgentTag.EXPOSED],
 )
-def delete(product_to_tag_id: UUID, request: Request, principal: Any = Depends(auth_required)) -> None:
+def delete(product_to_tag_id: UUID, request: Request, principal: Any = Depends(auth_required_any)) -> None:
     relation = product_to_tag_crud.get(product_to_tag_id)
     if not relation:
         raise_status(HTTPStatus.NOT_FOUND, f"ProductToTag with id {product_to_tag_id} not found")
