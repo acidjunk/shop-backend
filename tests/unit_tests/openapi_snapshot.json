@@ -6373,7 +6373,7 @@
   "info": {
     "description": "Backend for ShopVirge Shops.",
     "title": "ShopVirge API",
-    "version": "0.4.9"
+    "version": "0.4.10"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -13027,16 +13027,12 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Delete product attribute value",
         "tags": [
           "shops",
           "products",
-          "attributes"
+          "attributes",
+          "agent-exposed"
         ]
       },
       "get": {
@@ -13256,23 +13252,19 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Replace product attribute values for product",
         "tags": [
           "shops",
           "products",
-          "attributes"
+          "attributes",
+          "agent-exposed"
         ]
       }
     },
     "/shops/{shop_id}/products-to-tags/": {
       "get": {
         "description": "Returns all product-to-tag relationship records for a shop.",
-        "operationId": "get_multi_shops__shop_id__products_to_tags__get",
+        "operationId": "list_product_to_tags",
         "parameters": [
           {
             "in": "query",
@@ -13321,6 +13313,22 @@
               "title": "Sort",
               "type": "array"
             }
+          },
+          {
+            "in": "header",
+            "name": "X-API-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
           }
         ],
         "responses": {
@@ -13331,7 +13339,7 @@
                   "items": {
                     "$ref": "#/components/schemas/ProductToTagSchema"
                   },
-                  "title": "Response Get Multi Shops  Shop Id  Products To Tags  Get",
+                  "title": "Response List Product To Tags",
                   "type": "array"
                 }
               }
@@ -13349,20 +13357,35 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "List product-tag associations",
         "tags": [
           "shops",
-          "products"
+          "products",
+          "agent-exposed",
+          "agent-large"
         ]
       },
       "post": {
         "description": "Create an association between a product and a tag. Both must exist within the shop.",
-        "operationId": "create_shops__shop_id__products_to_tags__post",
+        "operationId": "create_product_to_tag",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-API-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -13388,22 +13411,18 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Add tag to product",
         "tags": [
           "shops",
-          "products"
+          "products",
+          "agent-exposed"
         ]
       }
     },
     "/shops/{shop_id}/products-to-tags/get_relation_id": {
       "get": {
         "description": "Find the UUID of the association record between a specific product and tag. Returns 400 if the relation does not exist.",
-        "operationId": "get_relation_id_shops__shop_id__products_to_tags_get_relation_id_get",
+        "operationId": "get_product_to_tag_relation_id",
         "parameters": [
           {
             "in": "query",
@@ -13423,6 +13442,22 @@
               "format": "uuid",
               "title": "Product Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-API-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
             }
           }
         ],
@@ -13446,22 +13481,18 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Get product-tag relation ID",
         "tags": [
           "shops",
-          "products"
+          "products",
+          "agent-exposed"
         ]
       }
     },
     "/shops/{shop_id}/products-to-tags/{id}": {
       "get": {
         "description": "Retrieve a single product-to-tag association by its UUID.",
-        "operationId": "get_by_id_shops__shop_id__products_to_tags__id__get",
+        "operationId": "get_product_to_tag",
         "parameters": [
           {
             "in": "path",
@@ -13471,6 +13502,22 @@
               "format": "uuid",
               "title": "Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-API-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
             }
           }
         ],
@@ -13496,22 +13543,18 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Get product-tag association",
         "tags": [
           "shops",
-          "products"
+          "products",
+          "agent-exposed"
         ]
       }
     },
     "/shops/{shop_id}/products-to-tags/{product_to_tag_id}": {
       "delete": {
         "description": "Delete the association between a product and a tag.",
-        "operationId": "delete_shops__shop_id__products_to_tags__product_to_tag_id__delete",
+        "operationId": "delete_product_to_tag",
         "parameters": [
           {
             "in": "path",
@@ -13521,6 +13564,22 @@
               "format": "uuid",
               "title": "Product To Tag Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-API-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
             }
           }
         ],
@@ -13539,20 +13598,16 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Remove tag from product",
         "tags": [
           "shops",
-          "products"
+          "products",
+          "agent-exposed"
         ]
       },
       "put": {
         "description": "Update an existing product-tag association record.",
-        "operationId": "update_shops__shop_id__products_to_tags__product_to_tag_id__put",
+        "operationId": "update_product_to_tag",
         "parameters": [
           {
             "in": "path",
@@ -13562,6 +13617,22 @@
               "format": "uuid",
               "title": "Product To Tag Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-API-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
             }
           }
         ],
@@ -13590,15 +13661,11 @@
             "description": "Validation Error"
           }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
         "summary": "Update product-tag association",
         "tags": [
           "shops",
-          "products"
+          "products",
+          "agent-exposed"
         ]
       }
     },
@@ -14583,230 +14650,6 @@
         "tags": [
           "shops",
           "products"
-        ]
-      }
-    },
-    "/shops/{shop_id}/products/{product_id}/tags": {
-      "get": {
-        "description": "Retrieve every tag currently assigned to one product in the specified shop.",
-        "operationId": "list_product_tags",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "shop_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Shop Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "product_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Product Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-API-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Api-Key"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/TagSchema"
-                  },
-                  "title": "Response List Product Tags",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List a product's tags",
-        "tags": [
-          "shops",
-          "products",
-          "agent-exposed"
-        ]
-      }
-    },
-    "/shops/{shop_id}/products/{product_id}/tags/{tag_id}": {
-      "delete": {
-        "description": "Remove a tag assignment from a product in the specified shop.",
-        "operationId": "remove_tag_from_product",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "shop_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Shop Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "product_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Product Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "tag_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Tag Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-API-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Api-Key"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Remove a tag from a product",
-        "tags": [
-          "shops",
-          "products",
-          "agent-exposed"
-        ]
-      },
-      "post": {
-        "description": "Assign an existing tag to an existing product in the same shop.\n\nThe operation is idempotent: when the tag is already assigned, it succeeds\nwithout creating another link or product revision.",
-        "operationId": "add_tag_to_product",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "shop_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Shop Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "product_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Product Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "tag_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Tag Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-API-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Api-Key"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Assign a tag to a product",
-        "tags": [
-          "shops",
-          "products",
-          "agent-exposed"
         ]
       }
     },

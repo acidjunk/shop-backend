@@ -135,7 +135,7 @@ api_router.include_router(
     products_to_tags.router,
     prefix="/shops/{shop_id}/products-to-tags",
     tags=["shops", "products"],
-    dependencies=[Depends(auth_required)],
+    dependencies=[Depends(auth_required_any)],
 )
 api_router.include_router(
     revisions.router,

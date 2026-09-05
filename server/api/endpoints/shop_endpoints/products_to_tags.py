@@ -14,22 +14,23 @@ from server.crud.crud_product import product_crud
 from server.crud.crud_product_to_tag import product_to_tag_crud
 from server.crud.crud_tag import tag_crud
 from server.db import db
-from server.db.models import ProductToTagTable, TagTable
+from server.db.models import ProductToTagTable
 from server.schemas.product_to_tag import ProductToTagCreate, ProductToTagSchema, ProductToTagUpdate
-from server.schemas.tag import TagSchema
-from server.security import auth_required, auth_required_any
+from server.security import auth_required_any
 from server.services.revisions import actor, ensure_baseline_product_revision, record_product_revision
 
 logger = structlog.get_logger(__name__)
 
 router = APIRouter()
 
+
 @router.get(
     "/",
     response_model=List[ProductToTagSchema],
+    operation_id="list_product_to_tags",
     summary="List product-tag associations",
     description="Returns all product-to-tag relationship records for a shop.",
-    AGENT_TAGS=[AgentTag.EXPOSED, AgentTag.LARGE],
+    tags=[AgentTag.EXPOSED, AgentTag.LARGE],
 )
 def get_multi(response: Response, common: dict = Depends(common_parameters)) -> List[ProductToTagSchema]:
     query_result, content_range = product_to_tag_crud.get_multi(
@@ -44,9 +45,10 @@ def get_multi(response: Response, common: dict = Depends(common_parameters)) -> 
 
 @router.get(
     "/get_relation_id",
+    operation_id="get_product_to_tag_relation_id",
     summary="Get product-tag relation ID",
     description="Find the UUID of the association record between a specific product and tag. Returns 400 if the relation does not exist.",
-    AGENT_TAGS=[AgentTag.EXPOSED],
+    tags=[AgentTag.EXPOSED],
 )
 def get_relation_id(tag_id: UUID, product_id: UUID) -> None:
     tag = tag_crud.get(tag_id)
@@ -66,9 +68,10 @@ def get_relation_id(tag_id: UUID, product_id: UUID) -> None:
 @router.get(
     "/{id}",
     response_model=ProductToTagSchema,
+    operation_id="get_product_to_tag",
     summary="Get product-tag association",
     description="Retrieve a single product-to-tag association by its UUID.",
-    AGENT_TAGS=[AgentTag.EXPOSED],
+    tags=[AgentTag.EXPOSED],
 )
 def get_by_id(id: UUID) -> ProductToTagSchema:
     product_to_tag = product_to_tag_crud.get(id)
@@ -81,11 +84,12 @@ def get_by_id(id: UUID) -> ProductToTagSchema:
     "/",
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
+    operation_id="create_product_to_tag",
     summary="Add tag to product",
-    AGENT_TAGS=[AgentTag.EXPOSED],
+    tags=[AgentTag.EXPOSED],
     description="Create an association between a product and a tag. Both must exist within the shop.",
 )
-def create(request: Request, data: ProductToTagCreate = Body(...), principal: Any = Depends(auth_required)) -> None:
+def create(request: Request, data: ProductToTagCreate = Body(...), principal: Any = Depends(auth_required_any)) -> None:
     tag = tag_crud.get(data.tag_id)
     # Lock the product: tag links record a product revision and the shop UI
     # saves multiple links concurrently
@@ -107,12 +111,17 @@ def create(request: Request, data: ProductToTagCreate = Body(...), principal: An
     "/{product_to_tag_id}",
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
+    operation_id="update_product_to_tag",
     summary="Update product-tag association",
-    AGENT_TAGS=[AgentTag.EXPOSED],
+    tags=[AgentTag.EXPOSED],
     description="Update an existing product-tag association record.",
 )
 def update(
-    *, product_to_tag_id: UUID, item_in: ProductToTagUpdate, request: Request, principal: Any = Depends(auth_required_any)
+    *,
+    product_to_tag_id: UUID,
+    item_in: ProductToTagUpdate,
+    request: Request,
+    principal: Any = Depends(auth_required_any),
 ) -> Any:
     product_to_tag = product_to_tag_crud.get(id=product_to_tag_id)
     logger.info("Updating product_to_tag", data=product_to_tag)
@@ -138,9 +147,10 @@ def update(
     "/{product_to_tag_id}",
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
+    operation_id="delete_product_to_tag",
     summary="Remove tag from product",
     description="Delete the association between a product and a tag.",
-    AGENT_TAGS=[AgentTag.EXPOSED],
+    tags=[AgentTag.EXPOSED],
 )
 def delete(product_to_tag_id: UUID, request: Request, principal: Any = Depends(auth_required_any)) -> None:
     relation = product_to_tag_crud.get(product_to_tag_id)
