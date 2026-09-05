@@ -138,8 +138,8 @@ api_router.include_router(
     dependencies=[Depends(auth_required)],
 )
 api_router.include_router(
-    products_to_tags.mcp_router,
-    prefix="/shops/{shop_id}/products-to-tags",
+    products_to_tags.product_tags_router,
+    prefix="/shops/{shop_id}/products",
     tags=["shops", "products"],
     dependencies=[Depends(auth_required_any)],
 )

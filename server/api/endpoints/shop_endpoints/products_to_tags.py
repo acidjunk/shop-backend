@@ -23,11 +23,18 @@ from server.services.revisions import actor, ensure_baseline_product_revision, r
 logger = structlog.get_logger(__name__)
 
 router = APIRouter()
-mcp_router = APIRouter()
+
+# Separate from `router` above: mounted under `/shops/{shop_id}/products` (not
+# `/products-to-tags`) so the resource reads naturally as a product's tags,
+# and given its own auth_required_any dependency in api.py so API-key clients
+# can reach it. The routes on `router` above address a link by its internal
+# ProductToTagTable id and predate shop-scoping; these address a link by the
+# natural (product_id, tag_id) pair and are shop-scoped and idempotent.
+product_tags_router = APIRouter()
 
 
-@mcp_router.get(
-    "/products/{product_id}/tags",
+@product_tags_router.get(
+    "/{product_id}/tags",
     response_model=List[TagSchema],
     tags=[AgentTag.EXPOSED],
     operation_id="list_product_tags",
@@ -47,8 +54,8 @@ def list_product_tags(shop_id: UUID, product_id: UUID) -> List[TagSchema]:
     )
 
 
-@mcp_router.post(
-    "/products/{product_id}/tags/{tag_id}",
+@product_tags_router.post(
+    "/{product_id}/tags/{tag_id}",
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
     tags=[AgentTag.EXPOSED],
@@ -95,8 +102,8 @@ def add_tag_to_product(
     return None
 
 
-@mcp_router.delete(
-    "/products/{product_id}/tags/{tag_id}",
+@product_tags_router.delete(
+    "/{product_id}/tags/{tag_id}",
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
     tags=[AgentTag.EXPOSED],
