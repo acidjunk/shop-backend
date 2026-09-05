@@ -76,9 +76,7 @@ def _purge_seed_shops() -> None:
         return
     shop_ids = [s.id for s in shops]
 
-    product_ids = [
-        pid for (pid,) in db.session.query(ProductTable.id).filter(ProductTable.shop_id.in_(shop_ids)).all()
-    ]
+    product_ids = [pid for (pid,) in db.session.query(ProductTable.id).filter(ProductTable.shop_id.in_(shop_ids)).all()]
     category_ids = [
         cid for (cid,) in db.session.query(CategoryTable.id).filter(CategoryTable.shop_id.in_(shop_ids)).all()
     ]
@@ -87,9 +85,9 @@ def _purge_seed_shops() -> None:
     db.session.query(OrderTable).filter(OrderTable.shop_id.in_(shop_ids)).delete(synchronize_session=False)
     db.session.query(Account).filter(Account.shop_id.in_(shop_ids)).delete(synchronize_session=False)
     if product_ids:
-        db.session.query(ProductTranslationTable).filter(
-            ProductTranslationTable.product_id.in_(product_ids)
-        ).delete(synchronize_session=False)
+        db.session.query(ProductTranslationTable).filter(ProductTranslationTable.product_id.in_(product_ids)).delete(
+            synchronize_session=False
+        )
     db.session.query(ProductTable).filter(ProductTable.shop_id.in_(shop_ids)).delete(synchronize_session=False)
     if category_ids:
         db.session.query(CategoryTranslationTable).filter(
@@ -179,10 +177,20 @@ def _make_order(
     total: float = 19.98,
 ) -> UUID:
     order_info = [
-        {"description": "JVJ eval item", "product_name": "Item A", "price": 9.99, "quantity": 1,
-         "product_id": str(product_id_1)},
-        {"description": "JVJ eval item", "product_name": "Item B", "price": 9.99, "quantity": 1,
-         "product_id": str(product_id_2)},
+        {
+            "description": "JVJ eval item",
+            "product_name": "Item A",
+            "price": 9.99,
+            "quantity": 1,
+            "product_id": str(product_id_1),
+        },
+        {
+            "description": "JVJ eval item",
+            "product_name": "Item B",
+            "price": 9.99,
+            "quantity": 1,
+            "product_id": str(product_id_2),
+        },
     ]
     order = OrderTable(
         shop_id=shop_id,
@@ -239,14 +247,10 @@ def _report() -> None:
     for name in SEED_SHOP_NAMES:
         shop = db.session.query(ShopTable).filter(ShopTable.name == name).one()
         n_complete = (
-            db.session.query(OrderTable)
-            .filter(OrderTable.shop_id == shop.id, OrderTable.status == "complete")
-            .count()
+            db.session.query(OrderTable).filter(OrderTable.shop_id == shop.id, OrderTable.status == "complete").count()
         )
         n_pending = (
-            db.session.query(OrderTable)
-            .filter(OrderTable.shop_id == shop.id, OrderTable.status == "pending")
-            .count()
+            db.session.query(OrderTable).filter(OrderTable.shop_id == shop.id, OrderTable.status == "pending").count()
         )
         print(f"  {name!r}: {n_complete} complete, {n_pending} pending order(s)")
 
