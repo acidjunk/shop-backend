@@ -16,32 +16,7 @@ Forty-three tools. Tool names match the route's `operation_id`:
 | Attributes | `list_attributes` | `get_attribute` | `create_attribute` | `update_attribute` | `delete_attribute` |
 | Attribute options | `list_attribute_options` | `get_attribute_option` | `create_attribute_option` | `update_attribute_option` | `delete_attribute_option` |
 
-To assign existing attribute options to a product, use
-`add_product_attribute_options`. It takes `shop_id` and `product_id` path
-parameters plus a non-empty `option_ids` list. An option's attribute is inferred
-from the option; all options must belong to attributes in that shop. The action is
-idempotent, so existing assignments remain unchanged and duplicates are not made.
-Use `get_product_attributes` to retrieve the product's current assignments after
-making a change.
-
-Tags use the same workflow: manage tag definitions with the tag CRUD tools, then
-use `add_tag_to_product` with the shop, product, and tag UUIDs. The association
-is idempotent. `list_product_tags` reads the assigned tags, while
-`remove_tag_from_product` removes one assignment.
-
 List tools also carry `AgentTag.LARGE`, signalling to well-behaved clients that they should filter before calling.
-
-### Read-only order tools
-
-Orders are exposed **read-only** — an agent can review a shop's orders but cannot create, change, or delete them (those stay REST-only). Both tools are shop-scoped by their path (`/orders/shop/{shop_id}/...`), so a caller can only read the orders of the shop in the path, and both carry `AgentTag.LARGE`:
-
-| Resource | Pending | Complete |
-|----------|---------|----------|
-| Orders | `list_pending_orders` | `list_complete_orders` |
-
-Order records include customer names and totals, so clients should treat the results as personal data.
-
-Any route *not* tagged with `AgentTag.EXPOSED` is invisible to MCP — even though it's still served by the same REST API. Order writes (create/update/patch/delete), accounts, prices, Stripe, shop config etc. are intentionally REST-only.
 
 ## Enabling the endpoint
 

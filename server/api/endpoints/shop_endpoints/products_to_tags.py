@@ -24,16 +24,7 @@ logger = structlog.get_logger(__name__)
 
 router = APIRouter()
 
-# Separate from `router` above: mounted under `/shops/{shop_id}/products` (not
-# `/products-to-tags`) so the resource reads naturally as a product's tags,
-# and given its own auth_required_any dependency in api.py so API-key clients
-# can reach it. The routes on `router` above address a link by its internal
-# ProductToTagTable id and predate shop-scoping; these address a link by the
-# natural (product_id, tag_id) pair and are shop-scoped and idempotent.
-product_tags_router = APIRouter()
-
-
-@product_tags_router.get(
+@router.get(
     "/{product_id}/tags",
     response_model=List[TagSchema],
     tags=[AgentTag.EXPOSED],
@@ -54,7 +45,7 @@ def list_product_tags(shop_id: UUID, product_id: UUID) -> List[TagSchema]:
     )
 
 
-@product_tags_router.post(
+@router.post(
     "/{product_id}/tags/{tag_id}",
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
@@ -102,7 +93,7 @@ def add_tag_to_product(
     return None
 
 
-@product_tags_router.delete(
+@router.delete(
     "/{product_id}/tags/{tag_id}",
     response_model=None,
     status_code=HTTPStatus.NO_CONTENT,
