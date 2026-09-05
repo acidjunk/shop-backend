@@ -6,7 +6,7 @@ The integration follows the pattern from [`workfloworchestrator/orchestrator-cor
 
 ## What gets exposed
 
-Twenty tools, one per shop CRUD operation. Tool names match the route's `operation_id`:
+Forty-three tools. Tool names match the route's `operation_id`:
 
 | Resource | List | Get | Create | Update | Delete |
 |----------|------|-----|--------|--------|--------|
@@ -14,6 +14,20 @@ Twenty tools, one per shop CRUD operation. Tool names match the route's `operati
 | Categories | `list_categories` | `get_category` | `create_category` | `update_category` | `delete_category` |
 | Tags | `list_tags` | `get_tag` | `create_tag` | `update_tag` | `delete_tag` |
 | Attributes | `list_attributes` | `get_attribute` | `create_attribute` | `update_attribute` | `delete_attribute` |
+| Attribute options | `list_attribute_options` | `get_attribute_option` | `create_attribute_option` | `update_attribute_option` | `delete_attribute_option` |
+
+To assign existing attribute options to a product, use
+`add_product_attribute_options`. It takes `shop_id` and `product_id` path
+parameters plus a non-empty `option_ids` list. An option's attribute is inferred
+from the option; all options must belong to attributes in that shop. The action is
+idempotent, so existing assignments remain unchanged and duplicates are not made.
+Use `get_product_attributes` to retrieve the product's current assignments after
+making a change.
+
+Tags use the same workflow: manage tag definitions with the tag CRUD tools, then
+use `add_tag_to_product` with the shop, product, and tag UUIDs. The association
+is idempotent. `list_product_tags` reads the assigned tags, while
+`remove_tag_from_product` removes one assignment.
 
 List tools also carry `AgentTag.LARGE`, signalling to well-behaved clients that they should filter before calling.
 
@@ -140,7 +154,7 @@ curl -X POST https://api.example.com/mcp/ \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-You should see all 20 tool definitions in the response.
+You should see all 43 tool definitions in the response.
 
 ## How auth flows through `from_fastapi`
 

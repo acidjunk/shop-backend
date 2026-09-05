@@ -46,12 +46,25 @@ EXPECTED_TOOL_NAMES = {
     "create_tag",
     "update_tag",
     "delete_tag",
+    # product tag assignments
+    "list_product_tags",
+    "add_tag_to_product",
+    "remove_tag_from_product",
     # attributes
     "list_attributes",
     "get_attribute",
     "create_attribute",
     "update_attribute",
     "delete_attribute",
+    # attribute options (used to select product attribute assignments)
+    "list_attribute_options",
+    "get_attribute_option",
+    "create_attribute_option",
+    "update_attribute_option",
+    "delete_attribute_option",
+    # product attribute assignments
+    "add_product_attribute_options",
+    "get_product_attributes",
     # revisions / trash
     "list_shop_revisions",
     "get_revision",

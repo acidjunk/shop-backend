@@ -7,20 +7,132 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
+from server.agent_tags import AgentTag
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud.crud_product import product_crud
 from server.crud.crud_product_to_tag import product_to_tag_crud
 from server.crud.crud_tag import tag_crud
 from server.db import db
-from server.db.models import ProductToTagTable
+from server.db.models import ProductToTagTable, TagTable
 from server.schemas.product_to_tag import ProductToTagCreate, ProductToTagSchema, ProductToTagUpdate
-from server.security import auth_required
+from server.schemas.tag import TagSchema
+from server.security import auth_required, auth_required_any
 from server.services.revisions import actor, ensure_baseline_product_revision, record_product_revision
 
 logger = structlog.get_logger(__name__)
 
 router = APIRouter()
+mcp_router = APIRouter()
+
+
+@mcp_router.get(
+    "/products/{product_id}/tags",
+    response_model=List[TagSchema],
+    tags=[AgentTag.EXPOSED],
+    operation_id="list_product_tags",
+    summary="List a product's tags",
+)
+def list_product_tags(shop_id: UUID, product_id: UUID) -> List[TagSchema]:
+    """Retrieve every tag currently assigned to one product in the specified shop."""
+    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id)
+    if not product:
+        raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
+
+    return (
+        db.session.query(TagTable)
+        .join(ProductToTagTable, ProductToTagTable.tag_id == TagTable.id)
+        .filter(ProductToTagTable.shop_id == shop_id, ProductToTagTable.product_id == product_id)
+        .all()
+    )
+
+
+@mcp_router.post(
+    "/products/{product_id}/tags/{tag_id}",
+    response_model=None,
+    status_code=HTTPStatus.NO_CONTENT,
+    tags=[AgentTag.EXPOSED],
+    operation_id="add_tag_to_product",
+    summary="Assign a tag to a product",
+)
+def add_tag_to_product(
+    shop_id: UUID,
+    product_id: UUID,
+    tag_id: UUID,
+    request: Request,
+    principal: Any = Depends(auth_required_any),
+) -> None:
+    """Assign an existing tag to an existing product in the same shop.
+
+    The operation is idempotent: when the tag is already assigned, it succeeds
+    without creating another link or product revision.
+    """
+    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id, for_update=True)
+    if not product:
+        raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
+
+    tag = tag_crud.get_id_by_shop_id(shop_id=shop_id, id=tag_id)
+    if not tag:
+        raise_status(HTTPStatus.NOT_FOUND, f"Tag {tag_id} not found for this shop")
+
+    existing = (
+        db.session.query(ProductToTagTable)
+        .filter(
+            ProductToTagTable.shop_id == shop_id,
+            ProductToTagTable.product_id == product_id,
+            ProductToTagTable.tag_id == tag_id,
+        )
+        .first()
+    )
+    if existing:
+        return None
+
+    ensure_baseline_product_revision(product)
+    db.session.add(ProductToTagTable(shop_id=shop_id, product_id=product_id, tag_id=tag_id))
+    created_by, source = actor(principal, request)
+    record_product_revision(product, action="update", created_by=created_by, source=source)
+    db.session.commit()
+    return None
+
+
+@mcp_router.delete(
+    "/products/{product_id}/tags/{tag_id}",
+    response_model=None,
+    status_code=HTTPStatus.NO_CONTENT,
+    tags=[AgentTag.EXPOSED],
+    operation_id="remove_tag_from_product",
+    summary="Remove a tag from a product",
+)
+def remove_tag_from_product(
+    shop_id: UUID,
+    product_id: UUID,
+    tag_id: UUID,
+    request: Request,
+    principal: Any = Depends(auth_required_any),
+) -> None:
+    """Remove a tag assignment from a product in the specified shop."""
+    product = product_crud.get_id_by_shop_id(shop_id=shop_id, id=product_id, for_update=True)
+    if not product:
+        raise_status(HTTPStatus.NOT_FOUND, f"Product {product_id} not found for this shop")
+
+    link = (
+        db.session.query(ProductToTagTable)
+        .filter(
+            ProductToTagTable.shop_id == shop_id,
+            ProductToTagTable.product_id == product_id,
+            ProductToTagTable.tag_id == tag_id,
+        )
+        .first()
+    )
+    if not link:
+        raise_status(HTTPStatus.NOT_FOUND, "Tag is not assigned to this product")
+
+    ensure_baseline_product_revision(product)
+    db.session.delete(link)
+    created_by, source = actor(principal, request)
+    record_product_revision(product, action="update", created_by=created_by, source=source)
+    db.session.commit()
+    return None
 
 
 @router.get(

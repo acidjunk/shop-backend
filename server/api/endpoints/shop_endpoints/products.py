@@ -231,10 +231,13 @@ def get_multi_with_attributes(
 @public_router.get(
     "/{product_id}/with_attributes",
     response_model=ProductWithAttributes,
+    tags=[AgentTag.EXPOSED],
+    operation_id="get_product_attributes",
     summary="Get product with attributes",
     description="Retrieve a single product together with its assigned attribute values (e.g. size, color). Public endpoint — no authentication required.",
 )
 def get_by_id_with_attributes(product_id: UUID, shop_id: UUID) -> ProductWithAttributes:
+    """Retrieve a product together with every attribute option currently assigned to it."""
     product = product_crud.get_id_by_shop_id(shop_id, product_id)
     if not product:
         raise_status(HTTPStatus.NOT_FOUND, f"Product with id {product_id} not found")
