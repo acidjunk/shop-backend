@@ -6,7 +6,7 @@ The integration follows the pattern from [`workfloworchestrator/orchestrator-cor
 
 ## What gets exposed
 
-Twenty tools, one per shop CRUD operation. Tool names match the route's `operation_id`:
+Forty-three tools. Tool names match the route's `operation_id`:
 
 | Resource | List | Get | Create | Update | Delete |
 |----------|------|-----|--------|--------|--------|
@@ -14,10 +14,9 @@ Twenty tools, one per shop CRUD operation. Tool names match the route's `operati
 | Categories | `list_categories` | `get_category` | `create_category` | `update_category` | `delete_category` |
 | Tags | `list_tags` | `get_tag` | `create_tag` | `update_tag` | `delete_tag` |
 | Attributes | `list_attributes` | `get_attribute` | `create_attribute` | `update_attribute` | `delete_attribute` |
+| Attribute options | `list_attribute_options` | `get_attribute_option` | `create_attribute_option` | `update_attribute_option` | `delete_attribute_option` |
 
 List tools also carry `AgentTag.LARGE`, signalling to well-behaved clients that they should filter before calling.
-
-Any route *not* tagged with `AgentTag.EXPOSED` is invisible to MCP — even though it's still served by the same REST API. Orders, accounts, prices, Stripe, shop config etc. are intentionally REST-only.
 
 ## Enabling the endpoint
 
@@ -130,7 +129,7 @@ curl -X POST https://api.example.com/mcp/ \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-You should see all 20 tool definitions in the response.
+You should see all 43 tool definitions in the response.
 
 ## How auth flows through `from_fastapi`
 

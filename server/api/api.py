@@ -135,7 +135,7 @@ api_router.include_router(
     products_to_tags.router,
     prefix="/shops/{shop_id}/products-to-tags",
     tags=["shops", "products"],
-    dependencies=[Depends(auth_required)],
+    dependencies=[Depends(auth_required_any)],
 )
 api_router.include_router(
     revisions.router,
@@ -164,7 +164,7 @@ api_router.include_router(
     attribute_options.router,
     prefix="/shops/{shop_id}/attribute-options",
     tags=["shops", "attributes"],
-    dependencies=[Depends(auth_required)],
+    dependencies=[Depends(auth_required_any)],
 )
 api_router.include_router(
     attribute_options.deprecated_router,
@@ -176,7 +176,7 @@ api_router.include_router(
     product_attribute_values.router,
     prefix="/shops/{shop_id}/product-attribute-values",
     tags=["shops", "products", "attributes"],
-    dependencies=[Depends(auth_required)],
+    dependencies=[Depends(auth_required_any)],
 )
 api_router.include_router(
     accounts.router,

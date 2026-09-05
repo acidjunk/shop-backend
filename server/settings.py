@@ -43,6 +43,9 @@ class AppSettings(BaseSettings):
     # How many revisions to keep per entity (product/category). Pruned on write.
     # The PIM undo story assumes at least 10; values below that are ignored.
     REVISION_RETENTION: int = 25
+    # Set to False to bypass sv_ API-key auth on auth_required_any routes
+    # (falls back to Cognito). Intended for local development only.
+    API_KEYS_ENABLED: bool = True
     # SESSION_SECRET: str = "".join(secrets.choice(string.ascii_letters) for i in range(16))  # noqa: S311
     SESSION_SECRET: str = "CHANGEME"
 
