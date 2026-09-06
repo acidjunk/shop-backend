@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
-from server.agent_tags import AgentTag
+from server.agent_tags import AgentTag, deny_agent_purge
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud.crud_tag import tag_crud
@@ -153,6 +153,7 @@ def delete(
                 status_code=403,
                 detail="Purging a tag is irreversible and requires user credentials; API keys may only trash.",
             )
+        deny_agent_purge(request, "tag")
         try:
             tag_crud.delete_by_shop_id(shop_id=shop_id, id=tag_id, include_deleted=True)
         except Exception as e:

@@ -29,16 +29,76 @@ Transport: streamable HTTP.
 Pattern adapted from ``workfloworchestrator/orchestrator-core`` PR #1620.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from fastapi import FastAPI
 
-from server.agent_tags import AgentTag
+from server.agent_tags import AGENT_SURFACE_HEADER, AGENT_SURFACE_MCP, AgentTag
 
 if TYPE_CHECKING:
+    import httpx
+    from fastmcp import FastMCP
     from starlette.applications import Starlette
 
 MCP_MOUNT_PATH = "/mcp"
+
+PURGE_TOOLS = frozenset(
+    {
+        "delete_product",
+        "delete_tag",
+        "delete_attribute",
+        "delete_attribute_option",
+    }
+)
+
+_FORCE_PARAM = "force"
+
+
+def _hide_purge_flag(route: Any, component: Any) -> None:
+    """Drop ``force`` from the input schema of the purge tools."""
+    if component.name not in PURGE_TOOLS:
+        return
+
+    schema = component.parameters
+    properties = schema.get("properties") or {}
+    if properties.pop(_FORCE_PARAM, None) is None:
+        raise RuntimeError(f"MCP tool {component.name!r} has no {_FORCE_PARAM!r} parameter to hide")
+
+    required = schema.get("required")
+    if required:
+        schema["required"] = [name for name in required if name != _FORCE_PARAM]
+
+
+async def _stamp_agent_surface(request: "httpx.Request") -> None:
+    """Mark every in-process call fastmcp makes as coming from the agent surface.
+
+    Runs as an httpx request event hook, i.e. on the fully-built request after
+    client defaults and the MCP caller's forwarded headers have been merged — so
+    an MCP client cannot suppress the marker by forwarding its own value.
+    Routes read it via ``server.agent_tags.is_agent_request``.
+    """
+    request.headers[AGENT_SURFACE_HEADER] = AGENT_SURFACE_MCP
+
+
+def build_mcp(app: FastAPI) -> "FastMCP":
+    """Build the FastMCP server for ``app`` without mounting it.
+
+    Split out from ``mount_mcp`` so tests can assert on the generated tool
+    schemas using the exact same configuration that runs in production.
+    """
+    from fastmcp import FastMCP
+    from fastmcp.server.openapi import MCPType, RouteMap
+
+    return FastMCP.from_fastapi(
+        app=app,
+        name="shopvirge-mcp",
+        route_maps=[
+            RouteMap(tags={AgentTag.EXPOSED.value}, mcp_type=MCPType.TOOL),
+            RouteMap(mcp_type=MCPType.EXCLUDE),
+        ],
+        mcp_component_fn=_hide_purge_flag,
+        httpx_client_kwargs={"event_hooks": {"request": [_stamp_agent_surface]}},
+    )
 
 
 def mount_mcp(app: FastAPI) -> "Starlette":
@@ -53,18 +113,7 @@ def mount_mcp(app: FastAPI) -> "Starlette":
     ``mcp_app.router.lifespan_context(parent)`` from inside the parent's
     own lifespan context manager.
     """
-    from fastmcp import FastMCP
-    from fastmcp.server.openapi import MCPType, RouteMap
-
-    mcp = FastMCP.from_fastapi(
-        app=app,
-        name="shopvirge-mcp",
-        route_maps=[
-            RouteMap(tags={AgentTag.EXPOSED.value}, mcp_type=MCPType.TOOL),
-            RouteMap(mcp_type=MCPType.EXCLUDE),
-        ],
-    )
-
+    mcp = build_mcp(app)
     mcp_app = mcp.http_app(path="/", transport="http")
     app.mount(MCP_MOUNT_PATH, mcp_app)
     return mcp_app

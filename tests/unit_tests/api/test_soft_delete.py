@@ -128,3 +128,42 @@ def test_soft_deleted_tag_filtered_from_relationship_loads(shop_with_config, pro
     db.session.expire_all()
     row = db.session.query(ProductTable).filter_by(id=product).one()
     assert tag_id in [t.id for t in row.tags]
+
+
+def test_agent_surface_cannot_purge(shop_with_config, product, test_client):
+    """An MCP-originated request may trash but never purge, even with user credentials.
+
+    ``server/mcp/server.py`` also hides ``force`` from these tools' schemas, but
+    fastmcp passes undeclared arguments through to the route, so this route-level
+    check is the part that actually holds.
+    """
+    from server.agent_tags import AGENT_SURFACE_HEADER, AGENT_SURFACE_MCP
+
+    agent = {AGENT_SURFACE_HEADER: AGENT_SURFACE_MCP}
+    shop = shop_with_config
+
+    attr_id = make_attribute(shop, name="colour")
+    opt_id = make_option(attr_id, "red")
+    tag_id = make_tag(shop_id=shop, main_name="agenttag")
+
+    purges = [
+        f"/shops/{shop}/products/{product}?force=true",
+        f"/shops/{shop}/tags/{tag_id}?force=true",
+        f"/shops/{shop}/attributes/{attr_id}?force=true",
+        f"/shops/{shop}/attribute-options/{opt_id}?force=true",
+    ]
+    for url in purges:
+        resp = test_client.delete(url, headers=agent)
+        assert resp.status_code == 403, f"{url} -> {resp.status_code} {resp.text}"
+        assert "not available to agents" in resp.json()["detail"]
+
+    # The reversible trash path stays open to the agent. Reversed: the option must
+    # go before its attribute, which is no longer findable once trashed.
+    for url in reversed(purges):
+        assert test_client.delete(url.removesuffix("?force=true"), headers=agent).status_code == 204
+
+    # And the rows survived — nothing was purged along the way.
+    assert (
+        db.session.query(ProductTable).filter_by(id=product).execution_options(include_deleted=True).first() is not None
+    )
+    assert db.session.query(TagTable).filter_by(id=tag_id).execution_options(include_deleted=True).first() is not None

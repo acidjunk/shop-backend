@@ -9,7 +9,7 @@ from fastapi.param_functions import Body, Depends
 from sqlalchemy.exc import IntegrityError
 from starlette.responses import Response
 
-from server.agent_tags import AgentTag
+from server.agent_tags import AgentTag, deny_agent_purge
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud.base import NotFound
@@ -255,6 +255,7 @@ def delete(
                 status_code=403,
                 detail="Purging an attribute is irreversible and requires user credentials; API keys may only trash.",
             )
+        deny_agent_purge(request, "attribute")
         try:
             return attribute_crud.delete_by_shop_id(shop_id=shop_id, id=attribute_id, include_deleted=True)
         except NotFound:

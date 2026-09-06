@@ -197,3 +197,44 @@ def test_mount_mcp_is_importable() -> None:
     from server.mcp import mount_mcp
 
     assert callable(mount_mcp)
+
+
+def test_purge_tools_hide_the_force_flag(fastapi_app: FastAPI) -> None:
+    """``force`` (irreversible hard purge) must not appear in the purge tools' schemas.
+
+    The model should never learn the flag exists. Note this is presentation only —
+    fastmcp forwards undeclared arguments straight through to the route, so the
+    real block is ``deny_agent_purge`` on each route (see
+    ``test_agent_surface_header_is_stamped``).
+    """
+    pytest.importorskip("fastmcp")
+    from server.mcp.server import PURGE_TOOLS, build_mcp
+
+    tools = asyncio.run(build_mcp(fastapi_app).get_tools())
+
+    for name in PURGE_TOOLS:
+        schema = tools[name].parameters
+        assert "force" not in schema.get("properties", {}), f"{name} still exposes force"
+        assert "force" not in set(schema.get("required", [])), f"{name} still requires force"
+
+    # delete_category's force is the documented escape hatch out of its 409 and
+    # only trashes (reversibly), so it stays visible. Guards the exclusion.
+    assert "force" in tools["delete_category"].parameters["properties"]
+
+
+def test_agent_surface_header_is_stamped(fastapi_app: FastAPI) -> None:
+    """Every in-process call fastmcp makes carries the agent-surface marker.
+
+    This is what ``deny_agent_purge`` keys off, so if the hook stops firing the
+    purge block silently disappears.
+    """
+    pytest.importorskip("fastmcp")
+    import httpx
+
+    from server.agent_tags import AGENT_SURFACE_HEADER, AGENT_SURFACE_MCP
+    from server.mcp.server import _stamp_agent_surface
+
+    # A forwarded header from the MCP client must not be able to unset the marker.
+    request = httpx.Request("DELETE", "http://test/x", headers={AGENT_SURFACE_HEADER: "web"})
+    asyncio.run(_stamp_agent_surface(request))
+    assert request.headers[AGENT_SURFACE_HEADER] == AGENT_SURFACE_MCP

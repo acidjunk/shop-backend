@@ -9,7 +9,7 @@ from fastapi.param_functions import Body, Depends
 from sqlalchemy.exc import IntegrityError
 from starlette.responses import Response
 
-from server.agent_tags import AgentTag
+from server.agent_tags import AgentTag, deny_agent_purge
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.crud.crud_attribute import attribute_crud
@@ -158,6 +158,9 @@ def _delete_option(
     attribute: AttributeTable, option: AttributeOptionTable, force: bool, principal: Any, request: Request
 ) -> None:
     """Shared delete flow: soft delete by default, hard purge with force; both record an attribute revision."""
+    if force:
+        deny_agent_purge(request, "attribute option")
+
     created_by, source = actor(principal, request)
     ensure_baseline_attribute_revision(attribute)
 

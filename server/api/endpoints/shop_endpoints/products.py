@@ -10,7 +10,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from sqlalchemy.exc import IntegrityError
 from starlette.responses import Response
 
-from server.agent_tags import AgentTag
+from server.agent_tags import AgentTag, deny_agent_purge
 from server.api import deps
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
@@ -472,6 +472,7 @@ def delete(
                 status_code=403,
                 detail="Purging a product is irreversible and requires user credentials; API keys may only trash.",
             )
+        deny_agent_purge(request, "product")
         # Hard purge: removes the row (+ translation, tag links, attribute values via
         # cascades). Revision rows are intentionally kept.
         return product_crud.delete_by_shop_id(shop_id=shop_id, id=product_id, include_deleted=True)
