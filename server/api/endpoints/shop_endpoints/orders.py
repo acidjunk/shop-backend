@@ -87,11 +87,17 @@ def _authoritative_unit_price_inc(product: ProductTable, shop: ShopTable, plan: 
 
 
 def _quote_order(shop: ShopTable, data: OrderQuoteRequest, validate_stock: bool) -> OrderQuote:
+    plans = {item.plan for item in data.order_info}
+    if len(plans) > 1:
+        raise_status(HTTPStatus.UNPROCESSABLE_ENTITY, "All order lines must use the same payment plan")
+
     order_info: list[OrderItem] = []
     for requested_item in data.order_info:
         product = product_crud.get_id_by_shop_id(shop.id, requested_item.product_id)
         if not product:
             raise_status(HTTPStatus.NOT_FOUND, f"Product '{requested_item.product_name}' not found")
+
+        # Availability check
         if (
             validate_stock
             and shop.config["toggles"]["enable_stock_on_products"]
@@ -282,7 +288,7 @@ def quote(data: OrderQuoteRequest = Body(...)) -> OrderQuote:
     shop = shop_crud.get(data.shop_id)
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {data.shop_id} not found")
-    return _quote_order(shop, data, validate_stock=False)
+    return _quote_order(shop, data, validate_stock=True)
 
 
 @router.post(
@@ -351,12 +357,12 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
     # Compute shipping fee from shop config and recompute the persisted total
     # server-side from the authoritative line prices so it can't be manipulated
     # by the client.
-    order = order_crud.create(
+    order = order_crud.create_with_next_customer_order_id(
         obj_in=OrderPersisted(
             account_id=data.account_id,
             total=order_quote.total,
             notes=data.notes,
-            customer_order_id=order_crud.get_newest_order_id(shop_id=shop_id),
+            customer_order_id=None,
             status=status,
             shipping_fee_inc_btw=order_quote.shipping_fee_inc_btw,
             shop_id=shop_id,
@@ -417,12 +423,7 @@ def patch(
     if not shop:
         raise HTTPException(status_code=404, detail=f"Shop with ID {shop_id} not found")
 
-    if (
-        "complete" not in order.status
-        and item_in.status
-        and (item_in.status == "complete" or item_in.status == "cancelled")
-        and not order.completed_at
-    ):
+    if item_in.status in {"complete", "cancelled"} and not order.completed_at:
         order.completed_at = datetime.now()
 
     order = order_crud.update(

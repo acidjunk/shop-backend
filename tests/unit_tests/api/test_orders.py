@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from server.db import db
+from server.db.models import OrderTable, ShopTable
 from tests.unit_tests.factories.categories import make_category
 from tests.unit_tests.factories.product import make_product
 from tests.unit_tests.factories.shop import make_shop_with_shipping
@@ -123,6 +125,74 @@ def test_quote_order_calculates_gross_price_from_net_product_price(shop_no_shipp
     )
     assert order_response.status_code == 201, order_response.json()
     assert order_response.json()["total"] == 121.0
+
+
+def test_quote_and_create_order_check_stock_when_enabled(shop_no_shipping_with_products, test_client):
+    ids = shop_no_shipping_with_products
+    shop = db.session.get(ShopTable, ids["shop_id"])
+    shop.config = {"toggles": {"enable_stock_on_products": True}}
+    db.session.commit()
+
+    body = _order_body(
+        ids["shop_id"],
+        [{"product_id": str(ids["p1"]), "product_name": "Item 1", "quantity": 2}],
+    )
+    assert (
+        test_client.post(
+            "/orders/quote", json={"shop_id": body["shop_id"], "order_info": body["order_info"]}
+        ).status_code
+        == 400
+    )
+    assert test_client.post("/orders/", json=body).status_code == 400
+
+
+def test_order_rejects_mixed_payment_plans(shop_no_shipping_with_products, test_client):
+    ids = shop_no_shipping_with_products
+    response = test_client.post(
+        "/orders/",
+        json=_order_body(
+            ids["shop_id"],
+            [
+                {"product_id": str(ids["p1"]), "product_name": "Item 1", "quantity": 1, "plan": "onetime"},
+                {"product_id": str(ids["p2"]), "product_name": "Item 2", "quantity": 1, "plan": "monthly"},
+            ],
+        ),
+    )
+    assert response.status_code == 422, response.json()
+
+
+def test_order_customer_ids_increment_per_shop(shop_no_shipping_with_products, test_client):
+    ids = shop_no_shipping_with_products
+    body = _order_body(
+        ids["shop_id"],
+        [{"product_id": str(ids["p1"]), "product_name": "Item 1", "quantity": 1}],
+    )
+    first = test_client.post("/orders/", json=body)
+    second = test_client.post("/orders/", json=body)
+
+    assert first.status_code == 201, first.json()
+    assert second.status_code == 201, second.json()
+    assert first.json()["customer_order_id"] == 1
+    assert second.json()["customer_order_id"] == 2
+
+
+def test_patch_order_sets_completed_at(shop_no_shipping_with_products, test_client):
+    ids = shop_no_shipping_with_products
+    response = test_client.post(
+        "/orders/",
+        json=_order_body(
+            ids["shop_id"],
+            [{"product_id": str(ids["p1"]), "product_name": "Item 1", "quantity": 1}],
+        ),
+    )
+    assert response.status_code == 201, response.json()
+
+    response = test_client.patch(f"/orders/{response.json()['id']}", json={"status": "cancelled"})
+    assert response.status_code == 201, response.json()
+
+    order = db.session.get(OrderTable, response.json()["id"])
+    assert order.status == "cancelled"
+    assert order.completed_at is not None
 
 
 def test_create_order_with_shipping_single_rate(shop_shipping_fixed_with_products, test_client):
