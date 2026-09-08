@@ -99,31 +99,31 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         logger.debug(
             f"Filter and Sort parameters model={self.model}, sort_parameters={sort_parameters}, filter_parameters={filter_parameters}",
         )
-        conditions = []
-
         if filter_parameters:
+            joined_models = set()
             for filter_parameter in filter_parameters:
-                key, *value = filter_parameter.split(":", 1)
+                if ":" not in filter_parameter:
+                    continue
+                key, val_str = filter_parameter.split(":", 1)
+                if not val_str:
+                    continue
 
-                # Use this branch if we detect a key value search (key:value) if it is just a single string (value)
-                # treat the key as the value
-                if len(value) > 0:
-                    if key in sa_inspect(self.model).columns.keys():
-                        conditions.append(cast(self.model.__dict__[key], String).ilike("%" + one(value) + "%"))
-                    else:
-                        logger.info(f"Key: not found in database model key={key}, model={self.model}")
-                    query = query.filter(or_(*conditions))
+                if key.startswith("translation."):
+                    field_name = key.split(".", 1)[1]
+                    translation_relation = getattr(self.model, "translation", None)
+                    if translation_relation is not None:
+                        trans_model = translation_relation.property.mapper.class_
+                        if field_name in sa_inspect(trans_model).columns.keys():
+                            if trans_model not in joined_models:
+                                query = query.join(trans_model)
+                                joined_models.add(trans_model)
+                            query = query.filter(
+                                cast(trans_model.__dict__[field_name], String).ilike("%" + val_str + "%")
+                            )
+                elif key in sa_inspect(self.model).columns.keys():
+                    query = query.filter(cast(self.model.__dict__[key], String).ilike("%" + val_str + "%"))
                 else:
-                    if isinstance(value, list):
-                        logger.info("Query parameters set to GET_MANY, ID column only", value=value)
-                        conditions = []
-                        for item in value:
-                            conditions.append(self.model.__dict__["id"] == item)
-                        query = query.filter(or_(*conditions))
-                    else:
-                        for column in sa_inspect(self.model).columns.keys():
-                            conditions.append(cast(self.model.__dict__[column], String).ilike("%" + key + "%"))
-                            query = query.filter(or_(*conditions))
+                    logger.info(f"Key not found: key={key}, model={self.model}")
 
         if sort_parameters and len(sort_parameters):
             for sort_parameter in sort_parameters:
