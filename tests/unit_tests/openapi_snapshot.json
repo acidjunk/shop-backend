@@ -4,6 +4,7 @@
       "AccountCreate": {
         "properties": {
           "details": {
+            "additionalProperties": true,
             "title": "Details",
             "type": "object"
           },
@@ -28,6 +29,7 @@
       "AccountSchema": {
         "properties": {
           "details": {
+            "additionalProperties": true,
             "title": "Details",
             "type": "object"
           },
@@ -58,6 +60,7 @@
       "AccountUpdate": {
         "properties": {
           "details": {
+            "additionalProperties": true,
             "title": "Details",
             "type": "object"
           },
@@ -84,6 +87,7 @@
           "details": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -657,6 +661,7 @@
           "alt1_image": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -671,6 +676,7 @@
           "alt2_image": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -700,6 +706,7 @@
           "main_image": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -760,6 +767,7 @@
           "alt1_image": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -774,6 +782,7 @@
           "alt2_image": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -808,6 +817,7 @@
           "main_image": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -918,6 +928,7 @@
           "alt1_image": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -932,6 +943,7 @@
           "alt2_image": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -961,6 +973,7 @@
           "main_image": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -1233,39 +1246,7 @@
         "title": "ConfigurationLanguageFields",
         "type": "object"
       },
-      "ConfigurationLanguages-Input": {
-        "properties": {
-          "alt1": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ConfigurationLanguageFields"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "alt2": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ConfigurationLanguageFields"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "main": {
-            "$ref": "#/components/schemas/ConfigurationLanguageFields"
-          }
-        },
-        "required": [
-          "main"
-        ],
-        "title": "ConfigurationLanguages",
-        "type": "object"
-      },
-      "ConfigurationLanguages-Output": {
+      "ConfigurationLanguages": {
         "properties": {
           "alt1": {
             "anyOf": [
@@ -1378,6 +1359,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -1390,6 +1372,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -1423,12 +1406,12 @@
             "type": "boolean"
           },
           "fixed_fee": {
-            "default": "0",
+            "default": 0.0,
             "title": "Fixed Fee",
             "type": "number"
           },
           "free_shipping_above_amount": {
-            "default": "0",
+            "default": 0.0,
             "title": "Free Shipping Above Amount",
             "type": "number"
           },
@@ -1495,7 +1478,7 @@
             "type": "integer"
           },
           "languages": {
-            "$ref": "#/components/schemas/ConfigurationLanguages-Input"
+            "$ref": "#/components/schemas/ConfigurationLanguages"
           },
           "legal": {
             "anyOf": [
@@ -1598,7 +1581,7 @@
             "type": "integer"
           },
           "languages": {
-            "$ref": "#/components/schemas/ConfigurationLanguages-Output"
+            "$ref": "#/components/schemas/ConfigurationLanguages"
           },
           "legal": {
             "anyOf": [
@@ -2380,6 +2363,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -3055,6 +3039,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3082,6 +3067,7 @@
           "image_1": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3096,6 +3082,7 @@
           "image_2": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3110,6 +3097,7 @@
           "image_3": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3124,6 +3112,7 @@
           "image_4": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3138,6 +3127,7 @@
           "image_5": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3152,6 +3142,7 @@
           "image_6": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3188,6 +3179,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3203,6 +3195,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3217,6 +3210,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3866,6 +3860,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3893,6 +3888,7 @@
           "image_1": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3907,6 +3903,7 @@
           "image_2": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3921,6 +3918,7 @@
           "image_3": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3935,6 +3933,7 @@
           "image_4": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3949,6 +3948,7 @@
           "image_5": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3963,6 +3963,7 @@
           "image_6": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4011,6 +4012,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -4026,6 +4028,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -4040,6 +4043,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -4211,6 +4215,7 @@
           "image_1": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4225,6 +4230,7 @@
           "image_2": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4239,6 +4245,7 @@
           "image_3": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4253,6 +4260,7 @@
           "image_4": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4267,6 +4275,7 @@
           "image_5": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4281,6 +4290,7 @@
           "image_6": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4527,6 +4537,7 @@
           "image_1": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4541,6 +4552,7 @@
           "image_2": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4555,6 +4567,7 @@
           "image_3": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4569,6 +4582,7 @@
           "image_4": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4583,6 +4597,7 @@
           "image_5": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4597,6 +4612,7 @@
           "image_6": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4659,6 +4675,7 @@
           "prices": {
             "default": [],
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "Prices",
@@ -4895,6 +4912,7 @@
             "title": "Created By"
           },
           "data": {
+            "additionalProperties": true,
             "title": "Data",
             "type": "object"
           },
@@ -5267,6 +5285,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5278,6 +5297,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5289,6 +5309,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5300,6 +5321,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5311,6 +5333,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5322,6 +5345,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5586,6 +5610,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5597,6 +5622,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5608,6 +5634,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5619,6 +5646,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5630,6 +5658,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5641,6 +5670,7 @@
                 "type": "number"
               },
               {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5745,6 +5775,7 @@
             "type": "string"
           },
           "stripe_customer": {
+            "additionalProperties": true,
             "title": "Stripe Customer",
             "type": "object"
           },
@@ -6351,6 +6382,7 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "additionalProperties": true,
                   "title": "Response Get Stripe Customer Admin Accounts  Id  Stripe Customer Get",
                   "type": "object"
                 }
@@ -6938,6 +6970,7 @@
             "application/json": {
               "schema": {
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "title": "Json Data",
@@ -6952,6 +6985,7 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "additionalProperties": true,
                   "title": "Response New Form Forms  Form Key  Post",
                   "type": "object"
                 }
@@ -7112,6 +7146,7 @@
               "schema": {
                 "default": [],
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "title": "Form Data",
@@ -10540,6 +10575,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": true,
                 "title": "Data",
                 "type": "object"
               }
@@ -15340,6 +15376,7 @@
               "schema": {
                 "default": [],
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "title": "Form Data",

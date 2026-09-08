@@ -12,7 +12,7 @@ fastmcp~=2.14.7  # >=2.14 fixes transitive $defs pruning that broke list_* MCP t
 gunicorn~=20.0.4
 more-itertools==10.2.0
 psycopg2-binary==2.9.12
-pydantic[email]>=2.11.7
+pydantic[email]==2.13.5
 python-jose[cryptography]==3.2.0
 python-rapidjson==1.17
 pytz==2024.1
