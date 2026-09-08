@@ -66,8 +66,8 @@ def _discount_active(product: ProductTable) -> bool:
     return True
 
 
-def _authoritative_unit_price_inc(product: ProductTable, shop: ShopTable, plan: str) -> Decimal:
-    """Resolve a gross unit price from the product's net catalogue price."""
+def _authoritative_unit_price_ex(product: ProductTable, plan: str) -> Decimal:
+    """Resolve a net unit price from the product's catalogue price."""
     if plan == "monthly":
         price = product.recurring_price_monthly
     elif plan == "yearly":
@@ -82,6 +82,12 @@ def _authoritative_unit_price_inc(product: ProductTable, shop: ShopTable, plan: 
     if price is None:
         raise_status(HTTPStatus.UNPROCESSABLE_ENTITY, f"Product '{product.id}' has no {plan} price")
 
+    return price
+
+
+def _authoritative_unit_price_inc(product: ProductTable, shop: ShopTable, plan: str) -> Decimal:
+    """Resolve a gross unit price from the product's net catalogue price."""
+    price = _authoritative_unit_price_ex(product, plan)
     tax_rate = resolve_vat_rate(product, shop)
     return quantize_money(price * (Decimal("1") + tax_rate / Decimal("100")))
 
@@ -92,6 +98,7 @@ def _quote_order(shop: ShopTable, data: OrderQuoteRequest, validate_stock: bool)
         raise_status(HTTPStatus.UNPROCESSABLE_ENTITY, "All order lines must use the same payment plan")
 
     order_info: list[OrderItem] = []
+    shipping_order_info: list[OrderItem] = []
     for requested_item in data.order_info:
         product = product_crud.get_id_by_shop_id(shop.id, requested_item.product_id)
         if not product:
@@ -105,14 +112,16 @@ def _quote_order(shop: ShopTable, data: OrderQuoteRequest, validate_stock: bool)
         ):
             raise_status(HTTPStatus.BAD_REQUEST, f"Not enough stock for product '{requested_item.product_name}'")
 
+        price_ex = _authoritative_unit_price_ex(product, requested_item.plan)
         order_info.append(
             OrderItem(
                 **requested_item.model_dump(),
                 price=_authoritative_unit_price_inc(product, shop, requested_item.plan),
             )
         )
+        shipping_order_info.append(OrderItem(**requested_item.model_dump(), price=price_ex))
 
-    shipping_calc = compute_shipping_for_cart(order_info, shop)
+    shipping_calc = compute_shipping_for_cart(shipping_order_info, shop)
     shipping_fee_inc_btw = shipping_calc.fee_inc_btw if shipping_calc is not None else None
     subtotal = quantize_money(sum((item.price * item.quantity for item in order_info), Decimal("0")))
     return OrderQuote(

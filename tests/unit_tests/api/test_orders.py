@@ -220,9 +220,9 @@ def test_create_order_with_shipping_mixed_vat(shop_shipping_mixed_vat, test_clie
     response = test_client.post("/orders/", json=body)
     assert response.status_code == 201, response.json()
     j = response.json()
-    # fixed_fee=10.0 ex-VAT is allocated across the gross 121/109 cart split.
-    assert j["shipping_fee_inc_btw"] == 11.53
-    assert j["total"] == 241.53
+    # fixed_fee=10.0 ex-VAT is allocated 50/50 across the 100/100 net cart split.
+    assert j["shipping_fee_inc_btw"] == 11.5
+    assert j["total"] == 241.5
 
 
 def test_create_order_free_shipping_threshold(shop_shipping_free_above, test_client):
