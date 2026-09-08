@@ -6084,7 +6084,7 @@
   "info": {
     "description": "Backend for ShopVirge Shops.",
     "title": "ShopVirge API",
-    "version": "0.4.4"
+    "version": "0.4.5"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -7493,6 +7493,25 @@
         "operationId": "get_multi_orders__get",
         "parameters": [
           {
+            "description": "Only return orders containing this product. Order lines live in the `order_info` JSON rather than a column, so a product cannot be reached through `filter` \u2014 use this instead. An order is returned once however many of its lines reference it.",
+            "in": "query",
+            "name": "product_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only return orders containing this product. Order lines live in the `order_info` JSON rather than a column, so a product cannot be reached through `filter` \u2014 use this instead. An order is returned once however many of its lines reference it.",
+              "title": "Product Id"
+            }
+          },
+          {
             "in": "query",
             "name": "skip",
             "required": false,
@@ -7681,6 +7700,25 @@
             }
           },
           {
+            "description": "Only return orders containing this product. Order lines live in the `order_info` JSON rather than a column, so a product cannot be reached through `filter` \u2014 use this instead. An order is returned once however many of its lines reference it.",
+            "in": "query",
+            "name": "product_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only return orders containing this product. Order lines live in the `order_info` JSON rather than a column, so a product cannot be reached through `filter` \u2014 use this instead. An order is returned once however many of its lines reference it.",
+              "title": "Product Id"
+            }
+          },
+          {
             "in": "query",
             "name": "skip",
             "required": false,
@@ -7779,6 +7817,25 @@
               "format": "uuid",
               "title": "Shop Id",
               "type": "string"
+            }
+          },
+          {
+            "description": "Only return orders containing this product. Order lines live in the `order_info` JSON rather than a column, so a product cannot be reached through `filter` \u2014 use this instead. An order is returned once however many of its lines reference it.",
+            "in": "query",
+            "name": "product_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only return orders containing this product. Order lines live in the `order_info` JSON rather than a column, so a product cannot be reached through `filter` \u2014 use this instead. An order is returned once however many of its lines reference it.",
+              "title": "Product Id"
             }
           },
           {

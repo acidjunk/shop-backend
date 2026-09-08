@@ -4,6 +4,86 @@ from tests.unit_tests.factories.categories import make_category
 from tests.unit_tests.factories.product import make_product
 from tests.unit_tests.factories.shop import make_shop_with_shipping
 
+# --- Filtering orders by the product they contain -----------------------------------
+#
+# Order lines live in the `order_info` JSONB array, so a product is not reachable
+# through the generic `filter` parameter (that matches columns of OrderTable only).
+# `product_id` does a JSONB containment match instead.
+
+
+def test_orders_filter_by_product_returns_only_matching(shop, pending_order, test_client):
+    """The fixture order contains two products; a third product matches nothing."""
+    contained = str(pending_order.order_info[0]["product_id"])
+    category = make_category(shop_id=shop)
+    absent = make_product(shop_id=shop, category_id=category, main_name="Never ordered")
+
+    hit = test_client.get(f"/orders/?product_id={contained}")
+    assert hit.status_code == 200
+    assert [o["id"] for o in hit.json()] == [str(pending_order.id)]
+
+    miss = test_client.get(f"/orders/?product_id={absent}")
+    assert miss.status_code == 200
+    assert miss.json() == []
+
+
+def test_orders_filter_by_product_counts_a_multiline_order_once(shop, pending_order, test_client):
+    """Either line of a two-product order resolves to the same single order."""
+    first, second = (str(line["product_id"]) for line in pending_order.order_info[:2])
+    assert first != second
+    for product_id in (first, second):
+        resp = test_client.get(f"/orders/?product_id={product_id}")
+        assert resp.status_code == 200
+        assert [o["id"] for o in resp.json()] == [str(pending_order.id)]
+
+
+def test_orders_without_product_id_is_unchanged(shop, pending_order, test_client):
+    """Omitting the parameter must not narrow anything."""
+    unfiltered = test_client.get("/orders/")
+    assert unfiltered.status_code == 200
+    assert len(unfiltered.json()) == 1
+
+
+def test_pending_orders_filter_by_product(shop, pending_order, test_client):
+    contained = str(pending_order.order_info[0]["product_id"])
+    resp = test_client.get(f"/orders/shop/{shop}/pending?product_id={contained}")
+    assert resp.status_code == 200
+    assert [o["id"] for o in resp.json()] == [str(pending_order.id)]
+
+    other_shop = make_shop_with_shipping()
+    scoped_out = test_client.get(f"/orders/shop/{other_shop}/pending?product_id={contained}")
+    assert scoped_out.status_code == 200
+    assert scoped_out.json() == [], "product filter must not escape the shop scope"
+
+
+def test_complete_orders_filter_by_product(shop, pending_order, test_client):
+    from server.db import db
+
+    contained = str(pending_order.order_info[0]["product_id"])
+
+    # The order is still pending, so the complete/cancelled feed must not return it
+    # however the product filter is applied.
+    assert test_client.get(f"/orders/shop/{shop}/complete?product_id={contained}").json() == []
+
+    pending_order.status = "complete"
+    db.session.commit()
+
+    resp = test_client.get(f"/orders/shop/{shop}/complete?product_id={contained}")
+    assert resp.status_code == 200
+    assert [o["id"] for o in resp.json()] == [str(pending_order.id)]
+
+    assert test_client.get(f"/orders/shop/{shop}/pending?product_id={contained}").json() == []
+
+
+def test_orders_filter_by_product_composes_with_status_filter(shop, pending_order, test_client):
+    contained = str(pending_order.order_info[0]["product_id"])
+    match = test_client.get(f"/orders/?product_id={contained}&filter=status:pending")
+    assert match.status_code == 200
+    assert len(match.json()) == 1
+
+    miss = test_client.get(f"/orders/?product_id={contained}&filter=status:complete")
+    assert miss.status_code == 200
+    assert miss.json() == []
+
 
 def test_orders_get_multi(shop, pending_order, test_client):
     response = test_client.get(f"/orders/")
