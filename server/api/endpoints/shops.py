@@ -1,6 +1,5 @@
-import json
 from http import HTTPStatus
-from typing import Any, List, Optional
+from typing import List
 from uuid import UUID
 
 import structlog
@@ -9,7 +8,6 @@ from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
 from server.agent_tags import AgentTag
-from server.api import deps
 from server.api.deps import common_parameters
 from server.api.error_handling import raise_status
 from server.api.helpers import load
@@ -93,8 +91,7 @@ def get_my_shops(
 )
 def create(data: ShopCreate = Body(...), current_user: CustomCognitoToken = Depends(auth_required)) -> ShopSchema:
     logger.info("Saving shop", data=data)
-    shop = shop_crud.create(obj_in=data)
-    return shop
+    return shop_crud.create(obj_in=data)
 
 
 @router.get(
@@ -143,8 +140,7 @@ def get_last_pending_order(id: UUID) -> ShopLastPendingOrder:
     description="Retrieve a shop by its UUID, including all associated price records.",
 )
 def get_by_id(id: UUID):
-    item = load(ShopTable, id)
-    return item
+    return load(ShopTable, id)
 
 
 @router.put(
@@ -160,11 +156,10 @@ def update(*, shop_id: UUID, item_in: ShopUpdate, current_user: CustomCognitoTok
     if not shop:
         raise HTTPException(status_code=404, detail="Shop not found")
 
-    shop = shop_crud.update(
+    return shop_crud.update(
         db_obj=shop,
         obj_in=item_in,
     )
-    return shop
 
 
 @router.delete(
@@ -230,11 +225,10 @@ def update_config(
                 detail=f"Cannot enable force_unique_product_names: duplicate product name '{duplicate[0]}' exists in this shop.",
             )
 
-    shop = shop_crud.update(
+    return shop_crud.update(
         db_obj=shop,
         obj_in=item_in,
     )
-    return shop
 
 
 @router.get(
@@ -253,8 +247,7 @@ def get_allowed_ips(
 
     if shop.allowed_ips:
         return shop.allowed_ips
-    else:
-        return []
+    return []
 
 
 @router.post(

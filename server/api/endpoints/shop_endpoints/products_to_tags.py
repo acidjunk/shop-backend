@@ -95,7 +95,7 @@ def create(request: Request, data: ProductToTagCreate = Body(...), principal: An
     created_by, source = actor(principal, request)
     record_product_revision(product, action="update", created_by=created_by, source=source)
     db.session.commit()
-    return None
+    return
 
 
 @router.put(
@@ -147,4 +147,4 @@ def delete(product_to_tag_id: UUID, request: Request, principal: Any = Depends(a
         created_by, source = actor(principal, request)
         record_product_revision(product, action="update", created_by=created_by, source=source)
     db.session.commit()
-    return None
+    return
