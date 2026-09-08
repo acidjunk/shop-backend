@@ -29,7 +29,15 @@ from server.schemas.shop import (
 )
 from server.security import CustomCognitoToken, auth_required, has_admin_group
 
-router = APIRouter()
+# Routes that require a Cognito token. Declaring the dependency on the router
+# rather than on each route means a route added here cannot ship unauthenticated
+# by omission — which is the failure mode a per-route guard invites.
+router = APIRouter(dependencies=[Depends(auth_required)])
+
+# Routes deliberately served without authentication: storefronts poll these to
+# decide whether their cached shop data is stale, before any user has signed in.
+public_router = APIRouter()
+
 logger = structlog.get_logger(__name__)
 
 
@@ -42,7 +50,6 @@ logger = structlog.get_logger(__name__)
 def get_multi(
     response: Response,
     common: dict = Depends(common_parameters),
-    current_user: CustomCognitoToken = Depends(auth_required),
 ) -> List[ShopSchema]:
     shops, header_range = shop_crud.get_multi(
         skip=common["skip"],
@@ -89,12 +96,12 @@ def get_my_shops(
     summary="Create shop",
     description="Create a new shop on the platform. Returns the created shop record.",
 )
-def create(data: ShopCreate = Body(...), current_user: CustomCognitoToken = Depends(auth_required)) -> ShopSchema:
+def create(data: ShopCreate = Body(...)) -> ShopSchema:
     logger.info("Saving shop", data=data)
     return shop_crud.create(obj_in=data)
 
 
-@router.get(
+@public_router.get(
     "/cache-status/{id}",
     response_model=ShopCacheStatus,
     summary="Get shop cache status",
@@ -107,7 +114,7 @@ def get_cache_status(id: UUID) -> ShopCacheStatus:
     return shop
 
 
-@router.get(
+@public_router.get(
     "/last-completed-order/{id}",
     response_model=ShopLastCompletedOrder,
     summary="Get timestamp of last completed order",
@@ -120,7 +127,7 @@ def get_last_completed_order(id: UUID) -> ShopLastCompletedOrder:
     return shop
 
 
-@router.get(
+@public_router.get(
     "/last-pending-order/{id}",
     response_model=ShopLastPendingOrder,
     summary="Get timestamp of last pending order",
@@ -133,7 +140,7 @@ def get_last_pending_order(id: UUID) -> ShopLastPendingOrder:
     return shop
 
 
-@router.get(
+@public_router.get(
     "/{id}",
     response_model=ShopWithPrices,
     summary="Get shop",
@@ -150,7 +157,7 @@ def get_by_id(id: UUID):
     summary="Update shop",
     description="Update shop details such as name, description, and VAT rates.",
 )
-def update(*, shop_id: UUID, item_in: ShopUpdate, current_user: CustomCognitoToken = Depends(auth_required)) -> None:
+def update(*, shop_id: UUID, item_in: ShopUpdate) -> None:
     shop = shop_crud.get(id=shop_id)
     logger.info("Updating shop", data=shop)
     if not shop:
@@ -169,11 +176,11 @@ def update(*, shop_id: UUID, item_in: ShopUpdate, current_user: CustomCognitoTok
     summary="Delete shop",
     description="Permanently remove a shop from the platform.",
 )
-def delete(shop_id: UUID, current_user: CustomCognitoToken = Depends(auth_required)) -> None:
+def delete(shop_id: UUID) -> None:
     return shop_crud.delete(id=shop_id)
 
 
-@router.get(
+@public_router.get(
     "/config/{id}",
     response_model=ShopConfig,
     summary="Get shop configuration",
@@ -199,7 +206,6 @@ def get_config(
 def update_config(
     id: UUID,
     item_in: ShopConfigUpdate,
-    current_user: CustomCognitoToken = Depends(auth_required),
 ) -> ShopConfig:
     shop = shop_crud.get(id=id)
     logger.info("Updating shop", data=shop)
@@ -239,7 +245,6 @@ def update_config(
 )
 def get_allowed_ips(
     id: UUID,
-    current_user: CustomCognitoToken = Depends(auth_required),
 ) -> List[str]:
     shop = shop_crud.get(id)
     if not shop:
@@ -256,7 +261,7 @@ def get_allowed_ips(
     summary="Add allowed IP",
     description="Add an IP address to the shop's order submission allowlist. Returns the updated list of allowed IPs.",
 )
-def add_new_ip(id: UUID, new_ip: ShopIp, current_user: CustomCognitoToken = Depends(auth_required)):
+def add_new_ip(id: UUID, new_ip: ShopIp):
     shop = shop_crud.get(id)
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
@@ -291,7 +296,7 @@ def add_new_ip(id: UUID, new_ip: ShopIp, current_user: CustomCognitoToken = Depe
     summary="Remove allowed IP",
     description="Remove an IP address from the shop's order submission allowlist. Returns the updated list.",
 )
-def remove_ip(id: UUID, old_ip: ShopIp, current_user: CustomCognitoToken = Depends(auth_required)):
+def remove_ip(id: UUID, old_ip: ShopIp):
     shop = shop_crud.get(id)
     if not shop:
         raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {id} not found")
