@@ -2156,94 +2156,8 @@
         "title": "MyShopsResponse",
         "type": "object"
       },
-      "OrderBase": {
-        "properties": {
-          "account_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Account Id"
-          },
-          "customer_order_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Customer Order Id"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
-          "shipping_fee_inc_btw": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shipping Fee Inc Btw"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "total": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total"
-          }
-        },
-        "required": [
-          "total",
-          "notes",
-          "customer_order_id",
-          "status"
-        ],
-        "title": "OrderBase",
-        "type": "object"
-      },
       "OrderCreate": {
+        "additionalProperties": false,
         "properties": {
           "account_id": {
             "anyOf": [
@@ -2268,29 +2182,6 @@
             ],
             "title": "Account Name"
           },
-          "completed_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Completed At"
-          },
-          "customer_order_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Customer Order Id"
-          },
           "notes": {
             "anyOf": [
               {
@@ -2304,63 +2195,18 @@
           },
           "order_info": {
             "items": {
-              "$ref": "#/components/schemas/OrderItem-Input"
+              "$ref": "#/components/schemas/OrderItemCreate"
             },
             "title": "Order Info",
             "type": "array"
-          },
-          "shipping_fee_inc_btw": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shipping Fee Inc Btw"
           },
           "shop_id": {
             "format": "uuid",
             "title": "Shop Id",
             "type": "string"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "total": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total"
           }
         },
         "required": [
-          "total",
-          "notes",
-          "customer_order_id",
-          "status",
           "shop_id",
           "order_info"
         ],
@@ -2495,6 +2341,22 @@
             ],
             "title": "Description"
           },
+          "plan": {
+            "anyOf": [
+              {
+                "enum": [
+                  "onetime",
+                  "monthly",
+                  "yearly"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan"
+          },
           "price": {
             "anyOf": [
               {
@@ -2522,7 +2384,6 @@
           }
         },
         "required": [
-          "description",
           "price",
           "product_id",
           "product_name",
@@ -2544,6 +2405,22 @@
             ],
             "title": "Description"
           },
+          "plan": {
+            "anyOf": [
+              {
+                "enum": [
+                  "onetime",
+                  "monthly",
+                  "yearly"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan"
+          },
           "price": {
             "title": "Price",
             "type": "number"
@@ -2563,13 +2440,134 @@
           }
         },
         "required": [
-          "description",
           "price",
           "product_id",
           "product_name",
           "quantity"
         ],
         "title": "OrderItem",
+        "type": "object"
+      },
+      "OrderItemCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "plan": {
+            "default": "onetime",
+            "enum": [
+              "onetime",
+              "monthly",
+              "yearly"
+            ],
+            "title": "Plan",
+            "type": "string"
+          },
+          "product_id": {
+            "format": "uuid",
+            "title": "Product Id",
+            "type": "string"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "product_name",
+          "quantity"
+        ],
+        "title": "OrderItemCreate",
+        "type": "object"
+      },
+      "OrderQuote": {
+        "properties": {
+          "free_shipping_applied": {
+            "default": false,
+            "title": "Free Shipping Applied",
+            "type": "boolean"
+          },
+          "free_shipping_threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Shipping Threshold"
+          },
+          "order_info": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItem-Output"
+            },
+            "title": "Order Info",
+            "type": "array"
+          },
+          "shipping_fee_inc_btw": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Fee Inc Btw"
+          },
+          "subtotal": {
+            "title": "Subtotal",
+            "type": "number"
+          },
+          "total": {
+            "title": "Total",
+            "type": "number"
+          }
+        },
+        "required": [
+          "order_info",
+          "subtotal",
+          "total"
+        ],
+        "title": "OrderQuote",
+        "type": "object"
+      },
+      "OrderQuoteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "order_info": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemCreate"
+            },
+            "title": "Order Info",
+            "type": "array"
+          },
+          "shop_id": {
+            "format": "uuid",
+            "title": "Shop Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shop_id",
+          "order_info"
+        ],
+        "title": "OrderQuoteRequest",
         "type": "object"
       },
       "OrderSchema": {
@@ -2713,31 +2711,9 @@
         "title": "OrderSchema",
         "type": "object"
       },
-      "OrderUpdate": {
+      "OrderStatusUpdate": {
+        "additionalProperties": false,
         "properties": {
-          "account_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Account Id"
-          },
-          "customer_order_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Customer Order Id"
-          },
           "notes": {
             "anyOf": [
               {
@@ -2749,33 +2725,6 @@
             ],
             "title": "Notes"
           },
-          "order_info": {
-            "items": {
-              "$ref": "#/components/schemas/OrderItem-Input"
-            },
-            "title": "Order Info",
-            "type": "array"
-          },
-          "shipping_fee_inc_btw": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shipping Fee Inc Btw"
-          },
-          "shop_id": {
-            "format": "uuid",
-            "title": "Shop Id",
-            "type": "string"
-          },
           "status": {
             "anyOf": [
               {
@@ -2786,32 +2735,9 @@
               }
             ],
             "title": "Status"
-          },
-          "total": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total"
           }
         },
-        "required": [
-          "total",
-          "notes",
-          "customer_order_id",
-          "status",
-          "shop_id",
-          "order_info"
-        ],
-        "title": "OrderUpdate",
+        "title": "OrderStatusUpdate",
         "type": "object"
       },
       "OrderUpdated": {
@@ -3260,6 +3186,7 @@
                 "type": "null"
               }
             ],
+            "description": "Unit price excluding VAT. Gross = price * (1 + tax_category rate).",
             "title": "Price"
           },
           "recurring_price_monthly": {
@@ -3329,7 +3256,7 @@
             "type": "string"
           },
           "translation": {
-            "$ref": "#/components/schemas/ProductTranslationBase"
+            "$ref": "#/components/schemas/ProductTranslationCreate"
           }
         },
         "required": [
@@ -3801,6 +3728,95 @@
         "title": "ProductTranslationBase",
         "type": "object"
       },
+      "ProductTranslationCreate": {
+        "properties": {
+          "alt1_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt1 Description"
+          },
+          "alt1_description_short": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt1 Description Short"
+          },
+          "alt1_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt1 Name"
+          },
+          "alt2_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt2 Description"
+          },
+          "alt2_description_short": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt2 Description Short"
+          },
+          "alt2_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt2 Name"
+          },
+          "main_description": {
+            "title": "Main Description",
+            "type": "string"
+          },
+          "main_description_short": {
+            "title": "Main Description Short",
+            "type": "string"
+          },
+          "main_name": {
+            "title": "Main Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "main_name",
+          "main_description",
+          "main_description_short"
+        ],
+        "title": "ProductTranslationCreate",
+        "type": "object"
+      },
       "ProductUpdate": {
         "properties": {
           "category_id": {
@@ -4003,6 +4019,7 @@
                 "type": "null"
               }
             ],
+            "description": "Unit price excluding VAT. Gross = price * (1 + tax_category rate).",
             "title": "Price"
           },
           "recurring_price_monthly": {
@@ -4330,6 +4347,7 @@
                 "type": "null"
               }
             ],
+            "description": "Unit price excluding VAT. Gross = price * (1 + tax_category rate).",
             "title": "Price"
           },
           "prices": {
@@ -4651,6 +4669,7 @@
                 "type": "null"
               }
             ],
+            "description": "Unit price excluding VAT. Gross = price * (1 + tax_category rate).",
             "title": "Price"
           },
           "prices": {
@@ -6084,7 +6103,7 @@
   "info": {
     "description": "Backend for ShopVirge Shops.",
     "title": "ShopVirge API",
-    "version": "0.4.4"
+    "version": "0.4.8"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -7578,7 +7597,7 @@
         ]
       },
       "post": {
-        "description": "Submit a new customer order. The caller's IP is validated against the shop's allowlist. If stock tracking is enabled the product availability is verified before the order is created. A Stripe customer is auto-created for new account names when the shop has Stripe configured.",
+        "description": "Submit a new customer order. The caller's IP is validated against the shop's allowlist. Unit prices, shipping, and totals are derived server-side from the product catalogue. If stock tracking is enabled the product availability is verified before the order is created. A Stripe customer is auto-created for new account names when the shop has Stripe configured.",
         "operationId": "create_orders__post",
         "requestBody": {
           "content": {
@@ -7660,6 +7679,48 @@
           }
         },
         "summary": "Check order statuses",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/quote": {
+      "post": {
+        "description": "Calculate gross line prices, shipping, and total from product IDs, quantities, and plans.",
+        "operationId": "quote_orders_quote_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderQuoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderQuote"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Quote an order",
         "tags": [
           "orders"
         ]
@@ -8016,7 +8077,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrderBase"
+                "$ref": "#/components/schemas/OrderStatusUpdate"
               }
             }
           },
@@ -8050,7 +8111,7 @@
         ]
       },
       "put": {
-        "description": "Fully replace an order's fields. Requires authentication. Also sets `completed_at` when transitioning to `complete` or `cancelled`.",
+        "description": "Update an order's status or notes. Prices, line items, and totals are immutable after creation.",
         "operationId": "update_orders__order_id__put",
         "parameters": [
           {
@@ -8068,7 +8129,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrderUpdate"
+                "$ref": "#/components/schemas/OrderStatusUpdate"
               }
             }
           },
@@ -8101,7 +8162,7 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "Full order update",
+        "summary": "Update order status",
         "tags": [
           "orders"
         ]
@@ -14438,7 +14499,7 @@
     },
     "/shops/{shop_id}/stripe/": {
       "post": {
-        "description": "Create a Stripe PaymentIntent for a one-time purchase. Uses the shop's own `stripe_secret_key`. The `price` is in euro cents. Returns a `clientSecret` to complete the payment on the frontend.",
+        "description": "Create a Stripe PaymentIntent for a one-time purchase. Uses the shop's own `stripe_secret_key` and the total saved on the order. Returns a `clientSecret` to complete the payment on the frontend.",
         "operationId": "create_payment_intent_shops__shop_id__stripe__post",
         "parameters": [
           {
@@ -14453,20 +14514,11 @@
           },
           {
             "in": "query",
-            "name": "price",
-            "required": true,
-            "schema": {
-              "title": "Price",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "account_id",
+            "name": "order_id",
             "required": true,
             "schema": {
               "format": "uuid",
-              "title": "Account Id",
+              "title": "Order Id",
               "type": "string"
             }
           }
@@ -14475,7 +14527,13 @@
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Create Payment Intent Shops  Shop Id  Stripe  Post",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -14499,7 +14557,7 @@
     },
     "/shops/{shop_id}/stripe/subscription": {
       "post": {
-        "description": "Create a Stripe Subscription for one or more products. Price lookup keys are resolved as `monthly-<product_id>` or `yearly-<product_id>`. Returns `clientSecret` and `subscriptionId` to confirm payment on the frontend.",
+        "description": "Create a Stripe Subscription using products and plan stored on an order. Price lookup keys are resolved as `monthly-<product_id>` or `yearly-<product_id>`. Returns `clientSecret` and `subscriptionId` to confirm payment on the frontend.",
         "operationId": "create_subscription_intent_shops__shop_id__stripe_subscription_post",
         "parameters": [
           {
@@ -14514,45 +14572,26 @@
           },
           {
             "in": "query",
-            "name": "account_id",
+            "name": "order_id",
             "required": true,
             "schema": {
               "format": "uuid",
-              "title": "Account Id",
+              "title": "Order Id",
               "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "yearly",
-            "required": false,
-            "schema": {
-              "default": false,
-              "title": "Yearly",
-              "type": "boolean"
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "items": {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                "title": "Product Ids",
-                "type": "array"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Create Subscription Intent Shops  Shop Id  Stripe Subscription Post",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
