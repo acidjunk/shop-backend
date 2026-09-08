@@ -4,7 +4,6 @@
       "AccountCreate": {
         "properties": {
           "details": {
-            "additionalProperties": true,
             "title": "Details",
             "type": "object"
           },
@@ -29,7 +28,6 @@
       "AccountSchema": {
         "properties": {
           "details": {
-            "additionalProperties": true,
             "title": "Details",
             "type": "object"
           },
@@ -60,7 +58,6 @@
       "AccountUpdate": {
         "properties": {
           "details": {
-            "additionalProperties": true,
             "title": "Details",
             "type": "object"
           },
@@ -87,7 +84,6 @@
           "details": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -661,7 +657,6 @@
           "alt1_image": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -676,7 +671,6 @@
           "alt2_image": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -706,7 +700,6 @@
           "main_image": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -767,7 +760,6 @@
           "alt1_image": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -782,7 +774,6 @@
           "alt2_image": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -817,7 +808,6 @@
           "main_image": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -928,7 +918,6 @@
           "alt1_image": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -943,7 +932,6 @@
           "alt2_image": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -973,7 +961,6 @@
           "main_image": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -1246,7 +1233,39 @@
         "title": "ConfigurationLanguageFields",
         "type": "object"
       },
-      "ConfigurationLanguages": {
+      "ConfigurationLanguages-Input": {
+        "properties": {
+          "alt1": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfigurationLanguageFields"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "alt2": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfigurationLanguageFields"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "main": {
+            "$ref": "#/components/schemas/ConfigurationLanguageFields"
+          }
+        },
+        "required": [
+          "main"
+        ],
+        "title": "ConfigurationLanguages",
+        "type": "object"
+      },
+      "ConfigurationLanguages-Output": {
         "properties": {
           "alt1": {
             "anyOf": [
@@ -1359,7 +1378,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -1372,7 +1390,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -1406,12 +1423,12 @@
             "type": "boolean"
           },
           "fixed_fee": {
-            "default": 0.0,
+            "default": "0",
             "title": "Fixed Fee",
             "type": "number"
           },
           "free_shipping_above_amount": {
-            "default": 0.0,
+            "default": "0",
             "title": "Free Shipping Above Amount",
             "type": "number"
           },
@@ -1478,7 +1495,7 @@
             "type": "integer"
           },
           "languages": {
-            "$ref": "#/components/schemas/ConfigurationLanguages"
+            "$ref": "#/components/schemas/ConfigurationLanguages-Input"
           },
           "legal": {
             "anyOf": [
@@ -1581,7 +1598,7 @@
             "type": "integer"
           },
           "languages": {
-            "$ref": "#/components/schemas/ConfigurationLanguages"
+            "$ref": "#/components/schemas/ConfigurationLanguages-Output"
           },
           "legal": {
             "anyOf": [
@@ -2156,94 +2173,8 @@
         "title": "MyShopsResponse",
         "type": "object"
       },
-      "OrderBase": {
-        "properties": {
-          "account_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Account Id"
-          },
-          "customer_order_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Customer Order Id"
-          },
-          "notes": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Notes"
-          },
-          "shipping_fee_inc_btw": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shipping Fee Inc Btw"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "total": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total"
-          }
-        },
-        "required": [
-          "total",
-          "notes",
-          "customer_order_id",
-          "status"
-        ],
-        "title": "OrderBase",
-        "type": "object"
-      },
       "OrderCreate": {
+        "additionalProperties": false,
         "properties": {
           "account_id": {
             "anyOf": [
@@ -2268,29 +2199,6 @@
             ],
             "title": "Account Name"
           },
-          "completed_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Completed At"
-          },
-          "customer_order_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Customer Order Id"
-          },
           "notes": {
             "anyOf": [
               {
@@ -2304,63 +2212,18 @@
           },
           "order_info": {
             "items": {
-              "$ref": "#/components/schemas/OrderItem-Input"
+              "$ref": "#/components/schemas/OrderItemCreate"
             },
             "title": "Order Info",
             "type": "array"
-          },
-          "shipping_fee_inc_btw": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shipping Fee Inc Btw"
           },
           "shop_id": {
             "format": "uuid",
             "title": "Shop Id",
             "type": "string"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "total": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total"
           }
         },
         "required": [
-          "total",
-          "notes",
-          "customer_order_id",
-          "status",
           "shop_id",
           "order_info"
         ],
@@ -2495,13 +2358,28 @@
             ],
             "title": "Description"
           },
+          "plan": {
+            "anyOf": [
+              {
+                "enum": [
+                  "onetime",
+                  "monthly",
+                  "yearly"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan"
+          },
           "price": {
             "anyOf": [
               {
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -2522,7 +2400,6 @@
           }
         },
         "required": [
-          "description",
           "price",
           "product_id",
           "product_name",
@@ -2544,6 +2421,22 @@
             ],
             "title": "Description"
           },
+          "plan": {
+            "anyOf": [
+              {
+                "enum": [
+                  "onetime",
+                  "monthly",
+                  "yearly"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan"
+          },
           "price": {
             "title": "Price",
             "type": "number"
@@ -2563,13 +2456,58 @@
           }
         },
         "required": [
-          "description",
           "price",
           "product_id",
           "product_name",
           "quantity"
         ],
         "title": "OrderItem",
+        "type": "object"
+      },
+      "OrderItemCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "plan": {
+            "default": "onetime",
+            "enum": [
+              "onetime",
+              "monthly",
+              "yearly"
+            ],
+            "title": "Plan",
+            "type": "string"
+          },
+          "product_id": {
+            "format": "uuid",
+            "title": "Product Id",
+            "type": "string"
+          },
+          "product_name": {
+            "title": "Product Name",
+            "type": "string"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "product_id",
+          "product_name",
+          "quantity"
+        ],
+        "title": "OrderItemCreate",
         "type": "object"
       },
       "OrderSchema": {
@@ -2713,31 +2651,9 @@
         "title": "OrderSchema",
         "type": "object"
       },
-      "OrderUpdate": {
+      "OrderStatusUpdate": {
+        "additionalProperties": false,
         "properties": {
-          "account_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Account Id"
-          },
-          "customer_order_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Customer Order Id"
-          },
           "notes": {
             "anyOf": [
               {
@@ -2749,33 +2665,6 @@
             ],
             "title": "Notes"
           },
-          "order_info": {
-            "items": {
-              "$ref": "#/components/schemas/OrderItem-Input"
-            },
-            "title": "Order Info",
-            "type": "array"
-          },
-          "shipping_fee_inc_btw": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Shipping Fee Inc Btw"
-          },
-          "shop_id": {
-            "format": "uuid",
-            "title": "Shop Id",
-            "type": "string"
-          },
           "status": {
             "anyOf": [
               {
@@ -2786,32 +2675,9 @@
               }
             ],
             "title": "Status"
-          },
-          "total": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total"
           }
         },
-        "required": [
-          "total",
-          "notes",
-          "customer_order_id",
-          "status",
-          "shop_id",
-          "order_info"
-        ],
-        "title": "OrderUpdate",
+        "title": "OrderStatusUpdate",
         "type": "object"
       },
       "OrderUpdated": {
@@ -3113,7 +2979,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3141,7 +3006,6 @@
           "image_1": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3156,7 +3020,6 @@
           "image_2": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3171,7 +3034,6 @@
           "image_3": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3186,7 +3048,6 @@
           "image_4": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3201,7 +3062,6 @@
           "image_5": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3216,7 +3076,6 @@
           "image_6": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3253,7 +3112,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3268,7 +3126,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3283,7 +3140,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3933,7 +3789,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -3961,7 +3816,6 @@
           "image_1": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3976,7 +3830,6 @@
           "image_2": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -3991,7 +3844,6 @@
           "image_3": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4006,7 +3858,6 @@
           "image_4": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4021,7 +3872,6 @@
           "image_5": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4036,7 +3886,6 @@
           "image_6": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4085,7 +3934,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -4100,7 +3948,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -4115,7 +3962,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               },
               {
@@ -4287,7 +4133,6 @@
           "image_1": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4302,7 +4147,6 @@
           "image_2": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4317,7 +4161,6 @@
           "image_3": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4332,7 +4175,6 @@
           "image_4": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4347,7 +4189,6 @@
           "image_5": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4362,7 +4203,6 @@
           "image_6": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4608,7 +4448,6 @@
           "image_1": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4623,7 +4462,6 @@
           "image_2": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4638,7 +4476,6 @@
           "image_3": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4653,7 +4490,6 @@
           "image_4": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4668,7 +4504,6 @@
           "image_5": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4683,7 +4518,6 @@
           "image_6": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -4745,7 +4579,6 @@
           "prices": {
             "default": [],
             "items": {
-              "additionalProperties": true,
               "type": "object"
             },
             "title": "Prices",
@@ -4982,7 +4815,6 @@
             "title": "Created By"
           },
           "data": {
-            "additionalProperties": true,
             "title": "Data",
             "type": "object"
           },
@@ -5355,7 +5187,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5367,7 +5198,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5379,7 +5209,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5391,7 +5220,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5403,7 +5231,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5415,7 +5242,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5680,7 +5506,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5692,7 +5517,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5704,7 +5528,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5716,7 +5539,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5728,7 +5550,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5740,7 +5561,6 @@
                 "type": "number"
               },
               {
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
                 "type": "string"
               }
             ],
@@ -5845,7 +5665,6 @@
             "type": "string"
           },
           "stripe_customer": {
-            "additionalProperties": true,
             "title": "Stripe Customer",
             "type": "object"
           },
@@ -6173,7 +5992,7 @@
   "info": {
     "description": "Backend for ShopVirge Shops.",
     "title": "ShopVirge API",
-    "version": "0.4.6"
+    "version": "0.4.7"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -6452,7 +6271,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Get Stripe Customer Admin Accounts  Id  Stripe Customer Get",
                   "type": "object"
                 }
@@ -7040,7 +6858,6 @@
             "application/json": {
               "schema": {
                 "items": {
-                  "additionalProperties": true,
                   "type": "object"
                 },
                 "title": "Json Data",
@@ -7055,7 +6872,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response New Form Forms  Form Key  Post",
                   "type": "object"
                 }
@@ -7216,7 +7032,6 @@
               "schema": {
                 "default": [],
                 "items": {
-                  "additionalProperties": true,
                   "type": "object"
                 },
                 "title": "Form Data",
@@ -7667,7 +7482,7 @@
         ]
       },
       "post": {
-        "description": "Submit a new customer order. The caller's IP is validated against the shop's allowlist. If stock tracking is enabled the product availability is verified before the order is created. A Stripe customer is auto-created for new account names when the shop has Stripe configured.",
+        "description": "Submit a new customer order. The caller's IP is validated against the shop's allowlist. Unit prices, shipping, and totals are derived server-side from the product catalogue. If stock tracking is enabled the product availability is verified before the order is created. A Stripe customer is auto-created for new account names when the shop has Stripe configured.",
         "operationId": "create_orders__post",
         "requestBody": {
           "content": {
@@ -8105,7 +7920,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrderBase"
+                "$ref": "#/components/schemas/OrderStatusUpdate"
               }
             }
           },
@@ -8139,7 +7954,7 @@
         ]
       },
       "put": {
-        "description": "Fully replace an order's fields. Requires authentication. Also sets `completed_at` when transitioning to `complete` or `cancelled`.",
+        "description": "Update an order's status or notes. Prices, line items, and totals are immutable after creation.",
         "operationId": "update_orders__order_id__put",
         "parameters": [
           {
@@ -8157,7 +7972,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OrderUpdate"
+                "$ref": "#/components/schemas/OrderStatusUpdate"
               }
             }
           },
@@ -8190,7 +8005,7 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "Full order update",
+        "summary": "Update order status",
         "tags": [
           "orders"
         ]
@@ -10603,7 +10418,6 @@
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": true,
                 "title": "Data",
                 "type": "object"
               }
@@ -14527,7 +14341,7 @@
     },
     "/shops/{shop_id}/stripe/": {
       "post": {
-        "description": "Create a Stripe PaymentIntent for a one-time purchase. Uses the shop's own `stripe_secret_key`. The `price` is in euro cents. Returns a `clientSecret` to complete the payment on the frontend.",
+        "description": "Create a Stripe PaymentIntent for a one-time purchase. Uses the shop's own `stripe_secret_key` and the total saved on the order. Returns a `clientSecret` to complete the payment on the frontend.",
         "operationId": "create_payment_intent_shops__shop_id__stripe__post",
         "parameters": [
           {
@@ -14542,20 +14356,11 @@
           },
           {
             "in": "query",
-            "name": "price",
-            "required": true,
-            "schema": {
-              "title": "Price",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "account_id",
+            "name": "order_id",
             "required": true,
             "schema": {
               "format": "uuid",
-              "title": "Account Id",
+              "title": "Order Id",
               "type": "string"
             }
           }
@@ -14564,7 +14369,13 @@
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Create Payment Intent Shops  Shop Id  Stripe  Post",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -14588,7 +14399,7 @@
     },
     "/shops/{shop_id}/stripe/subscription": {
       "post": {
-        "description": "Create a Stripe Subscription for one or more products. Price lookup keys are resolved as `monthly-<product_id>` or `yearly-<product_id>`. Returns `clientSecret` and `subscriptionId` to confirm payment on the frontend.",
+        "description": "Create a Stripe Subscription using products and plan stored on an order. Price lookup keys are resolved as `monthly-<product_id>` or `yearly-<product_id>`. Returns `clientSecret` and `subscriptionId` to confirm payment on the frontend.",
         "operationId": "create_subscription_intent_shops__shop_id__stripe_subscription_post",
         "parameters": [
           {
@@ -14603,45 +14414,26 @@
           },
           {
             "in": "query",
-            "name": "account_id",
+            "name": "order_id",
             "required": true,
             "schema": {
               "format": "uuid",
-              "title": "Account Id",
+              "title": "Order Id",
               "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "yearly",
-            "required": false,
-            "schema": {
-              "default": false,
-              "title": "Yearly",
-              "type": "boolean"
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "items": {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                "title": "Product Ids",
-                "type": "array"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Create Subscription Intent Shops  Shop Id  Stripe Subscription Post",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -15426,7 +15218,6 @@
               "schema": {
                 "default": [],
                 "items": {
-                  "additionalProperties": true,
                   "type": "object"
                 },
                 "title": "Form Data",

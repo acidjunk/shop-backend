@@ -14,11 +14,11 @@ from uuid import UUID
 
 from server.crud.base import CRUDBase
 from server.db.models import OrderTable
-from server.schemas.order import OrderCreate, OrderUpdate
+from server.schemas.order import OrderPersisted, OrderUpdate
 from server.utils.json import json_dumps
 
 
-class CRUDOrder(CRUDBase[OrderTable, OrderCreate, OrderUpdate]):
+class CRUDOrder(CRUDBase[OrderTable, OrderPersisted, OrderUpdate]):
     def get_newest_order_id(self, *, shop_id: UUID) -> int:
         order_id = OrderTable.query.filter_by(shop_id=str(shop_id)).count() + 1
         return order_id

@@ -12,15 +12,17 @@
 # limitations under the License.
 import uuid
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, List, Literal, Optional
 from uuid import UUID
+
+from pydantic import ConfigDict
 
 from server.schemas.base import BoilerplateBaseModel, Money
 
 
 # Made them optional for now because there are some empty order_info fields in DB
 class OrderItem(BoilerplateBaseModel):
-    description: Optional[str]
+    description: Optional[str] = None
     price: Money  # Was optional
     # kind_id: Optional[str]
     # kind_name: Optional[str]
@@ -28,6 +30,7 @@ class OrderItem(BoilerplateBaseModel):
     product_name: str  # Was optional
     # internal_product_id: Optional[str]
     quantity: int  # Was optional
+    plan: Optional[Literal["onetime", "monthly", "yearly"]] = None
 
     # @root_validator
     # def check_order_item_if_has_both(cls, values):
@@ -51,12 +54,32 @@ class OrderBase(BoilerplateBaseModel):
     shipping_fee_inc_btw: Optional[Money] = None
 
 
-# Properties to receive via API on creation
-class OrderCreate(OrderBase):
+class OrderItemCreate(BoilerplateBaseModel):
+    description: Optional[str] = None
+    product_id: UUID
+    product_name: str
+    quantity: int
+    plan: Literal["onetime", "monthly", "yearly"] = "onetime"
+
+    model_config = ConfigDict(extra="forbid")
+
+
+# Properties to receive via API on creation. Prices and totals are derived from
+# the catalogue and must not be supplied by clients.
+class OrderCreate(BoilerplateBaseModel):
     shop_id: UUID
-    order_info: List[OrderItem]  # OrderItem
-    completed_at: Optional[datetime] = None
+    order_info: List[OrderItemCreate]
+    account_id: Optional[UUID] = None
     account_name: Optional[str] = None
+    notes: Optional[str] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class OrderPersisted(OrderBase):
+    shop_id: UUID
+    order_info: List[OrderItem]
+    completed_at: Optional[datetime] = None
 
 
 # Properties to receive via API after creation
@@ -71,6 +94,13 @@ class OrderCreated(OrderBase):
 class OrderUpdate(OrderBase):
     shop_id: UUID
     order_info: List[OrderItem]  # OrderItem
+
+
+class OrderStatusUpdate(BoilerplateBaseModel):
+    status: Optional[str] = None
+    notes: Optional[str] = None
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class OrderUpdated(OrderUpdate):

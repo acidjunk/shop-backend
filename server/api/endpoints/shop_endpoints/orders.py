@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from http import HTTPStatus
 from operator import or_
-from typing import Any, List, Optional
+from typing import List
 from uuid import UUID
 
 import stripe
@@ -21,16 +21,24 @@ from server.crud.crud_account import account_crud
 from server.crud.crud_order import order_crud
 from server.crud.crud_product import product_crud
 from server.crud.crud_shop import shop_crud
-from server.db.models import Account, OrderTable, ShopTable
+from server.db.models import Account, OrderTable, ProductTable, ShopTable
 from server.mail import send_order_confirmation_emails
 from server.schemas import ProductUpdate
 from server.schemas.account import AccountCreate
 from server.schemas.base import quantize_money
-from server.schemas.order import OrderBase, OrderCreate, OrderCreated, OrderSchema, OrderUpdate, OrderUpdated
+from server.schemas.order import (
+    OrderCreate,
+    OrderCreated,
+    OrderItem,
+    OrderPersisted,
+    OrderSchema,
+    OrderStatusUpdate,
+    OrderUpdated,
+)
 from server.schemas.product import ProductTranslationBase
 from server.security import CustomCognitoToken, auth_required
 from server.services import stripe_client
-from server.services.shipping import compute_shipping_for_cart
+from server.services.shipping import compute_shipping_for_cart, resolve_vat_rate
 from server.services.stripe_client import StripeNotConfigured
 from server.settings import mail_settings
 from server.utils.discord.discord import post_discord_order_complete
@@ -40,15 +48,15 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
-def _discount_active(product: Any) -> bool:
+def _discount_active(product: ProductTable) -> bool:
     """True if the product's discount window is currently open.
 
     A missing ``discounted_from``/``discounted_to`` bound is treated as open on
     that side (an ongoing discount).
     """
     now = datetime.now()
-    start = getattr(product, "discounted_from", None)
-    end = getattr(product, "discounted_to", None)
+    start = product.discounted_from
+    end = product.discounted_to
     if start is not None and now < start:
         return False
     if end is not None and now > end:
@@ -56,26 +64,24 @@ def _discount_active(product: Any) -> bool:
     return True
 
 
-def _authoritative_unit_price_inc(product: Any) -> Optional[Decimal]:
-    """Resolve the tax-inclusive unit price for an order line from the DB product.
-
-    ``product.price`` (and ``discounted_price``) are already tax-inclusive, in
-    line with how the rest of the order/shipping pipeline treats cart line
-    prices. Returns ``None`` when no authoritative price can be derived
-    (product missing), so the caller can fall back to the client-supplied
-    value.
-    """
-    if product is None:
-        return None
-
-    price = product.price
-    if product.discounted_price is not None and _discount_active(product):
-        price = product.discounted_price
+def _authoritative_unit_price_inc(product: ProductTable, shop: ShopTable, plan: str) -> Decimal:
+    """Resolve a gross unit price from the product's net catalogue price."""
+    if plan == "monthly":
+        price = product.recurring_price_monthly
+    elif plan == "yearly":
+        price = product.recurring_price_yearly
+    else:
+        price = (
+            product.discounted_price
+            if product.discounted_price is not None and _discount_active(product)
+            else product.price
+        )
 
     if price is None:
-        return None
+        raise_status(HTTPStatus.UNPROCESSABLE_ENTITY, f"Product '{product.id}' has no {plan} price")
 
-    return quantize_money(price)
+    tax_rate = resolve_vat_rate(product, shop)
+    return quantize_money(price * (Decimal("1") + tax_rate / Decimal("100")))
 
 
 @router.get(
@@ -238,6 +244,7 @@ def check(
     summary="Create order",
     description=(
         "Submit a new customer order. The caller's IP is validated against the shop's allowlist. "
+        "Unit prices, shipping, and totals are derived server-side from the product catalogue. "
         "If stock tracking is enabled the product availability is verified before the order is created. "
         "A Stripe customer is auto-created for new account names when the shop has Stripe configured."
     ),
@@ -245,8 +252,6 @@ def check(
 def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
     logger.info("Saving order", data=data)
 
-    if data.customer_order_id:
-        del data.customer_order_id
     shop_id = data.shop_id
     shop = shop_crud.get(shop_id)
     if not shop:
@@ -286,60 +291,48 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
         # allow test table to bypass IP check if any
         raise_status(HTTPStatus.BAD_REQUEST, "NOT_ON_SHOP_WIFI")
 
-    # Availability check
-    if shop.config["toggles"]["enable_stock_on_products"]:
-        for order_product in data.order_info:
-            product = product_crud.get_id_by_shop_id(shop_id, order_product.product_id)
-            if not product:
-                raise_status(HTTPStatus.NOT_FOUND, f"Product '{order_product.product_name}' not found")
-            if product.stock < order_product.quantity:
-                raise_status(HTTPStatus.BAD_REQUEST, f"Not enough stock for product '{order_product.product_name}'")
+    order_info: list[OrderItem] = []
+    for requested_item in data.order_info:
+        product = product_crud.get_id_by_shop_id(shop_id, requested_item.product_id)
+        if not product:
+            raise_status(HTTPStatus.NOT_FOUND, f"Product '{requested_item.product_name}' not found")
+        if shop.config["toggles"]["enable_stock_on_products"] and product.stock < requested_item.quantity:
+            raise_status(HTTPStatus.BAD_REQUEST, f"Not enough stock for product '{requested_item.product_name}'")
 
-    data.customer_order_id = order_crud.get_newest_order_id(shop_id=shop_id)
+        order_info.append(
+            OrderItem(
+                **requested_item.model_dump(),
+                price=_authoritative_unit_price_inc(product, shop, requested_item.plan),
+            )
+        )
 
-    if data.status in ["complete", "cancelled"] and not data.completed_at:
-        data.completed_at = datetime.now()
-
-    if data.status not in ["pending", "complete", "cancelled"]:
-        data.status = "pending"
-
+    status = "pending"
+    completed_at = None
     if str(data.account_id) == "0999fbcd-a72b-4cc2-abbe-41ccd466cdaf":
         # Test table -> flag it complete
-        data.status = "complete"
-        data.completed_at = datetime.now()
-
-    for order_product in data.order_info:
-        product = product_crud.get_id_by_shop_id(shop_id, order_product.product_id)
-        server_unit_inc = _authoritative_unit_price_inc(product)
-        if server_unit_inc is None:
-            logger.warning(
-                "Could not derive authoritative price for order line; keeping client price",
-                shop_id=str(shop_id),
-                product_id=str(order_product.product_id),
-                product_name=order_product.product_name,
-                client_price=str(order_product.price),
-            )
-            continue
-        if quantize_money(order_product.price) != server_unit_inc:
-            logger.warning(
-                "Order line price mismatch; overriding client price with server price",
-                shop_id=str(shop_id),
-                product_id=str(order_product.product_id),
-                product_name=order_product.product_name,
-                client_price=str(order_product.price),
-                server_price=str(server_unit_inc),
-            )
-        order_product.price = server_unit_inc
+        status = "complete"
+        completed_at = datetime.now()
 
     # Compute shipping fee from shop config and recompute the persisted total
     # server-side from the authoritative line prices so it can't be manipulated
     # by the client.
-    shipping_calc = compute_shipping_for_cart(data.order_info, shop)
-    data.shipping_fee_inc_btw = shipping_calc.fee_inc_btw if shipping_calc is not None else None
-    items_total = sum((item.price * item.quantity for item in data.order_info), Decimal("0"))
-    data.total = quantize_money(items_total + (data.shipping_fee_inc_btw or Decimal("0")))
-
-    order = order_crud.create(obj_in=data)
+    shipping_calc = compute_shipping_for_cart(order_info, shop)
+    shipping_fee_inc_btw = shipping_calc.fee_inc_btw if shipping_calc is not None else None
+    items_total = sum((item.price * item.quantity for item in order_info), Decimal("0"))
+    total = quantize_money(items_total + (shipping_fee_inc_btw or Decimal("0")))
+    order = order_crud.create(
+        obj_in=OrderPersisted(
+            account_id=data.account_id,
+            total=total,
+            notes=data.notes,
+            customer_order_id=order_crud.get_newest_order_id(shop_id=shop_id),
+            status=status,
+            shipping_fee_inc_btw=shipping_fee_inc_btw,
+            shop_id=shop_id,
+            order_info=order_info,
+            completed_at=completed_at,
+        )
+    )
 
     created_order = OrderCreated(
         account_id=order.account_id,
@@ -377,7 +370,7 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
 def patch(
     *,
     order_id: UUID,
-    item_in: OrderBase,
+    item_in: OrderStatusUpdate,
 ) -> OrderUpdated:
     order = order_crud.get(order_id)
     if not order:
@@ -483,11 +476,11 @@ def update_stock_on_order_complete(order_id: UUID):
     "/{order_id}",
     response_model=OrderUpdated,
     status_code=HTTPStatus.CREATED,
-    summary="Full order update",
-    description="Fully replace an order's fields. Requires authentication. Also sets `completed_at` when transitioning to `complete` or `cancelled`.",
+    summary="Update order status",
+    description="Update an order's status or notes. Prices, line items, and totals are immutable after creation.",
 )
 def update(
-    *, order_id: UUID, item_in: OrderUpdate, current_user: CustomCognitoToken = Depends(auth_required)
+    *, order_id: UUID, item_in: OrderStatusUpdate, current_user: CustomCognitoToken = Depends(auth_required)
 ) -> OrderUpdated:
     order = order_crud.get(order_id)
     if not order:
