@@ -409,3 +409,12 @@ def test_force_unique_names_off_allows_duplicate(shop_with_config, category, tes
         content=json_dumps(_product_body(shop_with_config, category, name="Shared Name")),
     )
     assert response.status_code == HTTPStatus.CREATED
+
+
+def test_products_get_multi_sentence_filter(shop_with_products, test_client):
+    response = test_client.get(
+        f"/shops/{shop_with_products}/products/?productFilter=translation.main_name:Product&productFilter=translation.main_name:Testing"
+    )
+    assert response.status_code == 200
+    products = response.json()
+    assert len(products) > 0
