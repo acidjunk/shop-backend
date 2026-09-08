@@ -90,6 +90,41 @@ def test_create_order_no_shipping(shop_no_shipping_with_products, test_client):
     assert j["total"] == 48.4
 
 
+def test_quote_order_calculates_gross_price_from_net_product_price(shop_no_shipping_with_products, test_client):
+    ids = shop_no_shipping_with_products
+    category = make_category(shop_id=ids["shop_id"])
+    product_id = make_product(
+        shop_id=ids["shop_id"],
+        category_id=category,
+        main_name="VAT example",
+        price=100.0,
+    )
+
+    response = test_client.post(
+        "/orders/quote",
+        json={
+            "shop_id": str(ids["shop_id"]),
+            "order_info": [{"product_id": str(product_id), "product_name": "VAT example", "quantity": 1}],
+        },
+    )
+
+    assert response.status_code == 200, response.json()
+    assert response.json()["order_info"][0]["price"] == 121.0
+    assert response.json()["subtotal"] == 121.0
+    assert response.json()["total"] == 121.0
+
+    order_response = test_client.post(
+        "/orders/",
+        json={
+            "shop_id": str(ids["shop_id"]),
+            "account_name": "vat-example@example.com",
+            "order_info": [{"product_id": str(product_id), "product_name": "VAT example", "quantity": 1}],
+        },
+    )
+    assert order_response.status_code == 201, order_response.json()
+    assert order_response.json()["total"] == 121.0
+
+
 def test_create_order_with_shipping_single_rate(shop_shipping_fixed_with_products, test_client):
     ids = shop_shipping_fixed_with_products
     items = [

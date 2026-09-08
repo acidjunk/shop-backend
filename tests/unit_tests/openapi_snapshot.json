@@ -2510,6 +2510,82 @@
         "title": "OrderItemCreate",
         "type": "object"
       },
+      "OrderQuote": {
+        "properties": {
+          "free_shipping_applied": {
+            "default": false,
+            "title": "Free Shipping Applied",
+            "type": "boolean"
+          },
+          "free_shipping_threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Shipping Threshold"
+          },
+          "order_info": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItem-Output"
+            },
+            "title": "Order Info",
+            "type": "array"
+          },
+          "shipping_fee_inc_btw": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Fee Inc Btw"
+          },
+          "subtotal": {
+            "title": "Subtotal",
+            "type": "number"
+          },
+          "total": {
+            "title": "Total",
+            "type": "number"
+          }
+        },
+        "required": [
+          "order_info",
+          "subtotal",
+          "total"
+        ],
+        "title": "OrderQuote",
+        "type": "object"
+      },
+      "OrderQuoteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "order_info": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemCreate"
+            },
+            "title": "Order Info",
+            "type": "array"
+          },
+          "shop_id": {
+            "format": "uuid",
+            "title": "Shop Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shop_id",
+          "order_info"
+        ],
+        "title": "OrderQuoteRequest",
+        "type": "object"
+      },
       "OrderSchema": {
         "properties": {
           "account_id": {
@@ -3118,6 +3194,7 @@
                 "type": "null"
               }
             ],
+            "description": "Unit price excluding VAT. Gross = price * (1 + tax_category rate).",
             "title": "Price"
           },
           "recurring_price_monthly": {
@@ -3940,6 +4017,7 @@
                 "type": "null"
               }
             ],
+            "description": "Unit price excluding VAT. Gross = price * (1 + tax_category rate).",
             "title": "Price"
           },
           "recurring_price_monthly": {
@@ -4259,6 +4337,7 @@
                 "type": "null"
               }
             ],
+            "description": "Unit price excluding VAT. Gross = price * (1 + tax_category rate).",
             "title": "Price"
           },
           "prices": {
@@ -4574,6 +4653,7 @@
                 "type": "null"
               }
             ],
+            "description": "Unit price excluding VAT. Gross = price * (1 + tax_category rate).",
             "title": "Price"
           },
           "prices": {
@@ -5992,7 +6072,7 @@
   "info": {
     "description": "Backend for ShopVirge Shops.",
     "title": "ShopVirge API",
-    "version": "0.4.7"
+    "version": "0.4.8"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -7564,6 +7644,48 @@
           }
         },
         "summary": "Check order statuses",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/orders/quote": {
+      "post": {
+        "description": "Calculate gross line prices, shipping, and total from product IDs, quantities, and plans.",
+        "operationId": "quote_orders_quote_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderQuoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderQuote"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Quote an order",
         "tags": [
           "orders"
         ]

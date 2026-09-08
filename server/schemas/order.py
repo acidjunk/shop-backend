@@ -64,16 +64,28 @@ class OrderItemCreate(BoilerplateBaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-# Properties to receive via API on creation. Prices and totals are derived from
-# the catalogue and must not be supplied by clients.
-class OrderCreate(BoilerplateBaseModel):
+class OrderQuoteRequest(BoilerplateBaseModel):
     shop_id: UUID
     order_info: List[OrderItemCreate]
+
+    model_config = ConfigDict(extra="forbid")
+
+
+# Properties to receive via API on creation. Prices and totals are derived from
+# the catalogue and must not be supplied by clients.
+class OrderCreate(OrderQuoteRequest):
     account_id: Optional[UUID] = None
     account_name: Optional[str] = None
     notes: Optional[str] = None
 
-    model_config = ConfigDict(extra="forbid")
+
+class OrderQuote(BoilerplateBaseModel):
+    order_info: List[OrderItem]
+    subtotal: Money
+    shipping_fee_inc_btw: Optional[Money] = None
+    free_shipping_applied: bool = False
+    free_shipping_threshold: Optional[Money] = None
+    total: Money
 
 
 class OrderPersisted(OrderBase):

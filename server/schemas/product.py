@@ -47,7 +47,9 @@ class ProductBase(BoilerplateBaseModel):
     shop_id: UUID
     # None for products detached from a deleted category (delete_category with detach=true)
     category_id: Optional[UUID] = None
-    price: Optional[Money] = None
+    price: Optional[Money] = Field(
+        None, description="Unit price excluding VAT. Gross = price * (1 + tax_category rate)."
+    )
     recurring_price_monthly: Optional[Money] = None
     recurring_price_yearly: Optional[Money] = None
     max_one: bool

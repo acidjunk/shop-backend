@@ -31,6 +31,8 @@ from server.schemas.order import (
     OrderCreated,
     OrderItem,
     OrderPersisted,
+    OrderQuote,
+    OrderQuoteRequest,
     OrderSchema,
     OrderStatusUpdate,
     OrderUpdated,
@@ -82,6 +84,39 @@ def _authoritative_unit_price_inc(product: ProductTable, shop: ShopTable, plan: 
 
     tax_rate = resolve_vat_rate(product, shop)
     return quantize_money(price * (Decimal("1") + tax_rate / Decimal("100")))
+
+
+def _quote_order(shop: ShopTable, data: OrderQuoteRequest, validate_stock: bool) -> OrderQuote:
+    order_info: list[OrderItem] = []
+    for requested_item in data.order_info:
+        product = product_crud.get_id_by_shop_id(shop.id, requested_item.product_id)
+        if not product:
+            raise_status(HTTPStatus.NOT_FOUND, f"Product '{requested_item.product_name}' not found")
+        if (
+            validate_stock
+            and shop.config["toggles"]["enable_stock_on_products"]
+            and product.stock < requested_item.quantity
+        ):
+            raise_status(HTTPStatus.BAD_REQUEST, f"Not enough stock for product '{requested_item.product_name}'")
+
+        order_info.append(
+            OrderItem(
+                **requested_item.model_dump(),
+                price=_authoritative_unit_price_inc(product, shop, requested_item.plan),
+            )
+        )
+
+    shipping_calc = compute_shipping_for_cart(order_info, shop)
+    shipping_fee_inc_btw = shipping_calc.fee_inc_btw if shipping_calc is not None else None
+    subtotal = quantize_money(sum((item.price * item.quantity for item in order_info), Decimal("0")))
+    return OrderQuote(
+        order_info=order_info,
+        subtotal=subtotal,
+        shipping_fee_inc_btw=shipping_fee_inc_btw,
+        free_shipping_applied=shipping_calc.free_shipping_applied if shipping_calc is not None else False,
+        free_shipping_threshold=shipping_calc.free_shipping_threshold if shipping_calc is not None else None,
+        total=quantize_money(subtotal + (shipping_fee_inc_btw or Decimal("0"))),
+    )
 
 
 @router.get(
@@ -238,6 +273,19 @@ def check(
 
 
 @router.post(
+    "/quote",
+    response_model=OrderQuote,
+    summary="Quote an order",
+    description="Calculate gross line prices, shipping, and total from product IDs, quantities, and plans.",
+)
+def quote(data: OrderQuoteRequest = Body(...)) -> OrderQuote:
+    shop = shop_crud.get(data.shop_id)
+    if not shop:
+        raise_status(HTTPStatus.NOT_FOUND, f"Shop with id {data.shop_id} not found")
+    return _quote_order(shop, data, validate_stock=False)
+
+
+@router.post(
     "/",
     response_model=OrderCreated,
     status_code=HTTPStatus.CREATED,
@@ -291,20 +339,7 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
         # allow test table to bypass IP check if any
         raise_status(HTTPStatus.BAD_REQUEST, "NOT_ON_SHOP_WIFI")
 
-    order_info: list[OrderItem] = []
-    for requested_item in data.order_info:
-        product = product_crud.get_id_by_shop_id(shop_id, requested_item.product_id)
-        if not product:
-            raise_status(HTTPStatus.NOT_FOUND, f"Product '{requested_item.product_name}' not found")
-        if shop.config["toggles"]["enable_stock_on_products"] and product.stock < requested_item.quantity:
-            raise_status(HTTPStatus.BAD_REQUEST, f"Not enough stock for product '{requested_item.product_name}'")
-
-        order_info.append(
-            OrderItem(
-                **requested_item.model_dump(),
-                price=_authoritative_unit_price_inc(product, shop, requested_item.plan),
-            )
-        )
+    order_quote = _quote_order(shop, data, validate_stock=True)
 
     status = "pending"
     completed_at = None
@@ -316,20 +351,16 @@ def create(request: Request, data: OrderCreate = Body(...)) -> OrderCreated:
     # Compute shipping fee from shop config and recompute the persisted total
     # server-side from the authoritative line prices so it can't be manipulated
     # by the client.
-    shipping_calc = compute_shipping_for_cart(order_info, shop)
-    shipping_fee_inc_btw = shipping_calc.fee_inc_btw if shipping_calc is not None else None
-    items_total = sum((item.price * item.quantity for item in order_info), Decimal("0"))
-    total = quantize_money(items_total + (shipping_fee_inc_btw or Decimal("0")))
     order = order_crud.create(
         obj_in=OrderPersisted(
             account_id=data.account_id,
-            total=total,
+            total=order_quote.total,
             notes=data.notes,
             customer_order_id=order_crud.get_newest_order_id(shop_id=shop_id),
             status=status,
-            shipping_fee_inc_btw=shipping_fee_inc_btw,
+            shipping_fee_inc_btw=order_quote.shipping_fee_inc_btw,
             shop_id=shop_id,
-            order_info=order_info,
+            order_info=order_quote.order_info,
             completed_at=completed_at,
         )
     )
