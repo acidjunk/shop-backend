@@ -8,7 +8,7 @@ from uuid import UUID
 import stripe
 import structlog
 from alembic.util import not_none
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.param_functions import Body, Depends
 from starlette.responses import Response
 
@@ -40,6 +40,19 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
+def _orders_containing_product(query: Any, product_id: Optional[UUID]) -> Any:
+    """Narrow ``query`` to orders that contain ``product_id`` in ``order_info``.
+
+    Order lines live in a JSONB array on the order, not in a column, so a product
+    cannot be reached through the generic ``filter`` query parameter — that only
+    matches real columns of ``OrderTable``. This does a JSONB containment match
+    (``@>``) instead, which is what the GIN index on ``order_info`` serves.
+    """
+    if product_id is None:
+        return query
+    return query.filter(OrderTable.order_info.contains([{"product_id": str(product_id)}]))
+
+
 @router.get(
     "/",
     response_model=List[OrderSchema],
@@ -48,11 +61,24 @@ router = APIRouter()
 )
 def get_multi(
     response: Response,
+    product_id: Optional[UUID] = Query(
+        None,
+        description=(
+            "Only return orders containing this product. Order lines live in the `order_info` "
+            "JSON rather than a column, so a product cannot be reached through `filter` — use "
+            "this instead. An order is returned once however many of its lines reference it."
+        ),
+    ),
     common: dict = Depends(common_parameters),
     current_user: CustomCognitoToken = Depends(auth_required),
 ) -> List[OrderSchema]:
+    query = _orders_containing_product(OrderTable.query, product_id)
     orders, header_range = order_crud.get_multi(
-        skip=common["skip"], limit=common["limit"], filter_parameters=common["filter"], sort_parameters=common["sort"]
+        query_parameter=query,
+        skip=common["skip"],
+        limit=common["limit"],
+        filter_parameters=common["filter"],
+        sort_parameters=common["sort"],
     )
     for order in orders:
         if order.account_id:
@@ -72,10 +98,19 @@ def get_multi(
 def show_all_pending_orders_per_shop(
     shop_id: UUID,
     response: Response,
+    product_id: Optional[UUID] = Query(
+        None,
+        description=(
+            "Only return orders containing this product. Order lines live in the `order_info` "
+            "JSON rather than a column, so a product cannot be reached through `filter` — use "
+            "this instead. An order is returned once however many of its lines reference it."
+        ),
+    ),
     common: dict = Depends(common_parameters),
     current_user: CustomCognitoToken = Depends(auth_required),
 ) -> List[OrderSchema]:
     query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(OrderTable.status == "pending")
+    query = _orders_containing_product(query, product_id)
     orders, header_range = order_crud.get_multi(
         query_parameter=query,
         skip=common["skip"],
@@ -103,12 +138,21 @@ def show_all_pending_orders_per_shop(
 def show_all_complete_orders_per_shop(
     shop_id: UUID,
     response: Response,
+    product_id: Optional[UUID] = Query(
+        None,
+        description=(
+            "Only return orders containing this product. Order lines live in the `order_info` "
+            "JSON rather than a column, so a product cannot be reached through `filter` — use "
+            "this instead. An order is returned once however many of its lines reference it."
+        ),
+    ),
     common: dict = Depends(common_parameters),
     current_user: CustomCognitoToken = Depends(auth_required),
 ) -> List[OrderSchema]:
     query = OrderTable.query.filter(OrderTable.shop_id == shop_id).filter(
         or_(OrderTable.status == "complete", OrderTable.status == "cancelled")
     )
+    query = _orders_containing_product(query, product_id)
     orders, header_range = order_crud.get_multi(
         query_parameter=query,
         skip=common["skip"],
