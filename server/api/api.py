@@ -85,6 +85,7 @@ api_router.include_router(
 
 # SHOP specific endpoints
 api_router.include_router(shops.router, prefix="/shops", tags=["shops"])
+api_router.include_router(shops.public_router, prefix="/shops", tags=["shops"])
 api_router.include_router(prices.router, prefix="/shops/{shop_id}/prices", tags=["shops"])
 api_router.include_router(
     orders.router,

@@ -53,15 +53,24 @@ cognito_eu = CognitoAuth(settings=CognitoSettings.from_global_settings(auth_sett
 _bearer_scheme = HTTPBearer(auto_error=False)
 
 
+def user_client_ids() -> set[str]:
+    """App-client ids whose tokens carry a real end user, not a machine.
+
+    Both the web app client and the MCP app client issue user tokens: they have
+    ``cognito:groups`` claims and are not scope-gated. Everything else reaching
+    ``auth_required`` is an M2M client credentials token.
+    """
+    return {
+        app_settings.AWS_COGNITO_CLIENT_ID,
+        app_settings.AWS_COGNITO_MCP_CLIENT_ID,
+    } - {""}
+
+
 def auth_required(
     token: CognitoToken = Depends(cognito_eu.auth_required),
     _: HTTPAuthorizationCredentials | None = Security(_bearer_scheme),
 ):
-    user_client_ids = {
-        app_settings.AWS_COGNITO_CLIENT_ID,
-        app_settings.AWS_COGNITO_MCP_CLIENT_ID,
-    } - {""}
-    if token.client_id in user_client_ids:
+    if token.client_id in user_client_ids():
         # No need to check scopes for user tokens
         return token
 
@@ -112,8 +121,11 @@ async def auth_required_any(
 
 
 def admin_required(token: CognitoToken = Depends(auth_required)):
-    # M2M tokens (already validated by auth_required) are trusted as admin.
-    if token.client_id != app_settings.AWS_COGNITO_CLIENT_ID:
+    # M2M tokens (already validated by auth_required) are trusted as admin. This
+    # must test membership of the *whole* user-client set: comparing against
+    # AWS_COGNITO_CLIENT_ID alone classified MCP user tokens as M2M, so any
+    # authenticated MCP user passed admin routes without the group check.
+    if token.client_id not in user_client_ids():
         return token
 
     if has_admin_group(getattr(token, "cognito_groups", [])):

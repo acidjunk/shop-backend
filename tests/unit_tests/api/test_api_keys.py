@@ -17,7 +17,8 @@ def real_auth_client(fastapi_app):
     real dual-auth dep runs (validates X-API-Key / Bearer headers against the
     DB). Other overrides — including the ``auth_required`` Cognito stub used
     by the api-key management endpoints — stay intact so we can still mint
-    keys from the test."""
+    keys from the test.
+    """
     override = fastapi_app.dependency_overrides.pop(auth_required_any, None)
     try:
         yield TestClient(fastapi_app)
